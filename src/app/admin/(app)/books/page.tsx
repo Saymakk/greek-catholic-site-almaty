@@ -1,0 +1,50 @@
+import { createClient } from "@/lib/supabase/server";
+import { requireStaff } from "@/lib/admin";
+import { getLang } from "@/lib/i18n-server";
+import { normalizeBookLocales } from "./book-locales";
+import { AdminBooksClient, type AdminBookPayload } from "./AdminBooksClient";
+
+export default async function AdminBooksPage() {
+  await requireStaff();
+  const lang = await getLang();
+  const supabase = await createClient();
+  const { data: books } = await supabase
+    .from("scripture_books")
+    .select(
+      `
+      id,
+      sort_order,
+      primary_lang,
+      scripture_book_locales ( lang, title, description, read_url, file_url, cover_image_url )
+    `,
+    )
+    .order("sort_order", { ascending: true });
+
+  const payload: AdminBookPayload[] = (books ?? []).map((b) => {
+    const raw = b as {
+      id: string;
+      sort_order: number;
+      primary_lang: string | null;
+      scripture_book_locales: {
+        lang: string;
+        title: string | null;
+        description: string | null;
+        read_url: string | null;
+        file_url: string | null;
+        cover_image_url: string | null;
+      }[];
+    };
+    const pl =
+      raw.primary_lang && ["ru", "uk", "kk", "en"].includes(raw.primary_lang)
+        ? raw.primary_lang
+        : null;
+    return {
+      id: String(raw.id),
+      sortOrder: Number(raw.sort_order ?? 0),
+      primaryLang: pl,
+      locales: normalizeBookLocales(raw.scripture_book_locales ?? [], pl),
+    };
+  });
+
+  return <AdminBooksClient lang={lang} books={payload} />;
+}

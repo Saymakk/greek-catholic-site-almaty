@@ -1,0 +1,2 @@
+-- Ранее: add column cover_image_url на scripture_books.
+-- Обложка хранится в scripture_book_locales.cover_image_url (см. init.sql и 20260407120000).

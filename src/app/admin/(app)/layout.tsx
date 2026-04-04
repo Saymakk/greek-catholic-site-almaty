@@ -1,0 +1,71 @@
+import { requireStaff } from "@/lib/admin";
+import Link from "next/link";
+import { signOut } from "@/app/actions/auth";
+import { getLang } from "@/lib/i18n-server";
+import { AdminLangBar } from "./AdminLangBar";
+
+export default async function AdminAppLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const profile = await requireStaff();
+  const lang = await getLang();
+
+  return (
+    <div className="flex min-h-screen bg-parish-bg">
+      <aside className="hidden w-52 shrink-0 border-r border-parish-border bg-parish-surface p-4 sm:block">
+        <p className="text-xs text-parish-muted">{profile.email}</p>
+        <p className="text-xs font-medium text-parish-accent">{profile.role}</p>
+        <div className="mt-4">
+          <AdminLangBar current={lang} />
+        </div>
+        <nav className="mt-6 flex flex-col gap-2 text-sm">
+          <Link href="/admin" className="text-parish-text hover:text-parish-accent">
+            Главная
+          </Link>
+          <Link href="/admin/news" className="text-parish-text hover:text-parish-accent">
+            Новости
+          </Link>
+          <Link href="/admin/calendar" className="text-parish-text hover:text-parish-accent">
+            Календарь
+          </Link>
+          <Link href="/admin/books" className="text-parish-text hover:text-parish-accent">
+            Писание
+          </Link>
+          <Link href="/admin/history" className="text-parish-text hover:text-parish-accent">
+            История (текст)
+          </Link>
+          <Link href="/admin/settings" className="text-parish-text hover:text-parish-accent">
+            Контакты / футер
+          </Link>
+          <Link href="/admin/account" className="text-parish-text hover:text-parish-accent">
+            Пароль
+          </Link>
+          {profile.role === "superadmin" ? (
+            <Link href="/admin/users" className="text-parish-text hover:text-parish-accent">
+              Пользователи
+            </Link>
+          ) : null}
+          <Link href="/" className="mt-4 text-parish-muted hover:text-parish-accent">
+            На сайт
+          </Link>
+        </nav>
+        <form action={signOut} className="mt-8">
+          <button
+            type="submit"
+            className="text-xs text-parish-muted underline hover:text-parish-accent"
+          >
+            Выйти
+          </button>
+        </form>
+      </aside>
+      <div className="min-w-0 flex-1 p-4 sm:p-8">
+        <div className="mb-4 sm:hidden">
+          <AdminLangBar current={lang} />
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
