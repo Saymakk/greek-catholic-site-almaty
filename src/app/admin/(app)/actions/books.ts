@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { requireStaff } from "@/lib/admin";
+import { logAdminActivity } from "@/lib/admin-activity-log";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { format } from "date-fns";
@@ -108,8 +109,16 @@ function orderedLocales(primary: ContentLang, present: Set<string>): ContentLang
   return [primary, ...CONTENT_ORDER.filter((l) => l !== primary && present.has(l))];
 }
 
+function firstTitleFromBookForm(formData: FormData): string | null {
+  for (const loc of [...CONTENT_ORDER, "main"] as const) {
+    const t = (formData.get(`title_${loc}`) as string)?.trim();
+    if (t) return t.length > 200 ? `${t.slice(0, 200)}…` : t;
+  }
+  return null;
+}
+
 export async function removeBookCover(bookId: string, locale: string) {
-  await requireStaff();
+  const profile = await requireStaff();
   if (!bookId || !LOCALE_FOR_COVER.has(locale)) return;
   const supabase = await createClient();
   const { error } = await supabase
@@ -118,6 +127,12 @@ export async function removeBookCover(bookId: string, locale: string) {
     .eq("book_id", bookId)
     .eq("lang", locale);
   if (error) throw new Error(error.message);
+  await logAdminActivity(supabase, profile, {
+    action: "scripture.cover_remove",
+    entityType: "scripture_book",
+    entityId: bookId,
+    meta: { locale },
+  });
   revalidatePath("/");
   revalidatePath("/admin/books");
 }
@@ -125,16 +140,21 @@ export async function removeBookCover(bookId: string, locale: string) {
 export async function deleteBookForm(formData: FormData) {
   const id = formData.get("id") as string;
   if (!id) return;
-  await requireStaff();
+  const profile = await requireStaff();
   const supabase = await createClient();
   await supabase.from("scripture_books").delete().eq("id", id);
+  await logAdminActivity(supabase, profile, {
+    action: "scripture.delete",
+    entityType: "scripture_book",
+    entityId: id,
+  });
   revalidatePath("/");
   revalidatePath("/admin/books");
   redirect("/admin/books");
 }
 
 export async function saveBook(formData: FormData) {
-  await requireStaff();
+  const profile = await requireStaff();
   const supabase = await createClient();
   const id = (formData.get("id") as string) || "";
 
@@ -243,6 +263,14 @@ export async function saveBook(formData: FormData) {
       if (error) throw new Error(error.message);
     }
   }
+
+  const titleHint = firstTitleFromBookForm(formData);
+  await logAdminActivity(supabase, profile, {
+    action: id ? "scripture.update" : "scripture.create",
+    entityType: "scripture_book",
+    entityId: bookId,
+    summary: titleHint,
+  });
 
   revalidatePath("/");
   redirect("/admin/books");

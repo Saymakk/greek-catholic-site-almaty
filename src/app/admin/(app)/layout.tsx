@@ -2,6 +2,7 @@ import { requireStaff } from "@/lib/admin";
 import Link from "next/link";
 import { signOut } from "@/app/actions/auth";
 import { getLang } from "@/lib/i18n-server";
+import { adminNavLabels, adminRoleLabel } from "@/lib/admin-layout-i18n";
 import { AdminLangBar } from "./AdminLangBar";
 
 export default async function AdminAppLayout({
@@ -11,44 +12,47 @@ export default async function AdminAppLayout({
 }) {
   const profile = await requireStaff();
   const lang = await getLang();
+  const n = adminNavLabels(lang);
 
   return (
     <div className="flex min-h-screen bg-parish-bg">
       <aside className="hidden w-52 shrink-0 border-r border-parish-border bg-parish-surface p-4 sm:block">
         <p className="text-xs text-parish-muted">{profile.email}</p>
-        <p className="text-xs font-medium text-parish-accent">{profile.role}</p>
+        <p className="text-xs font-medium text-parish-accent">
+          {adminRoleLabel(lang, profile.role)}
+        </p>
         <div className="mt-4">
           <AdminLangBar current={lang} />
         </div>
         <nav className="mt-6 flex flex-col gap-2 text-sm">
           <Link href="/admin" className="text-parish-text hover:text-parish-accent">
-            Главная
+            {n.home}
           </Link>
           <Link href="/admin/news" className="text-parish-text hover:text-parish-accent">
-            Новости
+            {n.news}
           </Link>
           <Link href="/admin/calendar" className="text-parish-text hover:text-parish-accent">
-            Календарь
+            {n.calendar}
           </Link>
           <Link href="/admin/books" className="text-parish-text hover:text-parish-accent">
-            Писание
+            {n.scripture}
           </Link>
           <Link href="/admin/history" className="text-parish-text hover:text-parish-accent">
-            История (текст)
+            {n.history}
           </Link>
           <Link href="/admin/settings" className="text-parish-text hover:text-parish-accent">
-            Контакты / футер
+            {n.settings}
           </Link>
           <Link href="/admin/account" className="text-parish-text hover:text-parish-accent">
-            Пароль
+            {n.account}
           </Link>
           {profile.role === "superadmin" ? (
             <Link href="/admin/users" className="text-parish-text hover:text-parish-accent">
-              Пользователи
+              {n.users}
             </Link>
           ) : null}
           <Link href="/" className="mt-4 text-parish-muted hover:text-parish-accent">
-            На сайт
+            {n.toSite}
           </Link>
         </nav>
         <form action={signOut} className="mt-8">
@@ -56,7 +60,7 @@ export default async function AdminAppLayout({
             type="submit"
             className="text-xs text-parish-muted underline hover:text-parish-accent"
           >
-            Выйти
+            {n.signOut}
           </button>
         </form>
       </aside>

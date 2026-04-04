@@ -1,74 +1,79 @@
 import { createClient } from "@/lib/supabase/server";
 import { requireStaff } from "@/lib/admin";
-import Link from "next/link";
-import { deleteNewsForm } from "../actions/news";
-import { format, parseISO } from "date-fns";
+import { getLang } from "@/lib/i18n-server";
+import { AdminNewsClient, type AdminNewsPayload } from "./AdminNewsClient";
+import { normalizeNewsLocales } from "./news-entity-locales";
+import { isSchemaCacheMissingColumn } from "@/lib/supabase-column-fallback";
 
-export default async function AdminNewsListPage() {
+export default async function AdminNewsListPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ id?: string }>;
+}) {
   await requireStaff();
+  const lang = await getLang();
+  const { id: openNewsId } = await searchParams;
   const supabase = await createClient();
-  const { data: rows } = await supabase
-    .from("news")
-    .select("id, published_at, is_published, news_i18n ( lang, title )")
-    .order("published_at", { ascending: false });
+  const i18n = "news_i18n ( lang, title, excerpt, body )";
+  const selFull = `id, published_at, is_published, primary_lang, cover_image_url, ${i18n}`;
+  const selNoPrimary = `id, published_at, is_published, cover_image_url, ${i18n}`;
+  const selNoCover = `id, published_at, is_published, primary_lang, ${i18n}`;
+  const selMin = `id, published_at, is_published, ${i18n}`;
+  const q = (sel: string) =>
+    supabase.from("news").select(sel).order("published_at", { ascending: false });
+
+  let res = await q(selFull);
+  if (res.error && isSchemaCacheMissingColumn(res.error, "primary_lang")) {
+    res = await q(selNoPrimary);
+  }
+  if (res.error && isSchemaCacheMissingColumn(res.error, "cover_image_url")) {
+    res = await q(selNoCover);
+    if (res.error && isSchemaCacheMissingColumn(res.error, "primary_lang")) {
+      res = await q(selMin);
+    }
+  }
+  if (res.error) {
+    const msg = res.error.message ?? "";
+    if (msg.includes("schema cache")) {
+      res = await q(selMin);
+    }
+  }
+  if (res.error) throw new Error(res.error.message);
+  type NewsListRow = {
+    id: string;
+    published_at: string;
+    is_published: boolean;
+    primary_lang?: string | null;
+    cover_image_url?: string | null;
+    news_i18n: {
+      lang: string;
+      title: string;
+      excerpt: string | null;
+      body: string;
+    }[];
+  };
+  const rows = (res.data ?? []) as unknown as NewsListRow[];
+
+  const items: AdminNewsPayload[] = rows.map((r) => {
+    const pl =
+      r.primary_lang && ["ru", "uk", "kk", "en"].includes(r.primary_lang)
+        ? r.primary_lang
+        : null;
+    return {
+      id: r.id,
+      published_at: r.published_at,
+      is_published: r.is_published,
+      primary_lang: pl,
+      cover_image_url: r.cover_image_url ?? null,
+      locales: normalizeNewsLocales(r.news_i18n ?? [], pl),
+    };
+  });
 
   return (
-    <div>
-      <div className="flex items-center justify-between gap-4">
-        <h1 className="font-display text-2xl text-parish-text">Новости</h1>
-        <Link
-          href="/admin/news/new"
-          className="rounded-lg bg-parish-accent px-4 py-2 text-sm text-white hover:opacity-90"
-        >
-          Создать
-        </Link>
-      </div>
-      <ul className="mt-8 space-y-3">
-        {(rows ?? []).map(
-          (n: {
-            id: string;
-            published_at: string;
-            is_published: boolean;
-            news_i18n: { lang: string; title: string }[];
-          }) => {
-            const title =
-              n.news_i18n?.find((x) => x.lang === "ru")?.title ??
-              n.news_i18n?.[0]?.title ??
-              "—";
-            return (
-              <li
-                key={n.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-parish-border bg-parish-surface px-4 py-3"
-              >
-                <div className="min-w-0 flex-1">
-                  <span className="text-sm text-parish-muted">
-                    {format(parseISO(n.published_at), "dd.MM.yyyy")}
-                    {!n.is_published ? " · черновик" : ""}
-                  </span>
-                  <p className="font-medium text-parish-text">{title}</p>
-                </div>
-                <div className="flex shrink-0 items-center gap-3">
-                  <Link
-                    href={`/admin/news/${n.id}`}
-                    className="inline-flex h-9 items-center justify-center rounded-lg border border-parish-border bg-parish-surface px-3 text-sm font-medium text-parish-accent hover:bg-parish-accent-soft"
-                  >
-                    Редактировать
-                  </Link>
-                  <form action={deleteNewsForm} className="inline-flex">
-                    <input type="hidden" name="id" value={n.id} />
-                    <button
-                      type="submit"
-                      className="inline-flex h-9 items-center justify-center rounded-lg border border-red-200 bg-parish-surface px-3 text-sm font-medium text-red-600 hover:bg-red-50"
-                    >
-                      Удалить
-                    </button>
-                  </form>
-                </div>
-              </li>
-            );
-          },
-        )}
-      </ul>
-    </div>
+    <AdminNewsClient
+      lang={lang}
+      items={items}
+      initialNewsId={openNewsId ?? null}
+    />
   );
 }

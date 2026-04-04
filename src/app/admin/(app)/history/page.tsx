@@ -1,44 +1,30 @@
 import { createClient } from "@/lib/supabase/server";
 import { requireStaff } from "@/lib/admin";
-import { saveHistory } from "../actions/content";
+import { getLang } from "@/lib/i18n-server";
+import { AdminHistoryClient } from "./AdminHistoryClient";
+import { normalizeHistoryLocales } from "./history-entity-locales";
 
-export default async function AdminHistoryPage() {
+export default async function AdminHistoryPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ edit?: string }>;
+}) {
   await requireStaff();
+  const uiLang = await getLang();
+  const { edit } = await searchParams;
+  const autoOpen = edit === "1" || edit === "true";
+
   const supabase = await createClient();
   const { data: rows } = await supabase
     .from("page_content")
     .select("lang, body")
     .eq("page_key", "history");
 
-  const byLang = Object.fromEntries(
-    (rows ?? []).map((r: { lang: string; body: string }) => [r.lang, r.body]),
+  const locales = normalizeHistoryLocales(
+    (rows ?? []) as { lang: string; body: string | null }[],
   );
 
   return (
-    <div>
-      <h1 className="font-display text-2xl text-parish-text">Страница «История»</h1>
-      <p className="mt-2 text-sm text-parish-muted">
-        Для каждого языка: обычный текст (абзацы через пустую строку) или HTML.
-      </p>
-      <form action={saveHistory} className="mt-8 max-w-4xl space-y-6">
-        {(["ru", "uk", "kk", "en"] as const).map((lang) => (
-          <label key={lang} className="block text-sm text-parish-muted">
-            {lang.toUpperCase()}
-            <textarea
-              name={`history_${lang}`}
-              rows={12}
-              defaultValue={byLang[lang] ?? ""}
-              className="mt-1 w-full rounded-lg border border-parish-border px-3 py-2 font-mono text-sm"
-            />
-          </label>
-        ))}
-        <button
-          type="submit"
-          className="rounded-lg bg-parish-accent px-6 py-2 text-white hover:opacity-90"
-        >
-          Сохранить
-        </button>
-      </form>
-    </div>
+    <AdminHistoryClient uiLang={uiLang} locales={locales} autoOpen={autoOpen} />
   );
 }

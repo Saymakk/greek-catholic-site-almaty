@@ -75,42 +75,64 @@ export function TodayWithCalendar({
           <ul className={isSidebar ? "mt-3 space-y-4" : "mt-4 space-y-6"}>
             {events.map((e) => (
               <li key={e.id}>
-                <p
+                <div
                   className={
                     isSidebar
-                      ? "text-sm font-semibold leading-snug text-parish-text"
-                      : "font-semibold text-parish-text"
+                      ? "flex gap-3"
+                      : "flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-4"
                   }
                 >
-                  {e.title}
-                </p>
-                {e.prayer ? (
-                  <div
-                    className={
-                      isSidebar
-                        ? "mt-2 rounded-lg bg-parish-surface/80 p-3 text-xs font-medium leading-relaxed text-parish-text"
-                        : "mt-3 rounded-xl bg-parish-surface/80 p-4 text-sm font-medium leading-relaxed text-parish-text"
-                    }
-                  >
+                  {e.coverImageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={e.coverImageUrl}
+                      alt=""
+                      className={
+                        isSidebar
+                          ? "h-20 w-14 shrink-0 rounded-md object-cover shadow-sm"
+                          : "mx-auto h-28 w-20 shrink-0 rounded-md object-cover shadow-sm sm:mx-0 sm:h-32 sm:w-[5.5rem]"
+                      }
+                    />
+                  ) : null}
+                  <div className="min-w-0 flex-1">
                     <p
                       className={
                         isSidebar
-                          ? "text-[10px] font-bold uppercase tracking-wide text-parish-muted"
-                          : "text-xs font-bold uppercase tracking-wide text-parish-muted"
+                          ? "text-sm font-semibold leading-snug text-parish-text"
+                          : "font-semibold text-parish-text"
                       }
                     >
-                      {t(lang, "prayer")}
+                      {e.title}
                     </p>
-                    <RichOrPlain
-                      content={e.prayer}
-                      className={
-                        isSidebar
-                          ? "rich-html mt-1 max-w-none leading-relaxed"
-                          : "rich-html mt-2 max-w-none text-sm leading-relaxed text-parish-text"
-                      }
-                    />
+                    {e.prayer ? (
+                      <div
+                        className={
+                          isSidebar
+                            ? "mt-2 rounded-lg bg-parish-surface/80 p-3 text-xs font-medium leading-relaxed text-parish-text"
+                            : "mt-3 rounded-xl bg-parish-surface/80 p-4 text-sm font-medium leading-relaxed text-parish-text"
+                        }
+                      >
+                        <p
+                          className={
+                            isSidebar
+                              ? "text-[10px] font-bold uppercase tracking-wide text-parish-muted"
+                              : "text-xs font-bold uppercase tracking-wide text-parish-muted"
+                          }
+                        >
+                          {t(lang, "prayer")}
+                        </p>
+                        <RichOrPlain
+                          content={e.prayer}
+                          className={
+                            isSidebar
+                              ? "rich-html mt-1 max-w-none leading-relaxed"
+                              : "rich-html mt-2 max-w-none text-sm leading-relaxed text-parish-text"
+                          }
+                        />
+                      </div>
+                    ) : null}
                   </div>
-                ) : null}
+                </div>
               </li>
             ))}
           </ul>

@@ -1,3 +1,4 @@
+import { logAdminActivity } from "@/lib/admin-activity-log";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
@@ -13,7 +14,7 @@ export async function POST(req: Request) {
   }
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("id, email, role")
     .eq("id", user.id)
     .single();
   if (profile?.role !== "superadmin") {
@@ -59,6 +60,15 @@ export async function POST(req: Request) {
       { error: createErr?.message ?? "Не удалось создать пользователя" },
       { status: 400 },
     );
+  }
+
+  if (profile) {
+    await logAdminActivity(supabase, profile, {
+      action: "user.invite",
+      entityType: "auth",
+      entityId: created.user.id,
+      summary: email,
+    });
   }
 
   return NextResponse.json({ ok: true });

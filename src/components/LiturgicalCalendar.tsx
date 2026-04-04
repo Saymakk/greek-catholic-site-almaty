@@ -37,6 +37,7 @@ export function LiturgicalCalendar({
   const [month, setMonth] = useState(() => new Date(initialMonthIso));
   const [events, setEvents] = useState<LiturgicalEventView[]>(initialEvents);
   const [modal, setModal] = useState<LiturgicalEventView | null>(null);
+  const [coverLightboxUrl, setCoverLightboxUrl] = useState<string | null>(null);
   const skipInitialFetch = useRef(!!embedded);
 
   const gridStart = startOfWeek(startOfMonth(month), { weekStartsOn: 1 });
@@ -55,6 +56,10 @@ export function LiturgicalCalendar({
 
   const gridStartKey = format(gridStart, "yyyy-MM-dd");
   const gridEndKey = format(gridEnd, "yyyy-MM-dd");
+
+  useEffect(() => {
+    if (!modal) setCoverLightboxUrl(null);
+  }, [modal]);
 
   useEffect(() => {
     if (skipInitialFetch.current) {
@@ -187,6 +192,23 @@ export function LiturgicalCalendar({
             <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-parish-muted">
               {modal.kind.replace(/_/g, " ")}
             </p>
+            {modal.coverImageUrl ? (
+              <button
+                type="button"
+                className="mt-4 block w-full rounded-xl focus:outline-none focus:ring-2 focus:ring-parish-accent/50"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCoverLightboxUrl(modal.coverImageUrl);
+                }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={modal.coverImageUrl}
+                  alt=""
+                  className="mx-auto max-h-[min(512px,70vh)] max-w-full w-auto cursor-zoom-in rounded-xl border border-parish-border object-contain shadow-sm"
+                />
+              </button>
+            ) : null}
             <RichOrPlain
               content={modal.explanation}
               className="rich-html mt-4 max-w-none text-sm font-medium leading-relaxed text-parish-text"
@@ -207,9 +229,27 @@ export function LiturgicalCalendar({
               className="mt-6 w-full rounded-lg border border-parish-border py-2 text-sm font-semibold text-parish-accent hover:bg-parish-accent-soft"
               onClick={() => setModal(null)}
             >
-              OK
+              {t(lang, "closeModal")}
             </button>
           </div>
+        </div>
+      ) : null}
+
+      {coverLightboxUrl ? (
+        <div
+          className="fixed inset-0 z-[110] flex items-center justify-center bg-parish-text/40 p-4 backdrop-blur-sm"
+          role="dialog"
+          aria-modal
+          aria-label="Image"
+          onClick={() => setCoverLightboxUrl(null)}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={coverLightboxUrl}
+            alt=""
+            className="max-h-[95vh] max-w-[95vw] object-contain shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
         </div>
       ) : null}
     </>

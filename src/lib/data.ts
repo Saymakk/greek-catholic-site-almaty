@@ -2,6 +2,12 @@ import { createClient } from "@/lib/supabase/server";
 import type { Lang } from "@/lib/i18n";
 import { format } from "date-fns";
 import { pickLocalized } from "@/lib/locale-fallback";
+import {
+  buildScriptureLangCodes,
+  pickLiturgicalI18nRow,
+  pickNewsI18nRow,
+} from "@/lib/content-lang-chain";
+import { isSchemaCacheMissingColumn } from "@/lib/supabase-column-fallback";
 import { t } from "@/lib/ui-strings";
 
 export type NewsRow = {
@@ -15,14 +21,39 @@ export type NewsRow = {
 
 export async function getNewsForLang(lang: Lang): Promise<NewsRow[]> {
   const supabase = await createClient();
-  const { data: news } = await supabase
-    .from("news")
-    .select("id, published_at, cover_image_url")
-    .eq("is_published", true)
-    .order("published_at", { ascending: false })
-    .limit(200);
+  const q = (cols: string) =>
+    supabase
+      .from("news")
+      .select(cols)
+      .eq("is_published", true)
+      .order("published_at", { ascending: false })
+      .limit(200);
 
-  if (!news?.length) return [];
+  let res = await q("id, published_at, cover_image_url, primary_lang");
+  if (res.error && isSchemaCacheMissingColumn(res.error, "primary_lang")) {
+    res = await q("id, published_at, cover_image_url");
+  }
+  if (res.error && isSchemaCacheMissingColumn(res.error, "cover_image_url")) {
+    res = await q("id, published_at, primary_lang");
+    if (res.error && isSchemaCacheMissingColumn(res.error, "primary_lang")) {
+      res = await q("id, published_at");
+    }
+  }
+  if (res.error) {
+    const msg = res.error.message ?? "";
+    if (msg.includes("schema cache")) {
+      res = await q("id, published_at");
+    }
+  }
+  if (res.error) return [];
+  type NewsListItem = {
+    id: string;
+    published_at: string;
+    cover_image_url?: string | null;
+    primary_lang?: string | null;
+  };
+  const news = (res.data ?? []) as unknown as NewsListItem[];
+  if (!news.length) return [];
 
   const ids = news.map((n) => n.id);
   const { data: i18nRows } = await supabase
@@ -57,9 +88,10 @@ export async function getNewsForLang(lang: Lang): Promise<NewsRow[]> {
   return news
     .map((n) => {
       const m = byNews.get(n.id);
-      const primary = m?.[lang];
-      const ru = m?.ru;
-      const chosen = primary ?? ru;
+      const plRaw = n.primary_lang;
+      const primaryLang =
+        plRaw && ["ru", "uk", "kk", "en"].includes(plRaw) ? plRaw : null;
+      const chosen = pickNewsI18nRow(m ?? {}, lang, primaryLang);
       if (!chosen) return null;
       return {
         id: n.id,
@@ -67,7 +99,7 @@ export async function getNewsForLang(lang: Lang): Promise<NewsRow[]> {
         title: chosen.title,
         excerpt: chosen.excerpt,
         body: chosen.body,
-        coverImageUrl: (n as { cover_image_url?: string | null }).cover_image_url ?? null,
+        coverImageUrl: n.cover_image_url ?? null,
       };
     })
     .filter((x): x is NewsRow => x != null);
@@ -80,28 +112,81 @@ export type LiturgicalEventView = {
   title: string;
   explanation: string;
   prayer: string | null;
+  coverImageUrl: string | null;
 };
+
+type LiturgicalEventPickRow = {
+  id: string;
+  event_date: string;
+  kind: string;
+  sort_order?: number;
+  primary_lang?: string | null;
+  cover_image_url?: string | null;
+  liturgical_event_i18n: {
+    lang: string;
+    title: string;
+    explanation: string;
+    prayer: string | null;
+  }[];
+};
+
+type LiturgicalRowFilter =
+  | { mode: "date"; dateStr: string }
+  | { mode: "range"; start: string; end: string };
+
+async function loadLiturgicalEventRows(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  filter: LiturgicalRowFilter,
+): Promise<LiturgicalEventPickRow[]> {
+  const i18n =
+    "liturgical_event_i18n ( lang, title, explanation, prayer )";
+  const selFull = `id, event_date, kind, sort_order, primary_lang, cover_image_url, ${i18n}`;
+  const selCoverOnly = `id, event_date, kind, sort_order, cover_image_url, ${i18n}`;
+  const selPrimaryOnly = `id, event_date, kind, sort_order, primary_lang, ${i18n}`;
+  const selMin = `id, event_date, kind, sort_order, ${i18n}`;
+
+  const run = (sel: string) => {
+    const base = supabase.from("liturgical_events").select(sel);
+    if (filter.mode === "date") {
+      return base.eq("event_date", filter.dateStr).order("sort_order");
+    }
+    return base
+      .gte("event_date", filter.start)
+      .lte("event_date", filter.end)
+      .order("event_date")
+      .order("sort_order");
+  };
+
+  let res = await run(selFull);
+  if (res.error) {
+    const msg = res.error.message ?? "";
+    if (!msg.includes("schema cache")) return [];
+    if (msg.includes("primary_lang")) {
+      res = await run(selCoverOnly);
+    } else if (msg.includes("cover_image_url")) {
+      res = await run(selPrimaryOnly);
+    }
+  }
+  if (res.error) {
+    const msg = res.error.message ?? "";
+    if (msg.includes("schema cache")) {
+      res = await run(selMin);
+    }
+  }
+  if (res.error) return [];
+  return (res.data ?? []) as unknown as LiturgicalEventPickRow[];
+}
 
 export async function getLiturgicalForDate(
   dateStr: string,
   lang: Lang,
 ): Promise<LiturgicalEventView[]> {
   const supabase = await createClient();
-  const { data: events } = await supabase
-    .from("liturgical_events")
-    .select(
-      `
-      id,
-      event_date,
-      kind,
-      sort_order,
-      liturgical_event_i18n ( lang, title, explanation, prayer )
-    `,
-    )
-    .eq("event_date", dateStr)
-    .order("sort_order");
-
-  if (!events?.length) return [];
+  const events = await loadLiturgicalEventRows(supabase, {
+    mode: "date",
+    dateStr,
+  });
+  if (!events.length) return [];
   return events.map((e) => pickI18n(e, lang));
 }
 
@@ -111,23 +196,12 @@ export async function getLiturgicalRange(
   lang: Lang,
 ): Promise<LiturgicalEventView[]> {
   const supabase = await createClient();
-  const { data: events } = await supabase
-    .from("liturgical_events")
-    .select(
-      `
-      id,
-      event_date,
-      kind,
-      sort_order,
-      liturgical_event_i18n ( lang, title, explanation, prayer )
-    `,
-    )
-    .gte("event_date", start)
-    .lte("event_date", end)
-    .order("event_date")
-    .order("sort_order");
-
-  if (!events?.length) return [];
+  const events = await loadLiturgicalEventRows(supabase, {
+    mode: "range",
+    start,
+    end,
+  });
+  if (!events.length) return [];
   return events.map((e) => pickI18n(e, lang));
 }
 
@@ -136,6 +210,8 @@ function pickI18n(
     id: string;
     event_date: string;
     kind: string;
+    primary_lang?: string | null;
+    cover_image_url?: string | null;
     liturgical_event_i18n: {
       lang: string;
       title: string;
@@ -146,16 +222,31 @@ function pickI18n(
   lang: Lang,
 ): LiturgicalEventView {
   const rows = e.liturgical_event_i18n ?? [];
-  const primary = rows.find((r) => r.lang === lang);
-  const ru = rows.find((r) => r.lang === "ru");
-  const row = primary ?? ru ?? rows[0];
+  const pl = e.primary_lang;
+  const primaryLang = pl && ["ru", "uk", "kk", "en"].includes(pl) ? pl : null;
+  const byLang: Partial<
+    Record<Lang, { title: string; explanation: string; prayer: string | null }>
+  > = {};
+  for (const r of rows) {
+    if (r.lang === "ru" || r.lang === "uk" || r.lang === "kk" || r.lang === "en") {
+      byLang[r.lang] = {
+        title: r.title,
+        explanation: r.explanation,
+        prayer: r.prayer,
+      };
+    }
+  }
+  const row = pickLiturgicalI18nRow(byLang, lang, primaryLang);
+  const fallback = rows[0];
+  const chosen = row ?? fallback;
   return {
     id: e.id,
     event_date: e.event_date,
     kind: e.kind,
-    title: row?.title ?? "—",
-    explanation: row?.explanation ?? "",
-    prayer: row?.prayer ?? null,
+    title: chosen?.title ?? "—",
+    explanation: chosen?.explanation ?? "",
+    prayer: chosen?.prayer ?? null,
+    coverImageUrl: e.cover_image_url ?? null,
   };
 }
 
@@ -209,7 +300,7 @@ function scriptureLangLabel(siteLang: Lang, code: string): string {
   return key ? t(siteLang, key) : code;
 }
 
-/** Порядок: язык интерфейса → русский → основная редакция (primary_lang или main) → остальные */
+/** Порядок: интерфейс → основная редакция (или main) → ru…en → прочие */
 function editionPriorityChain(
   editions: ScriptureLocaleRow[],
   siteLang: Lang,
@@ -223,12 +314,8 @@ function editionPriorityChain(
     seen.add(row.lang);
     out.push(row);
   }
-  take(by(siteLang));
-  if (siteLang !== "ru") take(by("ru"));
-  if (primaryLang && ["ru", "uk", "kk", "en"].includes(primaryLang)) {
-    take(by(primaryLang));
-  } else {
-    take(by("main"));
+  for (const code of buildScriptureLangCodes(siteLang, primaryLang)) {
+    take(by(code));
   }
   for (const e of editions) take(e);
   return out;

@@ -4,8 +4,23 @@ import { createClient } from "@/lib/supabase/server";
 import { requireStaff } from "@/lib/admin";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { isContentLang, type ContentLang } from "../books/book-locales";
+import { logAdminActivity } from "@/lib/admin-activity-log";
+import { isSchemaCacheMissingColumn } from "@/lib/supabase-column-fallback";
 
-const LANGS = ["ru", "uk", "kk", "en"] as const;
+const CONTENT: ContentLang[] = ["ru", "uk", "kk", "en"];
+
+function firstTitleFromNewsForm(formData: FormData): string | null {
+  for (const l of CONTENT) {
+    const t = (formData.get(`title_${l}`) as string)?.trim();
+    if (t) return t.length > 200 ? `${t.slice(0, 200)}…` : t;
+  }
+  return null;
+}
+
+function orderedLocales(primary: ContentLang, present: Set<string>): ContentLang[] {
+  return [primary, ...CONTENT.filter((l) => l !== primary && present.has(l))];
+}
 
 async function uploadNewsCover(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -24,56 +39,110 @@ async function uploadNewsCover(
   return data.publicUrl;
 }
 
+export async function removeNewsCover(newsId: string) {
+  const profile = await requireStaff();
+  if (!newsId) return;
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("news")
+    .update({ cover_image_url: null })
+    .eq("id", newsId);
+  if (error) throw new Error(error.message);
+  await logAdminActivity(supabase, profile, {
+    action: "news.cover_remove",
+    entityType: "news",
+    entityId: newsId,
+  });
+  revalidatePath("/");
+  revalidatePath("/admin/news");
+}
+
 export async function deleteNewsForm(formData: FormData) {
   const id = formData.get("id") as string;
   if (!id) return;
-  await requireStaff();
+  const profile = await requireStaff();
   const supabase = await createClient();
   await supabase.from("news").delete().eq("id", id);
+  await logAdminActivity(supabase, profile, {
+    action: "news.delete",
+    entityType: "news",
+    entityId: id,
+  });
   revalidatePath("/");
   revalidatePath("/admin/news");
 }
 
 export async function saveNews(formData: FormData) {
-  await requireStaff();
+  const profile = await requireStaff();
   const supabase = await createClient();
   const id = (formData.get("id") as string) || "";
   const published = formData.get("is_published") === "on";
-  const removeCover = formData.get("remove_cover") === "on";
+
+  const primaryRaw = (formData.get("primary_lang") as string)?.trim() ?? "ru";
+  if (!isContentLang(primaryRaw)) throw new Error("Invalid primary_lang");
+  const primary_lang = primaryRaw;
+
+  const localesRaw = ((formData.get("locales") as string) ?? primary_lang)
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const present = new Set<string>();
+  for (const l of localesRaw) {
+    if (isContentLang(l)) present.add(l);
+  }
+  present.add(primary_lang);
+  const locales = orderedLocales(primary_lang, present);
 
   let newsId = id;
   if (!newsId) {
-    const { data, error } = await supabase
+    let ins = await supabase
       .from("news")
-      .insert({ is_published: published })
+      .insert({ is_published: published, primary_lang })
       .select("id")
       .single();
-    if (error) throw new Error(error.message);
-    newsId = data.id;
+    if (ins.error && isSchemaCacheMissingColumn(ins.error, "primary_lang")) {
+      ins = await supabase
+        .from("news")
+        .insert({ is_published: published })
+        .select("id")
+        .single();
+    }
+    if (ins.error) throw new Error(ins.error.message);
+    newsId = ins.data!.id;
   } else {
-    await supabase
+    let up = await supabase
       .from("news")
       .update({
         is_published: published,
+        primary_lang,
         updated_at: new Date().toISOString(),
       })
       .eq("id", newsId);
-  }
-
-  if (removeCover) {
-    await supabase.from("news").update({ cover_image_url: null }).eq("id", newsId);
+    if (up.error && isSchemaCacheMissingColumn(up.error, "primary_lang")) {
+      up = await supabase
+        .from("news")
+        .update({
+          is_published: published,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", newsId);
+    }
+    if (up.error) throw new Error(up.error.message);
   }
 
   const cover = formData.get("cover");
-  if (!removeCover && cover instanceof File && cover.size > 0) {
+  if (cover instanceof File && cover.size > 0) {
     const url = await uploadNewsCover(supabase, newsId, cover);
     await supabase.from("news").update({ cover_image_url: url }).eq("id", newsId);
   }
 
-  for (const lang of LANGS) {
+  for (const lang of locales) {
     const title = (formData.get(`title_${lang}`) as string)?.trim() ?? "";
     const body = (formData.get(`body_${lang}`) as string)?.trim() ?? "";
-    if (!title && !body) continue;
+    if (!title && !body) {
+      await supabase.from("news_i18n").delete().eq("news_id", newsId).eq("lang", lang);
+      continue;
+    }
     const excerpt = (formData.get(`excerpt_${lang}`) as string)?.trim() || null;
     const { error } = await supabase.from("news_i18n").upsert(
       {
@@ -87,6 +156,30 @@ export async function saveNews(formData: FormData) {
     );
     if (error) throw new Error(error.message);
   }
+
+  const { data: existingRows } = await supabase
+    .from("news_i18n")
+    .select("lang")
+    .eq("news_id", newsId);
+  for (const r of existingRows ?? []) {
+    const lg = (r as { lang: string }).lang;
+    if (!(locales as readonly string[]).includes(lg)) {
+      const { error } = await supabase
+        .from("news_i18n")
+        .delete()
+        .eq("news_id", newsId)
+        .eq("lang", lg);
+      if (error) throw new Error(error.message);
+    }
+  }
+
+  const titleHint = firstTitleFromNewsForm(formData);
+  await logAdminActivity(supabase, profile, {
+    action: id ? "news.update" : "news.create",
+    entityType: "news",
+    entityId: newsId,
+    summary: titleHint,
+  });
 
   revalidatePath("/");
   redirect("/admin/news");

@@ -1,8 +1,11 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+const INACTIVITY_MS = 30 * 60 * 1000;
+const ACTIVITY_COOKIE = "parish_activity_at";
+
 export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
+  let response = NextResponse.next({
     request,
   });
 
@@ -18,18 +21,48 @@ export async function updateSession(request: NextRequest) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value),
           );
-          supabaseResponse = NextResponse.next({
+          response = NextResponse.next({
             request,
           });
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options),
+            response.cookies.set(name, value, options),
           );
         },
       },
     },
   );
 
-  await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  return supabaseResponse;
+  if (user) {
+    const raw = request.cookies.get(ACTIVITY_COOKIE)?.value;
+    const now = Date.now();
+    if (raw) {
+      const last = Number(raw);
+      if (!Number.isNaN(last) && now - last > INACTIVITY_MS) {
+        await supabase.auth.signOut();
+        const url = request.nextUrl.clone();
+        url.pathname = "/admin/login";
+        url.search = "";
+        const redirectRes = NextResponse.redirect(url);
+        redirectRes.cookies.delete(ACTIVITY_COOKIE);
+        response.cookies.getAll().forEach((c) => {
+          redirectRes.cookies.set(c.name, c.value);
+        });
+        return redirectRes;
+      }
+    }
+    response.cookies.set(ACTIVITY_COOKIE, String(now), {
+      path: "/",
+      httpOnly: true,
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24,
+    });
+  } else {
+    response.cookies.delete(ACTIVITY_COOKIE);
+  }
+
+  return response;
 }

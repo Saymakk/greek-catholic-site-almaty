@@ -53,6 +53,13 @@ body {
   margin-top: 1rem;
   margin-bottom: 0.5rem;
 }
+.rich-html img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+}
 
 /* Модальные окна админки (native <dialog>) */
 dialog::backdrop {
