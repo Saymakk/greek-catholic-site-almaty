@@ -7,7 +7,11 @@ import type { Metadata } from "next";
 
 export async function generateMetadata(): Promise<Metadata> {
   const lang = await getLang();
-  return { title: `${t(lang, "aboutNavContacts")} · ${t(lang, "parishName")}` };
+  return {
+    title: `${t(lang, "aboutNavContacts")} · ${t(lang, "parishName")}`,
+    description: `${t(lang, "contacts")}, ${t(lang, "address")}. ${t(lang, "parishName")}, ${t(lang, "city")}.`,
+    alternates: { canonical: "/about/contacts" },
+  };
 }
 
 export default async function AboutContactsPage() {

@@ -7,15 +7,15 @@ import {
   endOfMonth,
   endOfWeek,
   format,
-  isSameMonth,
-  isToday,
   startOfMonth,
   startOfWeek,
   subMonths,
 } from "date-fns";
+import { formatInTimeZone, toZonedTime } from "date-fns-tz";
 import { enUS, ru, uk } from "date-fns/locale";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Lang } from "@/lib/i18n";
+import { getSiteTimeZone } from "@/lib/site-timezone";
 import { t } from "@/lib/ui-strings";
 import type { LiturgicalEventView } from "@/lib/data";
 import { LiturgicalEventModal } from "./LiturgicalEventModal";
@@ -24,8 +24,6 @@ import { SiteLoadingSpinner } from "./SiteLoadingSpinner";
 type Props = {
   lang: Lang;
   initialEvents: LiturgicalEventView[];
-  /** ISO string — Date не сериализуется в RSC → клиент */
-  initialMonthIso: string;
   /** Внутри модального окна — без обёртки section и заголовка страницы */
   embedded?: boolean;
 };
@@ -39,10 +37,10 @@ function dateFnsLocale(siteLang: Lang) {
 export function LiturgicalCalendar({
   lang,
   initialEvents,
-  initialMonthIso,
   embedded = false,
 }: Props) {
-  const [month, setMonth] = useState(() => new Date(initialMonthIso));
+  const tz = getSiteTimeZone();
+  const [month, setMonth] = useState(() => startOfMonth(toZonedTime(new Date(), tz)));
   const [events, setEvents] = useState<LiturgicalEventView[]>(initialEvents);
   const [modal, setModal] = useState<LiturgicalEventView | null>(null);
   const [rangeLoading, setRangeLoading] = useState(false);
@@ -62,8 +60,9 @@ export function LiturgicalCalendar({
     return m;
   }, [events]);
 
-  const gridStartKey = format(gridStart, "yyyy-MM-dd");
-  const gridEndKey = format(gridEnd, "yyyy-MM-dd");
+  const gridStartKey = formatInTimeZone(gridStart, tz, "yyyy-MM-dd");
+  const gridEndKey = formatInTimeZone(gridEnd, tz, "yyyy-MM-dd");
+  const todayKey = formatInTimeZone(new Date(), tz, "yyyy-MM-dd");
 
   const dfLocale = dateFnsLocale(lang);
   const mondayRef = startOfWeek(new Date(2024, 0, 1), { weekStartsOn: 1 });
@@ -148,9 +147,10 @@ export function LiturgicalCalendar({
             </div>
           ))}
           {days.map((day) => {
-            const key = format(day, "yyyy-MM-dd");
+            const key = formatInTimeZone(day, tz, "yyyy-MM-dd");
             const list = byDate.get(key) ?? [];
-            const muted = !isSameMonth(day, month);
+            const muted =
+              formatInTimeZone(day, tz, "yyyy-MM") !== formatInTimeZone(month, tz, "yyyy-MM");
             return (
               <button
                 key={key}
@@ -161,7 +161,7 @@ export function LiturgicalCalendar({
                 className={[
                   "min-h-[4.5rem] rounded-xl border p-1 text-left align-top transition sm:min-h-[5.5rem] sm:p-2",
                   muted ? "border-transparent bg-transparent opacity-40" : "border-parish-border/60 bg-parish-surface",
-                  isToday(day) ? "ring-2 ring-parish-accent/30" : "",
+                  key === todayKey ? "ring-2 ring-parish-accent/30" : "",
                   list.length ? "cursor-pointer hover:border-parish-accent" : "cursor-default",
                 ].join(" ")}
               >

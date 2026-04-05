@@ -80,7 +80,7 @@ export function NewsSection({ lang, news }: { lang: Lang; news: NewsRow[] }) {
         <button
           type="button"
           onClick={() => setFiltersOpen((v) => !v)}
-          className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border text-parish-muted shadow-sm transition ${
+          className={`inline-flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-xl border text-parish-muted shadow-sm transition ${
             filtersOpen
               ? "border-parish-accent bg-parish-accent-soft text-parish-accent"
               : "border-parish-border bg-parish-surface hover:border-parish-accent/50 hover:text-parish-accent"
@@ -100,7 +100,7 @@ export function NewsSection({ lang, news }: { lang: Lang; news: NewsRow[] }) {
             <input
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
-              className="rounded-lg border border-parish-border px-3 py-2 text-sm font-medium text-parish-text"
+              className="min-h-11 rounded-lg border border-parish-border px-3 py-2 text-base font-medium text-parish-text sm:min-h-0 sm:text-sm"
               placeholder="…"
             />
           </label>
@@ -110,7 +110,7 @@ export function NewsSection({ lang, news }: { lang: Lang; news: NewsRow[] }) {
               type="date"
               value={from}
               onChange={(e) => setFrom(e.target.value)}
-              className="rounded-lg border border-parish-border px-3 py-2 text-sm font-medium text-parish-text"
+              className="min-h-11 rounded-lg border border-parish-border px-3 py-2 text-base font-medium text-parish-text sm:min-h-0 sm:text-sm"
             />
           </label>
           <label className="flex flex-col gap-1 text-xs font-semibold text-parish-muted">
@@ -119,7 +119,7 @@ export function NewsSection({ lang, news }: { lang: Lang; news: NewsRow[] }) {
               type="date"
               value={to}
               onChange={(e) => setTo(e.target.value)}
-              className="rounded-lg border border-parish-border px-3 py-2 text-sm font-medium text-parish-text"
+              className="min-h-11 rounded-lg border border-parish-border px-3 py-2 text-base font-medium text-parish-text sm:min-h-0 sm:text-sm"
             />
           </label>
           <button
@@ -129,7 +129,7 @@ export function NewsSection({ lang, news }: { lang: Lang; news: NewsRow[] }) {
               setFrom("");
               setTo("");
             }}
-            className="rounded-lg border border-parish-border bg-parish-accent-soft px-4 py-2 text-sm font-semibold text-parish-accent hover:bg-parish-border/40"
+            className="min-h-11 touch-manipulation rounded-lg border border-parish-border bg-parish-accent-soft px-4 py-2.5 text-sm font-semibold text-parish-accent hover:bg-parish-border/40"
           >
             {t(lang, "resetFilters")}
           </button>

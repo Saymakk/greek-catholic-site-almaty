@@ -71,7 +71,7 @@ export default async function AdminAppLayout({
           </button>
         </form>
       </aside>
-      <div className="min-w-0 flex-1 p-4 sm:p-8">
+      <div className="min-w-0 flex-1 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] ps-[max(1rem,env(safe-area-inset-left))] pe-[max(1rem,env(safe-area-inset-right))] sm:p-8">
         <AdminMobileNav lang={lang} profile={profile} />
         {children}
       </div>

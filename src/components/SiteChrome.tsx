@@ -1,4 +1,5 @@
 import { getLang } from "@/lib/i18n-server";
+import { SeoJsonLd } from "./SeoJsonLd";
 import { SiteHeader } from "./SiteHeader";
 import { SiteFooter } from "./SiteFooter";
 
@@ -7,6 +8,7 @@ export async function SiteChrome({ children }: { children: React.ReactNode }) {
 
   return (
     <>
+      <SeoJsonLd lang={lang} />
       <SiteHeader lang={lang} />
       <div className="min-w-0 w-full flex-1">{children}</div>
       <SiteFooter lang={lang} />

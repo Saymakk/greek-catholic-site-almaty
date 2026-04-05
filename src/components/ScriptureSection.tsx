@@ -78,12 +78,15 @@ export function ScriptureSection({
         {books.length === 0 ? (
           <li className="font-medium text-parish-muted">{t(lang, "notAvailableLang")}</li>
         ) : (
-          pageBooks.map((b) => (
-            <li
-              key={b.id}
-              className="flex gap-3 overflow-hidden rounded-xl border border-parish-border bg-parish-surface p-2 shadow-sm sm:gap-3 sm:p-3"
-            >
-              <div className="relative mt-0 aspect-[2/3] w-14 shrink-0 overflow-hidden rounded-md bg-parish-surface sm:w-16">
+          pageBooks.map((b) => {
+            const cover = (
+              <div
+                className={
+                  isSidebar
+                    ? "relative mt-0 aspect-[2/3] w-16 shrink-0 overflow-hidden rounded-md bg-parish-surface sm:w-[4.5rem]"
+                    : "relative mt-0 aspect-[2/3] w-14 shrink-0 overflow-hidden rounded-md bg-parish-surface sm:w-16"
+                }
+              >
                 {b.coverImageUrl ? (
                   <button
                     type="button"
@@ -104,69 +107,100 @@ export function ScriptureSection({
                   </span>
                 )}
               </div>
+            );
 
-              <div className="flex min-h-0 min-w-0 flex-1 flex-col justify-between gap-2">
-                <div>
-                  <p
-                    className={
-                      isSidebar
-                        ? "line-clamp-3 text-xs font-semibold leading-snug text-parish-text sm:text-sm"
-                        : "line-clamp-3 text-sm font-semibold leading-snug text-parish-text"
-                    }
-                  >
-                    {b.title ?? "—"}
+            const titleBlock = (
+              <div className="min-w-0 flex-1">
+                <p
+                  className={
+                    isSidebar
+                      ? "line-clamp-4 text-xs font-semibold leading-snug text-parish-text sm:text-sm"
+                      : "line-clamp-3 text-sm font-semibold leading-snug text-parish-text"
+                  }
+                >
+                  {b.title ?? "—"}
+                </p>
+                {b.primaryLang ? (
+                  <p className="mt-1 text-[10px] leading-snug text-parish-muted sm:text-[11px]">
+                    {t(lang, "scripturePrimaryOnSite")}:{" "}
+                    <span className="font-medium text-parish-text">
+                      {bookPrimaryNativeName(lang, b.primaryLang)}
+                    </span>
                   </p>
-                  {b.primaryLang ? (
-                    <p className="mt-1 text-[10px] leading-snug text-parish-muted sm:text-[11px]">
-                      {t(lang, "scripturePrimaryOnSite")}:{" "}
-                      <span className="font-medium text-parish-text">
-                        {bookPrimaryNativeName(lang, b.primaryLang)}
-                      </span>
-                    </p>
-                  ) : b.legacyMain ? (
-                    <p className="mt-1 text-[10px] leading-snug text-parish-muted sm:text-[11px]">
-                      {t(lang, "scripturePrimaryLegacyNote")}
-                    </p>
-                  ) : null}
-                </div>
-
-                <div className="mt-[5px] space-y-2 border-t border-parish-border pt-2">
-                  {b.readMenu.some((m) => m.url) ? (
-                    <ScriptureReadPicker
-                      lang={lang}
-                      options={b.readMenu}
-                      anchorClassName="block w-full"
-                      className={footerRead}
-                    >
-                      {t(lang, "readOnline")}
-                    </ScriptureReadPicker>
-                  ) : null}
-                  <div className="flex flex-col gap-2">
-                    {b.fileMenu.some((m) => m.url) ? (
-                      <div className="w-full">
-                        <ScriptureFilePicker
-                          lang={lang}
-                          options={b.fileMenu}
-                          anchorClassName="block w-full"
-                          className={footerDownload}
-                        >
-                          {t(lang, "download")}
-                        </ScriptureFilePicker>
-                      </div>
-                    ) : null}
-                    <button type="button" onClick={() => setDetailBook(b)} className={footerDetails}>
-                      {t(lang, "moreDetails")}
-                    </button>
-                  </div>
-                  {!b.readMenu.some((m) => m.url) && !b.fileMenu.some((m) => m.url) ? (
-                    <p className="text-center text-xs font-medium text-parish-muted">
-                      {t(lang, "notAvailableLang")}
-                    </p>
-                  ) : null}
-                </div>
+                ) : b.legacyMain ? (
+                  <p className="mt-1 text-[10px] leading-snug text-parish-muted sm:text-[11px]">
+                    {t(lang, "scripturePrimaryLegacyNote")}
+                  </p>
+                ) : null}
               </div>
-            </li>
-          ))
+            );
+
+            const actionsFooter = (
+              <div className="space-y-2">
+                {b.readMenu.some((m) => m.url) ? (
+                  <ScriptureReadPicker
+                    lang={lang}
+                    options={b.readMenu}
+                    anchorClassName="block w-full"
+                    className={footerRead}
+                  >
+                    {t(lang, "readOnline")}
+                  </ScriptureReadPicker>
+                ) : null}
+                <div className="flex flex-col gap-2">
+                  {b.fileMenu.some((m) => m.url) ? (
+                    <div className="w-full">
+                      <ScriptureFilePicker
+                        lang={lang}
+                        options={b.fileMenu}
+                        anchorClassName="block w-full"
+                        className={footerDownload}
+                      >
+                        {t(lang, "download")}
+                      </ScriptureFilePicker>
+                    </div>
+                  ) : null}
+                  <button type="button" onClick={() => setDetailBook(b)} className={footerDetails}>
+                    {t(lang, "moreDetails")}
+                  </button>
+                </div>
+                {!b.readMenu.some((m) => m.url) && !b.fileMenu.some((m) => m.url) ? (
+                  <p className="text-center text-xs font-medium text-parish-muted">
+                    {t(lang, "notAvailableLang")}
+                  </p>
+                ) : null}
+              </div>
+            );
+
+            return (
+              <li
+                key={b.id}
+                className={
+                  isSidebar
+                    ? "flex flex-col overflow-hidden rounded-xl border border-parish-border bg-parish-surface p-2 shadow-sm sm:p-3"
+                    : "flex gap-3 overflow-hidden rounded-xl border border-parish-border bg-parish-surface p-2 shadow-sm sm:gap-3 sm:p-3"
+                }
+              >
+                {isSidebar ? (
+                  <>
+                    <div className="flex gap-3">
+                      {cover}
+                      {titleBlock}
+                    </div>
+                    <div className="mt-3 w-full border-t border-parish-border pt-3">{actionsFooter}</div>
+                  </>
+                ) : (
+                  <>
+                    {cover}
+                    <div className="flex min-h-0 min-w-0 flex-1 flex-col justify-between gap-2">
+                      {titleBlock}
+                      <div className="mt-[5px] border-t border-parish-border pt-2">{actionsFooter}</div>
+                    </div>
+                  </>
+                )}
+              </li>
+            );
+          })
         )}
       </ul>
       {books.length > 0 ? (

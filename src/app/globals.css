@@ -23,12 +23,26 @@
   --font-ui: var(--font-source), ui-sans-serif, system-ui, sans-serif;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-ui);
   font-weight: 500;
   -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+
+/* Горизонтальная навигация в шапке на узких экранах */
+.nav-scroll-x {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.nav-scroll-x::-webkit-scrollbar {
+  display: none;
 }
 
 .font-display {

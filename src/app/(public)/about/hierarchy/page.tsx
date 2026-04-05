@@ -4,7 +4,11 @@ import type { Metadata } from "next";
 
 export async function generateMetadata(): Promise<Metadata> {
   const lang = await getLang();
-  return { title: `${t(lang, "hierarchyPageTitle")} · ${t(lang, "parishName")}` };
+  return {
+    title: `${t(lang, "hierarchyPageTitle")} · ${t(lang, "parishName")}`,
+    description: t(lang, "hierarchyPageIntro"),
+    alternates: { canonical: "/about/hierarchy" },
+  };
 }
 
 export default async function HierarchyPage() {

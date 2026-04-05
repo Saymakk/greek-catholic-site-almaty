@@ -17,7 +17,7 @@ export function LangSwitcher({
     <label className="flex items-center gap-2 text-sm text-parish-muted">
       <span className="sr-only">{srOnlyLabel ?? "Language"}</span>
       <select
-        className="rounded-lg border border-parish-border bg-parish-surface px-2 py-1 text-parish-text focus:outline-none focus:ring-2 focus:ring-parish-accent/40"
+        className="min-h-11 min-w-[5.5rem] touch-manipulation rounded-lg border border-parish-border bg-parish-surface px-2 py-2 text-base text-parish-text focus:outline-none focus:ring-2 focus:ring-parish-accent/40 sm:min-h-0 sm:py-1 sm:text-sm"
         value={current}
         onChange={async (e) => {
           await setLang(e.target.value);

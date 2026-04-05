@@ -7,35 +7,42 @@ import {
   getTelegramMessages,
   getExternalLiturgicalWidgetSettings,
   resolveExternalLiturgicalWidgetSrcs,
+  liturgicalGridRangeForSiteNow,
   todayStr,
 } from "@/lib/data";
+import type { Metadata } from "next";
 import { getLang } from "@/lib/i18n-server";
+import { getSiteUrl } from "@/lib/site-url";
 import { NewsSection } from "@/components/NewsSection";
 import { TodayWithCalendar } from "@/components/TodayWithCalendar";
 import { ScriptureSection } from "@/components/ScriptureSection";
 import { TelegramSection } from "@/components/TelegramSection";
 import { t } from "@/lib/ui-strings";
-import {
-  endOfMonth,
-  endOfWeek,
-  format,
-  startOfMonth,
-  startOfWeek,
-} from "date-fns";
+import { format } from "date-fns";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const base = getSiteUrl();
+  return {
+    alternates: { canonical: "/" },
+    openGraph: { url: base },
+  };
+}
 
 export default async function HomePage() {
   const lang = await getLang();
   const today = todayStr();
-  const now = new Date();
-  const gridStart = startOfWeek(startOfMonth(now), { weekStartsOn: 1 });
-  const gridEnd = endOfWeek(endOfMonth(now), { weekStartsOn: 1 });
+  const { gridStart, gridEnd } = liturgicalGridRangeForSiteNow();
 
   const [newsRes, todayPage, todayCount, initialEvents, booksRes, telegram, widgetSettings] =
     await Promise.all([
       getNewsPage(lang, 1, 200),
       getLiturgicalForDatePage(today, lang, 1, 10),
       getLiturgicalForDateCount(today),
-      getLiturgicalRange(format(gridStart, "yyyy-MM-dd"), format(gridEnd, "yyyy-MM-dd"), lang),
+      getLiturgicalRange(
+        format(gridStart, "yyyy-MM-dd"),
+        format(gridEnd, "yyyy-MM-dd"),
+        lang,
+      ),
       getScriptureBooksPage(lang, 1, 200),
       getTelegramMessages(25),
       getExternalLiturgicalWidgetSettings(),
@@ -45,8 +52,8 @@ export default async function HomePage() {
   const books = booksRes.items;
 
   return (
-    <div className="w-full px-4 py-12 sm:px-6 lg:px-10 xl:px-14 2xl:px-20">
-      <div className="grid grid-cols-1 gap-y-14 lg:grid-cols-[20%_50%_20%] lg:gap-x-[5%] lg:gap-y-0 lg:items-start">
+    <div className="w-full py-8 pb-[max(2rem,env(safe-area-inset-bottom))] ps-[max(1rem,env(safe-area-inset-left))] pe-[max(1rem,env(safe-area-inset-right))] sm:px-6 sm:py-12 lg:px-10 xl:px-14 2xl:px-20">
+      <div className="grid grid-cols-1 gap-y-10 sm:gap-y-12 lg:grid-cols-[20%_50%_20%] lg:gap-x-[5%] lg:gap-y-0 lg:items-start">
         <div className="min-w-0 scroll-mt-24 overflow-visible">
           <ScriptureSection lang={lang} books={books} variant="sidebar" />
         </div>
@@ -60,7 +67,6 @@ export default async function HomePage() {
             todayDateStr={today}
             todayTotal={todayCount}
             initialEvents={initialEvents}
-            initialMonthIso={now.toISOString()}
             variant="sidebar"
           />
           {externalWidgetSrcs.length > 0 ? (
@@ -68,14 +74,14 @@ export default async function HomePage() {
               {externalWidgetSrcs.map((src) => (
                 <div
                   key={src}
-                  className="mx-auto h-[240px] w-[300px] shrink-0 overflow-hidden"
+                  className="mx-auto h-[240px] w-full max-w-[min(300px,calc(100vw-2rem))] shrink-0 overflow-hidden"
                 >
                   <iframe
                     width={300}
                     height={240}
                     title={t(lang, "externalLiturgicalWidgetIframeTitle")}
                     src={src}
-                    className="block border-0"
+                    className="mx-auto block h-[240px] w-full max-w-[300px] border-0"
                     loading="lazy"
                     scrolling="no"
                   />

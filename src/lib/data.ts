@@ -10,6 +10,8 @@ import {
 import { isSchemaCacheMissingColumn } from "@/lib/supabase-column-fallback";
 import { t } from "@/lib/ui-strings";
 
+export { liturgicalGridRangeForSiteNow, todayStr } from "@/lib/liturgical-site-dates";
+
 export type NewsRow = {
   id: string;
   published_at: string;
@@ -471,10 +473,6 @@ function pickI18n(
     prayer: chosen?.prayer ?? null,
     coverImageUrl: e.cover_image_url ?? null,
   };
-}
-
-export function todayStr() {
-  return format(new Date(), "yyyy-MM-dd");
 }
 
 type ScriptureLocaleRow = {

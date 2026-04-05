@@ -12,7 +12,11 @@ const SECTIONS: { href: string; key: UiKey }[] = [
 
 export async function generateMetadata(): Promise<Metadata> {
   const lang = await getLang();
-  return { title: `${t(lang, "aboutChurchPageTitle")} · ${t(lang, "parishName")}` };
+  return {
+    title: `${t(lang, "aboutChurchPageTitle")} · ${t(lang, "parishName")}`,
+    description: t(lang, "aboutChurchIntro"),
+    alternates: { canonical: "/about" },
+  };
 }
 
 export default async function AboutPage() {

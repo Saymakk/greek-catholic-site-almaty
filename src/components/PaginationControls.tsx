@@ -31,7 +31,7 @@ export function PaginationControls({
         type="button"
         disabled={page <= 1}
         onClick={() => onPageChange(page - 1)}
-        className="rounded-lg border border-parish-border px-3 py-1.5 text-parish-accent transition hover:bg-parish-accent-soft disabled:cursor-not-allowed disabled:opacity-40"
+        className="min-h-11 min-w-[2.75rem] touch-manipulation rounded-lg border border-parish-border px-3 py-2 text-parish-accent transition hover:bg-parish-accent-soft disabled:cursor-not-allowed disabled:opacity-40 sm:min-h-0 sm:min-w-0 sm:py-1.5"
       >
         {t(lang, "paginationPrev")}
       </button>
@@ -40,7 +40,7 @@ export function PaginationControls({
         type="button"
         disabled={page >= totalPages}
         onClick={() => onPageChange(page + 1)}
-        className="rounded-lg border border-parish-border px-3 py-1.5 text-parish-accent transition hover:bg-parish-accent-soft disabled:cursor-not-allowed disabled:opacity-40"
+        className="min-h-11 min-w-[2.75rem] touch-manipulation rounded-lg border border-parish-border px-3 py-2 text-parish-accent transition hover:bg-parish-accent-soft disabled:cursor-not-allowed disabled:opacity-40 sm:min-h-0 sm:min-w-0 sm:py-1.5"
       >
         {t(lang, "paginationNext")}
       </button>

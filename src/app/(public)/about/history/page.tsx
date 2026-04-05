@@ -6,7 +6,10 @@ import type { Metadata } from "next";
 
 export async function generateMetadata(): Promise<Metadata> {
   const lang = await getLang();
-  return { title: `${t(lang, "historyPageTitle")} · ${t(lang, "parishName")}` };
+  return {
+    title: `${t(lang, "historyPageTitle")} · ${t(lang, "parishName")}`,
+    alternates: { canonical: "/about/history" },
+  };
 }
 
 export default async function AboutHistoryPage() {

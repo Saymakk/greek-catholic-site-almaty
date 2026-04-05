@@ -20,6 +20,7 @@ import { CalendarEventEditForm } from "./CalendarEventEditForm";
 import { TemplateEditDialog } from "./TemplateEditDialog";
 import { normalizeCalendarLocales } from "./calendar-entity-locales";
 import type { ExternalLiturgicalWidgetSettings } from "@/lib/data";
+import { todayStr } from "@/lib/liturgical-site-dates";
 import type {
   AdminCalendarPayload,
   CalendarExtraRow,
@@ -52,7 +53,7 @@ function listTitle(item: AdminCalendarPayload, uiLang: Lang): string {
 }
 
 function todayIso() {
-  return format(new Date(), "yyyy-MM-dd");
+  return todayStr();
 }
 
 function extrasHaveAnyLabel(extras: CalendarExtraRow[]): boolean {

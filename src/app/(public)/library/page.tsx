@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getLang } from "@/lib/i18n-server";
 import { getScriptureLibraryPage } from "@/lib/data";
@@ -6,6 +7,15 @@ import { LibraryBooksGrid } from "@/components/LibraryBooksGrid";
 import { LibraryFiltersToggle } from "@/components/LibraryFiltersToggle";
 
 const GRID_PAGE = 21;
+
+export async function generateMetadata(): Promise<Metadata> {
+  const lang = await getLang();
+  return {
+    title: `${t(lang, "libraryPageTitle")} · ${t(lang, "parishName")}`,
+    description: `${t(lang, "scriptureTitle")}. ${t(lang, "scriptureHint")}`,
+    alternates: { canonical: "/library" },
+  };
+}
 
 export default async function LibraryPage({
   searchParams,
