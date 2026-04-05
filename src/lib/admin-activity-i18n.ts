@@ -68,6 +68,12 @@ const labels: Record<string, Record<Lang, string>> = {
     kk: "Күнтізбе үлгісі жаңартылды",
     en: "Calendar template updated",
   },
+  "liturgical.external_widget.save": {
+    ru: "Сохранены настройки виджета календаря на главной",
+    uk: "Збережено налаштування віджета календаря на головній",
+    kk: "Басты беттегі күнтізбе виджетінің баптаулары сақталды",
+    en: "Homepage calendar widget settings saved",
+  },
   "scripture.create": {
     ru: "Добавлена книга",
     uk: "Додано книгу",
@@ -122,6 +128,24 @@ const labels: Record<string, Record<Lang, string>> = {
     kk: "Қауым жойылды (Қазақстан)",
     en: "Kazakhstan parish deleted",
   },
+  "clergy.create": {
+    ru: "Добавлен священнослужитель",
+    uk: "Додано духовенство",
+    kk: "Дін қызметкері қосылды",
+    en: "Clergy entry added",
+  },
+  "clergy.update": {
+    ru: "Обновлён священнослужитель",
+    uk: "Оновлено запис духовенства",
+    kk: "Дін қызметкері жаңартылды",
+    en: "Clergy entry updated",
+  },
+  "clergy.delete": {
+    ru: "Удалён священнослужитель",
+    uk: "Видалено запис духовенства",
+    kk: "Дін қызметкері жойылды",
+    en: "Clergy entry deleted",
+  },
   "user.invite": {
     ru: "Приглашён пользователь",
     uk: "Запрошено користувача",
@@ -160,6 +184,12 @@ export function adminActivityEntityLabel(lang: Lang, entityType: string): string
       uk: "Парафії Казахстану",
       kk: "Қазақстан қауымдары",
       en: "Kazakhstan parishes",
+    },
+    clergy: {
+      ru: "Священнослужители",
+      uk: "Духовенство",
+      kk: "Дін қызметкерлері",
+      en: "Clergy",
     },
     site_settings: { ru: "Настройки", uk: "Налаштування", kk: "Баптаулар", en: "Settings" },
     auth: { ru: "Пользователи", uk: "Користувачі", kk: "Пайдаланушылар", en: "Users" },

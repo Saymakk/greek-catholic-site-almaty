@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { isContentLang, type ContentLang } from "../books/book-locales";
 import { logAdminActivity } from "@/lib/admin-activity-log";
 import { isSchemaCacheMissingColumn } from "@/lib/supabase-column-fallback";
+import { parseHttpImageUrlFromFormData } from "@/lib/admin-image-url";
 
 const CONTENT: ContentLang[] = ["ru", "uk", "kk", "en"];
 
@@ -134,6 +135,11 @@ export async function saveNews(formData: FormData) {
   if (cover instanceof File && cover.size > 0) {
     const url = await uploadNewsCover(supabase, newsId, cover);
     await supabase.from("news").update({ cover_image_url: url }).eq("id", newsId);
+  } else {
+    const coverUrl = parseHttpImageUrlFromFormData(formData, "cover_image_url", "Обложка (URL)");
+    if (coverUrl) {
+      await supabase.from("news").update({ cover_image_url: coverUrl }).eq("id", newsId);
+    }
   }
 
   for (const lang of locales) {

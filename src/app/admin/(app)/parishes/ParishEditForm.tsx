@@ -2,6 +2,7 @@
 
 import { AdminModalSavingOverlay } from "@/components/AdminModalSavingOverlay";
 import type { KazakhstanParishRow } from "@/lib/data";
+import type { AdminSharedImageCopy } from "@/lib/admin-shared-image-i18n";
 import type { AdminParishesScreenCopy } from "@/lib/admin-layout-i18n";
 import { mapEmbedRawForParishForm } from "@/lib/map-embed";
 import { saveParish } from "../actions/parishes";
@@ -18,11 +19,13 @@ const LANG_LABEL: Record<(typeof LANGS)[number], keyof AdminParishesScreenCopy> 
 export function ParishEditForm({
   parish,
   copy,
+  imageCopy,
   submitLabel,
   onCancel,
 }: {
   parish: KazakhstanParishRow;
   copy: AdminParishesScreenCopy;
+  imageCopy: AdminSharedImageCopy;
   submitLabel: string;
   onCancel?: () => void;
 }) {
@@ -33,10 +36,6 @@ export function ParishEditForm({
     <form action={saveParish} className="flex min-h-0 min-w-0 flex-1 flex-col">
       <input type="hidden" name="id" value={r.id} />
       <div className="admin-book-dialog__scroll min-h-0 flex-1 space-y-5 px-4 py-4 sm:px-6">
-        <label className="flex items-center gap-2 text-sm text-parish-text">
-          <input type="checkbox" name="is_published" defaultChecked={r.is_published} className="rounded" />
-          {copy.published}
-        </label>
         <label className="block text-sm text-parish-text">
           <span className="font-medium">{copy.websiteUrl}</span>
           <input
@@ -74,6 +73,17 @@ export function ParishEditForm({
               {copy.removeParishPhoto}
             </label>
             <input type="file" name="parish_photo" accept="image/*" className="block w-full text-xs" />
+            <label className="block text-xs text-parish-muted">
+              {imageCopy.orImageUrl}
+              <input
+                type="url"
+                name="parish_photo_url"
+                defaultValue={r.parish_photo_url ?? ""}
+                placeholder={imageCopy.imageUrlPlaceholder}
+                className="mt-1 w-full rounded border border-parish-border px-2 py-1 text-sm text-parish-text"
+              />
+            </label>
+            <p className="text-[11px] text-parish-muted">{imageCopy.fileWinsHint}</p>
           </div>
           <div className="space-y-2 rounded-lg border border-parish-border/70 p-3">
             <p className="text-sm font-medium text-parish-text">{copy.priestPhoto}</p>
@@ -90,6 +100,17 @@ export function ParishEditForm({
               {copy.removePriestPhoto}
             </label>
             <input type="file" name="priest_photo" accept="image/*" className="block w-full text-xs" />
+            <label className="block text-xs text-parish-muted">
+              {imageCopy.orImageUrl}
+              <input
+                type="url"
+                name="priest_photo_url"
+                defaultValue={r.priest_photo_url ?? ""}
+                placeholder={imageCopy.imageUrlPlaceholder}
+                className="mt-1 w-full rounded border border-parish-border px-2 py-1 text-sm text-parish-text"
+              />
+            </label>
+            <p className="text-[11px] text-parish-muted">{imageCopy.fileWinsHint}</p>
           </div>
         </div>
 

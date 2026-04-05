@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireStaff } from "@/lib/admin";
 import { getLang } from "@/lib/i18n-server";
 import type { Lang } from "@/lib/i18n";
+import { getExternalLiturgicalWidgetSettings } from "@/lib/data";
 import { AdminCalendarClient } from "./AdminCalendarClient";
 import type { AdminCalendarPayload, CalendarExtraRow } from "./calendar-admin-types";
 import { normalizeCalendarLocales } from "./calendar-entity-locales";
@@ -37,7 +38,10 @@ export default async function AdminCalendarPage({
   const offerTemplate =
     offerTemplateRaw && /^[0-9a-f-]{36}$/i.test(offerTemplateRaw) ? offerTemplateRaw : null;
 
-  const supabase = await createClient();
+  const [supabase, externalWidget] = await Promise.all([
+    createClient(),
+    getExternalLiturgicalWidgetSettings(),
+  ]);
   const i18n =
     "liturgical_event_i18n ( lang, title, explanation, prayer )";
   const selFull = `id, event_date, kind, created_at, primary_lang, cover_image_url, ${i18n}`;
@@ -177,6 +181,7 @@ export default async function AdminCalendarPage({
       kindLabelsBySlug={kindLabelsBySlug}
       initialEventId={openEventId ?? null}
       offerTemplateEventId={offerTemplate}
+      externalWidget={externalWidget}
     />
   );
 }

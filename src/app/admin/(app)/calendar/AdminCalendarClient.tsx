@@ -8,15 +8,18 @@ import type { Lang } from "@/lib/i18n";
 import { pickLiturgicalI18nRow } from "@/lib/content-lang-chain";
 import { adminCalendarScreenCopy } from "@/lib/admin-layout-i18n";
 import { adminCalendarFormMsg } from "@/lib/admin-calendar-form-i18n";
+import { adminSharedImageCopy } from "@/lib/admin-shared-image-i18n";
 import { AdminModalSavingOverlay } from "@/components/AdminModalSavingOverlay";
 import {
   deleteLiturgicalEventForm,
   deleteLiturgicalTemplateForm,
+  saveExternalLiturgicalWidgetForm,
   saveLiturgicalTemplateFromEventForm,
 } from "../actions/calendar";
 import { CalendarEventEditForm } from "./CalendarEventEditForm";
 import { TemplateEditDialog } from "./TemplateEditDialog";
 import { normalizeCalendarLocales } from "./calendar-entity-locales";
+import type { ExternalLiturgicalWidgetSettings } from "@/lib/data";
 import type {
   AdminCalendarPayload,
   CalendarExtraRow,
@@ -166,6 +169,7 @@ export function AdminCalendarClient({
   kindLabelsBySlug,
   initialEventId,
   offerTemplateEventId,
+  externalWidget,
 }: {
   lang: Lang;
   items: AdminCalendarPayload[];
@@ -173,9 +177,11 @@ export function AdminCalendarClient({
   kindLabelsBySlug: Record<string, Partial<Record<Lang, string>>>;
   initialEventId: string | null;
   offerTemplateEventId: string | null;
+  externalWidget: ExternalLiturgicalWidgetSettings;
 }) {
   const c = adminCalendarScreenCopy(lang);
   const formMsg = adminCalendarFormMsg(lang);
+  const imageCopy = adminSharedImageCopy(lang);
   const router = useRouter();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [mode, setMode] = useState<"add" | "edit" | null>(null);
@@ -253,7 +259,35 @@ export function AdminCalendarClient({
           <h1 className="font-display text-2xl text-parish-text">{c.title}</h1>
           <p className="mt-2 max-w-2xl text-sm text-parish-muted">{c.intro}</p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex w-full flex-wrap items-center justify-center gap-2 sm:w-auto sm:justify-end">
+          <form action={saveExternalLiturgicalWidgetForm} className="inline">
+            <input type="hidden" name="widget_action" value="toggle_new_julian" />
+            <button
+              type="submit"
+              className={
+                externalWidget.new_julian
+                  ? "shrink-0 rounded-lg bg-parish-accent px-3 py-2 text-sm font-medium text-white shadow-sm hover:opacity-90"
+                  : "shrink-0 rounded-lg border border-parish-border bg-parish-surface px-3 py-2 text-sm font-medium text-parish-text shadow-sm hover:bg-parish-accent-soft"
+              }
+            >
+              {c.externalWidgetNewJulian}
+            </button>
+            <AdminModalSavingOverlay />
+          </form>
+          <form action={saveExternalLiturgicalWidgetForm} className="inline">
+            <input type="hidden" name="widget_action" value="toggle_gregorian" />
+            <button
+              type="submit"
+              className={
+                externalWidget.gregorian
+                  ? "shrink-0 rounded-lg bg-parish-accent px-3 py-2 text-sm font-medium text-white shadow-sm hover:opacity-90"
+                  : "shrink-0 rounded-lg border border-parish-border bg-parish-surface px-3 py-2 text-sm font-medium text-parish-text shadow-sm hover:bg-parish-accent-soft"
+              }
+            >
+              {c.externalWidgetGregorian}
+            </button>
+            <AdminModalSavingOverlay />
+          </form>
           <button
             type="button"
             onClick={() => setTemplatesModalOpen(true)}
@@ -270,6 +304,7 @@ export function AdminCalendarClient({
           </button>
         </div>
       </div>
+
       <ul className="mt-8 space-y-4">
         {items.map((e) => (
           <li
@@ -359,6 +394,7 @@ export function AdminCalendarClient({
             <CalendarEventEditForm
               key={mode === "add" ? "new-cal" : active.id}
               uiLang={lang}
+              imageCopy={imageCopy}
               eventId={active.id}
               eventDate={active.event_date}
               kind={active.kind}

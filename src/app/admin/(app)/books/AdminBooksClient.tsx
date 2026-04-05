@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Lang } from "@/lib/i18n";
 import { adminBooksMsg, editionLegendKey, type AdminBooksMsg } from "@/lib/admin-books-i18n";
+import { adminSharedImageCopy } from "@/lib/admin-shared-image-i18n";
 import { deleteBookForm } from "../actions/books";
 import { BookEditForm, type BookLocaleFields } from "./BookEditForm";
 import { sortLangsForForm, isContentLang, type ContentLang } from "./book-locales";
@@ -43,6 +44,7 @@ export function AdminBooksClient({
   books: AdminBookPayload[];
 }) {
   const msg = adminBooksMsg(lang);
+  const imageCopy = adminSharedImageCopy(lang);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [mode, setMode] = useState<"add" | "edit" | null>(null);
   const [activeBook, setActiveBook] = useState<AdminBookPayload | null>(null);
@@ -209,6 +211,7 @@ export function AdminBooksClient({
               locales={activeBook.locales}
               submitLabel={mode === "add" ? msg.addSubmit : msg.save}
               msg={msg}
+              imageCopy={imageCopy}
               onCancel={closeDialog}
               fluidScale
               modalLayout

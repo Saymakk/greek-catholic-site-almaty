@@ -13,6 +13,7 @@ import {
   type CalendarLocaleFields,
 } from "./calendar-entity-locales";
 import type { Lang } from "@/lib/i18n";
+import type { AdminSharedImageCopy } from "@/lib/admin-shared-image-i18n";
 import { AdminModalSavingOverlay } from "@/components/AdminModalSavingOverlay";
 import { adminCalendarFormMsg } from "@/lib/admin-calendar-form-i18n";
 import type { CalendarExtraRow, CalendarTemplatePayload } from "./calendar-admin-types";
@@ -89,6 +90,7 @@ const BODY_KEYS = [
 
 export function CalendarEventEditForm({
   uiLang,
+  imageCopy,
   eventId,
   eventDate,
   kind: kindInitial,
@@ -103,6 +105,7 @@ export function CalendarEventEditForm({
   onCancel,
 }: {
   uiLang: Lang;
+  imageCopy: AdminSharedImageCopy;
   eventId: string;
   eventDate: string;
   kind: string;
@@ -369,6 +372,17 @@ export function CalendarEventEditForm({
                 className="mt-1 block w-full text-sm text-parish-text"
               />
             </label>
+            <label className="mt-2 block text-xs text-parish-muted">
+              {imageCopy.orImageUrl}
+              <input
+                type="url"
+                name="cover_image_url"
+                defaultValue={coverImageUrlProp ?? ""}
+                placeholder={imageCopy.imageUrlPlaceholder}
+                className="mt-1 block w-full rounded border border-parish-border px-2 py-1.5 text-sm text-parish-text"
+              />
+            </label>
+            <p className="mt-1 text-[11px] text-parish-muted">{imageCopy.fileWinsHint}</p>
             {displayCover && eventId ? (
               <button
                 type="button"

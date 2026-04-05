@@ -5,6 +5,7 @@ import { format, parseISO } from "date-fns";
 import type { Lang } from "@/lib/i18n";
 import { pickNewsI18nRow } from "@/lib/content-lang-chain";
 import { adminNewsScreenCopy } from "@/lib/admin-layout-i18n";
+import { adminSharedImageCopy } from "@/lib/admin-shared-image-i18n";
 import { deleteNewsForm } from "../actions/news";
 import { NewsEditForm, type NewsLocaleFields } from "./NewsEditForm";
 import { normalizeNewsLocales } from "./news-entity-locales";
@@ -57,6 +58,7 @@ export function AdminNewsClient({
   initialNewsId: string | null;
 }) {
   const c = adminNewsScreenCopy(lang);
+  const imageCopy = adminSharedImageCopy(lang);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [mode, setMode] = useState<"add" | "edit" | null>(null);
   const [active, setActive] = useState<AdminNewsPayload | null>(null);
@@ -194,6 +196,7 @@ export function AdminNewsClient({
             <NewsEditForm
               key={mode === "add" ? "new" : active.id}
               formMsg={c}
+              imageCopy={imageCopy}
               newsId={active.id}
               publishedAt={format(parseISO(active.published_at), "dd.MM.yyyy HH:mm")}
               isPublished={active.is_published}

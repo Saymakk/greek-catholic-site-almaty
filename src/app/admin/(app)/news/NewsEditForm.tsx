@@ -11,6 +11,7 @@ import {
 import { sortNewsLangsForForm } from "./news-entity-locales";
 import { AdminModalSavingOverlay } from "@/components/AdminModalSavingOverlay";
 import type { AdminNewsScreenCopy } from "@/lib/admin-layout-i18n";
+import type { AdminSharedImageCopy } from "@/lib/admin-shared-image-i18n";
 
 export type NewsLocaleFields = {
   lang: string;
@@ -25,6 +26,7 @@ function editionTitle(code: string) {
 
 export function NewsEditForm({
   formMsg,
+  imageCopy,
   newsId,
   publishedAt,
   isPublished: isPublishedInitial,
@@ -35,6 +37,7 @@ export function NewsEditForm({
   onCancel,
 }: {
   formMsg: AdminNewsScreenCopy;
+  imageCopy: AdminSharedImageCopy;
   newsId: string;
   publishedAt: string;
   isPublished: boolean;
@@ -135,6 +138,17 @@ export function NewsEditForm({
               className="mt-1 block w-full text-sm text-parish-text"
             />
           </label>
+          <label className="mt-2 block text-xs text-parish-muted">
+            {imageCopy.orImageUrl}
+            <input
+              type="url"
+              name="cover_image_url"
+              defaultValue={coverImageUrlProp ?? ""}
+              placeholder={imageCopy.imageUrlPlaceholder}
+              className="mt-1 block w-full rounded border border-parish-border px-2 py-1.5 text-sm text-parish-text"
+            />
+          </label>
+          <p className="mt-1 text-[11px] text-parish-muted">{imageCopy.fileWinsHint}</p>
           {displayCover && newsId ? (
             <button
               type="button"

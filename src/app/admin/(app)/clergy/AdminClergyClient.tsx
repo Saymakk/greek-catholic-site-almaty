@@ -2,77 +2,45 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { Lang } from "@/lib/i18n";
-import type { KazakhstanParishRow } from "@/lib/data";
-import { adminParishesScreenCopy } from "@/lib/admin-layout-i18n";
+import type { ClergyRow } from "@/lib/data";
+import { displayClergyName } from "@/lib/clergy-display";
+import { adminClergyScreenCopy } from "@/lib/admin-layout-i18n";
 import { adminSharedImageCopy } from "@/lib/admin-shared-image-i18n";
-import { deleteParishForm } from "../actions/parishes";
-import { ParishEditForm } from "./ParishEditForm";
+import { deleteClergyForm, reorderClergyForm } from "../actions/clergy";
+import { ClergyEditForm } from "./ClergyEditForm";
 
-function emptyParish(): KazakhstanParishRow {
+function emptyClergy(rows: ClergyRow[]): ClergyRow {
+  const maxSo = rows.reduce((m, r) => Math.max(m, r.sort_order), -1);
   return {
     id: "",
-    sort_order: 0,
-    parish_photo_url: null,
-    priest_photo_url: null,
-    website_url: null,
-    city_ru: null,
-    city_uk: null,
-    city_kk: null,
-    city_en: null,
-    name_ru: null,
-    name_uk: null,
-    name_kk: null,
-    name_en: null,
-    address_ru: null,
-    address_uk: null,
-    address_kk: null,
-    address_en: null,
-    priest_name_ru: null,
-    priest_name_uk: null,
-    priest_name_kk: null,
-    priest_name_en: null,
-    priest_contacts_ru: null,
-    priest_contacts_uk: null,
-    priest_contacts_kk: null,
-    priest_contacts_en: null,
-    map_embed_src: null,
+    sort_order: maxSo + 1,
+    photo_url: null,
+    full_name: "",
+    full_name_ru: null,
+    full_name_uk: null,
+    full_name_kk: null,
+    full_name_en: null,
+    extra_fields: [],
     created_at: "",
     updated_at: "",
   };
 }
 
-function listTitle(row: KazakhstanParishRow, c: ReturnType<typeof adminParishesScreenCopy>): string {
-  const t =
-    row.name_ru?.trim() ||
-    row.name_uk?.trim() ||
-    row.name_kk?.trim() ||
-    row.name_en?.trim() ||
-    row.city_ru?.trim() ||
-    "";
-  return t || c.noTitle;
+function listTitle(
+  row: ClergyRow,
+  uiLang: Lang,
+  c: ReturnType<typeof adminClergyScreenCopy>,
+): string {
+  const t = displayClergyName(row, uiLang);
+  return t || c.noName;
 }
 
-/** Миниатюра в списке: сначала фото прихода, иначе настоятеля. */
-function listThumb(row: KazakhstanParishRow): { url: string; variant: "parish" | "priest" } | null {
-  const parish = row.parish_photo_url?.trim();
-  if (parish) return { url: parish, variant: "parish" };
-  const priest = row.priest_photo_url?.trim();
-  if (priest) return { url: priest, variant: "priest" };
-  return null;
-}
-
-export function AdminParishesClient({
-  lang,
-  rows,
-}: {
-  lang: Lang;
-  rows: KazakhstanParishRow[];
-}) {
-  const c = adminParishesScreenCopy(lang);
+export function AdminClergyClient({ lang, rows }: { lang: Lang; rows: ClergyRow[] }) {
+  const c = adminClergyScreenCopy(lang);
   const imageCopy = adminSharedImageCopy(lang);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [mode, setMode] = useState<"add" | "edit" | null>(null);
-  const [active, setActive] = useState<KazakhstanParishRow | null>(null);
+  const [active, setActive] = useState<ClergyRow | null>(null);
 
   function closeDialog() {
     dialogRef.current?.close();
@@ -93,17 +61,15 @@ export function AdminParishesClient({
 
   function openAdd() {
     setMode("add");
-    setActive(emptyParish());
+    setActive(emptyClergy(rows));
     requestAnimationFrame(() => dialogRef.current?.showModal());
   }
 
-  function openEdit(row: KazakhstanParishRow) {
+  function openEdit(row: ClergyRow) {
     setMode("edit");
     setActive(row);
     requestAnimationFrame(() => dialogRef.current?.showModal());
   }
-
-  const dialogHeaderThumb = mode === "edit" && active ? listThumb(active) : null;
 
   return (
     <div>
@@ -117,38 +83,59 @@ export function AdminParishesClient({
           onClick={openAdd}
           className="shrink-0 rounded-lg bg-parish-accent px-4 py-2 text-sm font-medium text-white hover:opacity-90"
         >
-          {c.addParish}
+          {c.addClergy}
         </button>
       </div>
 
       <ul className="mt-8 space-y-4">
-        {rows.map((row) => {
-          const thumb = listThumb(row);
-          return (
+        {rows.map((row, idx) => (
           <li
             key={row.id}
             className="flex flex-col gap-3 rounded-xl border border-parish-border bg-parish-surface p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between"
           >
             <div className="flex min-w-0 items-center gap-3">
-              {thumb ? (
+              {row.photo_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={thumb.url}
+                  src={row.photo_url}
                   alt=""
-                  className={
-                    thumb.variant === "priest"
-                      ? "h-12 w-12 shrink-0 rounded-full border border-parish-border object-cover"
-                      : "h-12 w-12 shrink-0 rounded-lg border border-parish-border object-cover"
-                  }
+                  className="h-14 w-14 shrink-0 rounded-full border border-parish-border object-cover"
                 />
               ) : (
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-dashed border-parish-border bg-parish-bg text-xs text-parish-muted">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-dashed border-parish-border bg-parish-bg text-xs text-parish-muted">
                   —
                 </div>
               )}
-              <p className="min-w-0 font-medium text-parish-text">{listTitle(row, c)}</p>
+              <div className="min-w-0">
+                <p className="font-medium text-parish-text">{listTitle(row, lang, c)}</p>
+                <p className="text-xs text-parish-muted">
+                  {c.hierarchyTitle}: {row.sort_order}
+                </p>
+              </div>
             </div>
-            <div className="flex shrink-0 flex-wrap gap-2">
+            <div className="flex shrink-0 flex-wrap items-center gap-2">
+              <form action={reorderClergyForm} className="inline">
+                <input type="hidden" name="id" value={row.id} />
+                <input type="hidden" name="dir" value="up" />
+                <button
+                  type="submit"
+                  disabled={idx === 0}
+                  className="rounded-lg border border-parish-border px-2 py-2 text-xs font-medium text-parish-muted hover:bg-parish-accent-soft disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {c.moveUp}
+                </button>
+              </form>
+              <form action={reorderClergyForm} className="inline">
+                <input type="hidden" name="id" value={row.id} />
+                <input type="hidden" name="dir" value="down" />
+                <button
+                  type="submit"
+                  disabled={idx >= rows.length - 1}
+                  className="rounded-lg border border-parish-border px-2 py-2 text-xs font-medium text-parish-muted hover:bg-parish-accent-soft disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {c.moveDown}
+                </button>
+              </form>
               <button
                 type="button"
                 onClick={() => openEdit(row)}
@@ -157,7 +144,7 @@ export function AdminParishesClient({
                 {c.edit}
               </button>
               <form
-                action={deleteParishForm}
+                action={deleteClergyForm}
                 onSubmit={(e) => {
                   if (!confirm(c.confirmDelete)) e.preventDefault();
                 }}
@@ -172,13 +159,10 @@ export function AdminParishesClient({
               </form>
             </div>
           </li>
-          );
-        })}
+        ))}
       </ul>
 
-      {rows.length === 0 ? (
-        <p className="mt-8 text-sm text-parish-muted">{c.emptyList}</p>
-      ) : null}
+      {rows.length === 0 ? <p className="mt-8 text-sm text-parish-muted">{c.emptyList}</p> : null}
 
       <dialog
         ref={dialogRef}
@@ -187,23 +171,9 @@ export function AdminParishesClient({
         {active && mode ? (
           <div className="admin-book-dialog__inner">
             <div className="flex shrink-0 items-start justify-between gap-3 border-b border-parish-border px-4 py-3 sm:px-6">
-              <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-                {dialogHeaderThumb ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={dialogHeaderThumb.url}
-                    alt=""
-                    className={
-                      dialogHeaderThumb.variant === "priest"
-                        ? "h-9 w-9 shrink-0 rounded-full border border-parish-border object-cover"
-                        : "h-9 w-9 shrink-0 rounded-lg border border-parish-border object-cover"
-                    }
-                  />
-                ) : null}
-                <h2 className="min-w-0 font-display text-lg font-semibold text-parish-text">
-                  {mode === "add" ? c.addParish : listTitle(active, c)}
-                </h2>
-              </div>
+              <h2 className="font-display text-lg font-semibold text-parish-text">
+                {mode === "add" ? c.addClergy : listTitle(active, lang, c)}
+              </h2>
               <button
                 type="button"
                 onClick={closeDialog}
@@ -213,9 +183,9 @@ export function AdminParishesClient({
                 <span className="text-2xl leading-none">×</span>
               </button>
             </div>
-            <ParishEditForm
+            <ClergyEditForm
               key={mode === "add" ? "new" : active.id}
-              parish={active}
+              clergy={active}
               copy={c}
               imageCopy={imageCopy}
               submitLabel={c.save}

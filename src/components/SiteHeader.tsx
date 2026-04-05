@@ -7,7 +7,6 @@ import gerb from "@/app/gerb.jpg";
 
 const links: { href: string; key: UiKey }[] = [
   { href: "/", key: "navHome" },
-  { href: "/#news", key: "navNews" },
   { href: "/library", key: "navLibrary" },
   { href: "/about", key: "navAboutChurch" },
 ];

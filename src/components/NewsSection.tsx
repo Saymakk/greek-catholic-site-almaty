@@ -72,10 +72,7 @@ export function NewsSection({ lang, news }: { lang: Lang; news: NewsRow[] }) {
   }, [totalPages]);
 
   return (
-    <section
-      id="news"
-      className="scroll-mt-24 flex w-full min-w-0 flex-col items-center"
-    >
+    <section className="scroll-mt-24 flex w-full min-w-0 flex-col items-center">
       <div className="flex w-full max-w-3xl flex-wrap items-center justify-center gap-3">
         <h2 className="font-display text-2xl font-semibold text-parish-text">
           {t(lang, "newsTitle")}

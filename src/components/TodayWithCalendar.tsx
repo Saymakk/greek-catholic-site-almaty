@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { Lang } from "@/lib/i18n";
+import { formatSidebarTodayDate } from "@/lib/format-sidebar-date";
 import { t } from "@/lib/ui-strings";
 import type { LiturgicalEventView } from "@/lib/data";
 import { LiturgicalCalendar } from "./LiturgicalCalendar";
@@ -107,13 +108,14 @@ export function TodayWithCalendar({
           <button
             type="button"
             onClick={() => setCalendarOpen(true)}
+            aria-label={t(lang, "openCalendar")}
             className={
               isSidebar
                 ? "w-full shrink-0 rounded-xl border border-parish-border bg-parish-surface px-3 py-2 text-xs font-semibold text-parish-accent shadow-sm transition hover:bg-parish-accent-soft sm:text-sm"
                 : "shrink-0 rounded-xl border border-parish-border bg-parish-surface px-4 py-2.5 text-sm font-semibold text-parish-accent shadow-sm transition hover:bg-parish-accent-soft"
             }
           >
-            {t(lang, "openCalendar")}
+            {formatSidebarTodayDate(lang, todayDateStr)}
           </button>
         </div>
 

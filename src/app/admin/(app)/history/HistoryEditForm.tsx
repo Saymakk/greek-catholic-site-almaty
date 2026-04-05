@@ -3,6 +3,8 @@
 import { useMemo, useRef, useState, useTransition } from "react";
 import { AdminModalSavingOverlay } from "@/components/AdminModalSavingOverlay";
 import { saveHistory, uploadHistoryImage } from "../actions/content";
+import { parseHttpImageUrl } from "@/lib/admin-image-url";
+import { adminSharedImageCopy } from "@/lib/admin-shared-image-i18n";
 import {
   CONTENT_ORDER,
   isContentLang,
@@ -20,14 +22,30 @@ function ImageInsertForLang({
   langCode,
   getTextarea,
   copy,
+  imageCopy,
 }: {
   langCode: string;
   getTextarea: () => HTMLTextAreaElement | null | undefined;
   copy: ReturnType<typeof adminHistoryScreenCopy>;
+  imageCopy: ReturnType<typeof adminSharedImageCopy>;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [err, setErr] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [urlDraft, setUrlDraft] = useState("");
+
+  function insertImgTag(url: string) {
+    const ta = getTextarea();
+    if (!ta) return;
+    const insert = `\n<p><img src="${url}" alt="" class="max-w-full rounded-lg" loading="lazy" /></p>\n`;
+    const start = ta.selectionStart ?? ta.value.length;
+    const end = ta.selectionEnd ?? ta.value.length;
+    const v = ta.value;
+    ta.value = v.slice(0, start) + insert + v.slice(end);
+    const pos = start + insert.length;
+    ta.selectionStart = ta.selectionEnd = pos;
+    ta.focus();
+  }
 
   function pick() {
     setErr(null);
@@ -45,20 +63,26 @@ function ImageInsertForLang({
         fd.append("file", f);
         fd.append("lang", langCode);
         const url = await uploadHistoryImage(fd);
-        const ta = getTextarea();
-        if (!ta) return;
-        const insert = `\n<p><img src="${url}" alt="" class="max-w-full rounded-lg" loading="lazy" /></p>\n`;
-        const start = ta.selectionStart ?? ta.value.length;
-        const end = ta.selectionEnd ?? ta.value.length;
-        const v = ta.value;
-        ta.value = v.slice(0, start) + insert + v.slice(end);
-        const pos = start + insert.length;
-        ta.selectionStart = ta.selectionEnd = pos;
-        ta.focus();
+        insertImgTag(url);
       } catch (e: unknown) {
         setErr(e instanceof Error ? e.message : "Ошибка загрузки");
       }
     });
+  }
+
+  function insertFromUrlField() {
+    setErr(null);
+    try {
+      const u = parseHttpImageUrl(urlDraft, imageCopy.orImageUrl);
+      if (!u) {
+        setErr("Укажите ссылку");
+        return;
+      }
+      insertImgTag(u);
+      setUrlDraft("");
+    } catch (e: unknown) {
+      setErr(e instanceof Error ? e.message : "Ошибка");
+    }
   }
 
   return (
@@ -83,6 +107,25 @@ function ImageInsertForLang({
         </button>
         {err ? <span className="text-xs text-red-600">{err}</span> : null}
       </div>
+      <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
+        <label className="min-w-0 flex-1 text-xs text-parish-muted">
+          {imageCopy.orImageUrl}
+          <input
+            type="url"
+            value={urlDraft}
+            onChange={(e) => setUrlDraft(e.target.value)}
+            placeholder={imageCopy.imageUrlPlaceholder}
+            className="mt-1 w-full rounded border border-parish-border px-2 py-1 text-sm text-parish-text"
+          />
+        </label>
+        <button
+          type="button"
+          onClick={insertFromUrlField}
+          className="shrink-0 rounded-lg border border-parish-border bg-parish-surface px-3 py-1.5 text-xs font-medium text-parish-accent hover:bg-parish-accent-soft"
+        >
+          {imageCopy.insertFromUrl}
+        </button>
+      </div>
     </div>
   );
 }
@@ -99,6 +142,7 @@ export function HistoryEditForm({
   onCancel?: () => void;
 }) {
   const copy = adminHistoryScreenCopy(uiLang);
+  const imageCopy = adminSharedImageCopy(uiLang);
   const [primaryLang, setPrimaryLang] = useState<ContentLang>(() => "ru");
   const textareaRefs = useRef<Record<string, HTMLTextAreaElement | null>>({});
 
@@ -161,6 +205,7 @@ export function HistoryEditForm({
                 langCode={code}
                 getTextarea={() => textareaRefs.current[code]}
                 copy={copy}
+                imageCopy={imageCopy}
               />
             </fieldset>
           );

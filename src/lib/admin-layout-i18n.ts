@@ -16,6 +16,7 @@ const nav: Record<
     books: string;
     history: string;
     parishes: string;
+    clergy: string;
     settings: string;
     account: string;
     users: string;
@@ -30,6 +31,7 @@ const nav: Record<
     books: "Книги",
     history: "История (текст)",
     parishes: "Приходы Казахстана",
+    clergy: "Священнослужители",
     settings: "Контакты / футер",
     account: "Пароль",
     users: "Пользователи",
@@ -43,6 +45,7 @@ const nav: Record<
     books: "Книги",
     history: "Історія (текст)",
     parishes: "Парафії Казахстану",
+    clergy: "Духовенство",
     settings: "Контакти / підвал",
     account: "Пароль",
     users: "Користувачі",
@@ -56,6 +59,7 @@ const nav: Record<
     books: "Кітаптар",
     history: "Тарих (мәтін)",
     parishes: "Қазақстан қауымдары",
+    clergy: "Дін қызметкерлері",
     settings: "Байланыс / футер",
     account: "Құпия сөз",
     users: "Пайдаланушылар",
@@ -69,6 +73,7 @@ const nav: Record<
     books: "Books",
     history: "History (text)",
     parishes: "Kazakhstan parishes",
+    clergy: "Clergy",
     settings: "Contacts / footer",
     account: "Password",
     users: "Users",
@@ -122,6 +127,8 @@ export function adminCalendarScreenCopy(lang: Lang) {
       offerTemplateHint: string;
       offerTemplateSave: string;
       offerTemplateSkip: string;
+      externalWidgetNewJulian: string;
+      externalWidgetGregorian: string;
     }
   > = {
     ru: {
@@ -147,6 +154,8 @@ export function adminCalendarScreenCopy(lang: Lang) {
         "Можно сохранить только подписи дополнительных полей этого события как шаблон для будущих записей.",
       offerTemplateSave: "Сохранить шаблон",
       offerTemplateSkip: "Не сейчас",
+      externalWidgetNewJulian: "Новоюлианский",
+      externalWidgetGregorian: "Григорианский",
     },
     uk: {
       title: "Календар",
@@ -171,6 +180,8 @@ export function adminCalendarScreenCopy(lang: Lang) {
         "Можна зберегти лише підписи додаткових полів цієї події як шаблон для майбутніх записів.",
       offerTemplateSave: "Зберегти шаблон",
       offerTemplateSkip: "Не зараз",
+      externalWidgetNewJulian: "Новоюліанський",
+      externalWidgetGregorian: "Григоріанський",
     },
     kk: {
       title: "Күнтізбе",
@@ -195,6 +206,8 @@ export function adminCalendarScreenCopy(lang: Lang) {
         "Осы оқиғаның қосымша өрістерінің тақырыптарын ғана болашақ жазбалар үшін үлгі ретінде сақтауға болады.",
       offerTemplateSave: "Үлгіні сақтау",
       offerTemplateSkip: "Кейінірек",
+      externalWidgetNewJulian: "Жаңа юлиан",
+      externalWidgetGregorian: "Григориан",
     },
     en: {
       title: "Calendar",
@@ -219,6 +232,8 @@ export function adminCalendarScreenCopy(lang: Lang) {
         "You can save only the labels of this event’s extra fields as a template for future entries.",
       offerTemplateSave: "Save template",
       offerTemplateSkip: "Not now",
+      externalWidgetNewJulian: "New Julian",
+      externalWidgetGregorian: "Gregorian",
     },
   };
   return d[lang] ?? d.ru;
@@ -542,7 +557,7 @@ export function adminSettingsCopy(lang: Lang): AdminSettingsCopy {
       priestNameLabel: "Ім’я священика",
       addressLabel: "Адреса",
       extraLabel: "Додатковий текст",
-      mapSection: "Карта (сторінка «Наші контакти»)",
+      mapSection: "Мапа (сторінка «Наші контакти»)",
       mapHint:
         "Повний тег iframe з Google Maps або лише URL. Порожнє поле — карту не показуємо.",
       contactButtonsSection: "Кнопки з посиланнями",
@@ -569,7 +584,7 @@ export function adminSettingsCopy(lang: Lang): AdminSettingsCopy {
       priestNameLabel: "Священник аты",
       addressLabel: "Мекенжай",
       extraLabel: "Қосымша мәтін",
-      mapSection: "Карта («Біздің байланыстар»)",
+      mapSection: "Картадағы көрініс («Біздің байланыстар»)",
       mapHint: "Google Maps iframe тегі немесе тек URL. Бос — карта көрсетілмейді.",
       contactButtonsSection: "Сілтемелі түймелер",
       addContactButton: "Түйме қосу",
@@ -625,7 +640,6 @@ export type AdminParishesScreenCopy = {
   mapIframeHint: string;
   removeParishPhoto: string;
   removePriestPhoto: string;
-  published: string;
   websiteUrl: string;
   parishPhoto: string;
   priestPhoto: string;
@@ -647,7 +661,7 @@ export function adminParishesScreenCopy(lang: Lang): AdminParishesScreenCopy {
     ru: {
       pageTitle: "Приходы Казахстана",
       pageIntro:
-        "Карточки отображаются на сайте в разделе «О церкви» → «Приходы Казахстана». Только опубликованные записи видны посетителям.",
+        "Карточки отображаются на сайте в разделе «О церкви» → «Приходы Казахстана». Созданная запись сразу видна посетителям.",
       emptyList: "Записей пока нет. Добавьте первый приход кнопкой выше.",
       addParish: "Добавить приход",
       save: "Сохранить",
@@ -659,7 +673,6 @@ export function adminParishesScreenCopy(lang: Lang): AdminParishesScreenCopy {
         "Полный код встраивания Google Maps или только ссылка. Пусто — на карточке прихода карта не показывается.",
       removeParishPhoto: "Удалить фото прихода",
       removePriestPhoto: "Удалить фото настоятеля",
-      published: "Опубликовано на сайте",
       websiteUrl: "Ссылка на сайт (https://…)",
       parishPhoto: "Фото прихода / храма",
       priestPhoto: "Фото настоятеля",
@@ -678,18 +691,17 @@ export function adminParishesScreenCopy(lang: Lang): AdminParishesScreenCopy {
     uk: {
       pageTitle: "Парафії Казахстану",
       pageIntro:
-        "Картки на сайті: «Про церкву» → «Парафії Казахстану». Лише опубліковані записи бачать відвідувачі.",
+        "Картки на сайті: «Про церкву» → «Парафії Казахстану». Створений запис одразу видно відвідувачам.",
       emptyList: "Записів ще немає. Додайте першу парафію кнопкою вище.",
       addParish: "Додати парафію",
       save: "Зберегти",
       delete: "Видалити",
       confirmDelete: "Видалити цю парафію? Це незворотно.",
       cancel: "Скасувати",
-      mapIframeField: "Карта (тег iframe або URL)",
+      mapIframeField: "Мапа (тег iframe або URL)",
       mapIframeHint: "Повний код з Google Maps або лише посилання.",
       removeParishPhoto: "Прибрати фото парафії",
       removePriestPhoto: "Прибрати фото настоятеля",
-      published: "Опубліковано на сайті",
       websiteUrl: "Посилання на сайт (https://…)",
       parishPhoto: "Фото парафії / храму",
       priestPhoto: "Фото настоятеля",
@@ -708,18 +720,17 @@ export function adminParishesScreenCopy(lang: Lang): AdminParishesScreenCopy {
     kk: {
       pageTitle: "Қазақстан қауымдары",
       pageIntro:
-        "Сайтта «Шіркеу туралы» → «Қазақстан қауымдары» бөлімінде көрінеді. Тек жарияланған жазбалар қонақтарға көрінеді.",
+        "Сайтта «Шіркеу туралы» → «Қазақстан қауымдары» бөлімінде көрінеді. Жасалған жазба дереу қонақтарға көрінеді.",
       emptyList: "Жазбалар әлі жоқ. Жоғарыдағы түймемен бірінші қауымды қосыңыз.",
       addParish: "Қауым қосу",
       save: "Сақтау",
       delete: "Жою",
       confirmDelete: "Бұл қауымды жоясыз ба? Қайтарылмайды.",
       cancel: "Болдырмау",
-      mapIframeField: "Карта (iframe немесе URL)",
+      mapIframeField: "Карта кірістіру (iframe немесе URL)",
       mapIframeHint: "Google Maps толық коды немесе сілтеме.",
       removeParishPhoto: "Қауым суретін жою",
       removePriestPhoto: "Настоятель суретін жою",
-      published: "Сайтта жарияланған",
       websiteUrl: "Сайт сілтемесі (https://…)",
       parishPhoto: "Қауым / шіркеу суреті",
       priestPhoto: "Бас священник суреті",
@@ -738,7 +749,7 @@ export function adminParishesScreenCopy(lang: Lang): AdminParishesScreenCopy {
     en: {
       pageTitle: "Kazakhstan parishes",
       pageIntro:
-        "Cards appear under About the parish → Parishes in Kazakhstan. Only published entries are public.",
+        "Cards appear under About the parish → Parishes in Kazakhstan. New entries are visible to visitors immediately.",
       emptyList: "No entries yet. Add the first parish using the button above.",
       addParish: "Add parish",
       save: "Save",
@@ -749,7 +760,6 @@ export function adminParishesScreenCopy(lang: Lang): AdminParishesScreenCopy {
       mapIframeHint: "Full Google Maps embed code or URL only.",
       removeParishPhoto: "Remove parish photo",
       removePriestPhoto: "Remove rector photo",
-      published: "Published on site",
       websiteUrl: "Website URL (https://…)",
       parishPhoto: "Parish / church photo",
       priestPhoto: "Rector photo",
@@ -764,6 +774,217 @@ export function adminParishesScreenCopy(lang: Lang): AdminParishesScreenCopy {
       priestContacts: "Rector contacts (phone, email, etc.)",
       noTitle: "Untitled",
       edit: "Edit",
+    },
+  };
+  return d[lang] ?? d.ru;
+}
+
+export type AdminClergyScreenCopy = {
+  pageTitle: string;
+  pageIntro: string;
+  emptyList: string;
+  addClergy: string;
+  save: string;
+  delete: string;
+  confirmDelete: string;
+  cancel: string;
+  fullName: string;
+  nameLanguagesHint: string;
+  langRu: string;
+  langUk: string;
+  langKk: string;
+  langEn: string;
+  addNameUk: string;
+  addNameKk: string;
+  addNameEn: string;
+  addFieldLangUk: string;
+  addFieldLangKk: string;
+  addFieldLangEn: string;
+  photo: string;
+  photoRequired: string;
+  photoHintNew: string;
+  photoHintEdit: string;
+  extraFieldsTitle: string;
+  addField: string;
+  removeField: string;
+  fieldLabel: string;
+  fieldValue: string;
+  fieldUrl: string;
+  fieldUrlHint: string;
+  hierarchyTitle: string;
+  sortOrderLabel: string;
+  sortOrderHint: string;
+  moveUp: string;
+  moveDown: string;
+  edit: string;
+  noName: string;
+};
+
+export function adminClergyScreenCopy(lang: Lang): AdminClergyScreenCopy {
+  const d: Record<Lang, AdminClergyScreenCopy> = {
+    ru: {
+      pageTitle: "Священнослужители",
+      pageIntro:
+        "Карточки со священнослужителями можно вывести на сайте отдельным блоком. Обязательны фотография и ФИО; дополнительные поля и ссылки — по желанию.",
+      emptyList: "Записей пока нет. Добавьте первую кнопкой выше.",
+      addClergy: "Добавить",
+      save: "Сохранить",
+      delete: "Удалить",
+      confirmDelete: "Удалить эту запись? Действие необратимо.",
+      cancel: "Отмена",
+      fullName: "ФИО",
+      nameLanguagesHint: "Русский показан всегда. Остальные языки — отдельными кнопками.",
+      langRu: "RU",
+      langUk: "UK",
+      langKk: "KK",
+      langEn: "EN",
+      addNameUk: "+ ФИО українською",
+      addNameKk: "+ ФИО қазақша",
+      addNameEn: "+ Full name (EN)",
+      addFieldLangUk: "+ UK для этого поля",
+      addFieldLangKk: "+ KK для этого поля",
+      addFieldLangEn: "+ EN для этого поля",
+      photo: "Фото",
+      photoRequired: "Загрузите фотографию.",
+      photoHintNew: "Обязательное поле — изображение лица или портрет.",
+      photoHintEdit: "Чтобы заменить фото, выберите новый файл.",
+      extraFieldsTitle: "Дополнительные поля",
+      addField: "Добавить поле",
+      removeField: "Убрать поле",
+      fieldLabel: "Подпись (необязательно)",
+      fieldValue: "Текст",
+      fieldUrl: "Ссылка (необязательно)",
+      fieldUrlHint: "Если указана, текст можно сделать ссылкой на сайте.",
+      hierarchyTitle: "Порядок в списке",
+      sortOrderLabel: "Номер (меньше — выше, важнее)",
+      sortOrderHint: "Чем меньше число, тем ближе к началу списка на сайте.",
+      moveUp: "Выше",
+      moveDown: "Ниже",
+      edit: "Редактировать",
+      noName: "Без имени",
+    },
+    uk: {
+      pageTitle: "Духовенство",
+      pageIntro:
+        "Картки духовенства можна показати на сайті окремим блоком. Обов’язкові фото та ПІБ; додаткові поля та посилання — за потреби.",
+      emptyList: "Записів ще немає. Додайте перший кнопкою вище.",
+      addClergy: "Додати",
+      save: "Зберегти",
+      delete: "Видалити",
+      confirmDelete: "Видалити цей запис? Це незворотно.",
+      cancel: "Скасувати",
+      fullName: "ПІБ",
+      nameLanguagesHint: "Російську версію показано завжди. Інші мови — окремими кнопками.",
+      langRu: "RU",
+      langUk: "UK",
+      langKk: "KK",
+      langEn: "EN",
+      addNameUk: "+ ПІБ українською",
+      addNameKk: "+ ПІБ қазақша",
+      addNameEn: "+ ПІБ English",
+      addFieldLangUk: "+ UK для цього поля",
+      addFieldLangKk: "+ KK для цього поля",
+      addFieldLangEn: "+ EN для цього поля",
+      photo: "Фото",
+      photoRequired: "Завантажте фотографію.",
+      photoHintNew: "Обов’язкове поле — зображення обличчя або портрет.",
+      photoHintEdit: "Щоб замінити фото, оберіть новий файл.",
+      extraFieldsTitle: "Додаткові поля",
+      addField: "Додати поле",
+      removeField: "Прибрати поле",
+      fieldLabel: "Підпис (необов’язково)",
+      fieldValue: "Текст",
+      fieldUrl: "Посилання (необов’язково)",
+      fieldUrlHint: "Якщо вказано, текст можна зробити посиланням на сайті.",
+      hierarchyTitle: "Порядок у списку",
+      sortOrderLabel: "Номер (менше — вище, важливіше)",
+      sortOrderHint: "Чим менше число, тим ближче до початку списку на сайті.",
+      moveUp: "Вище",
+      moveDown: "Нижче",
+      edit: "Редагувати",
+      noName: "Без імені",
+    },
+    kk: {
+      pageTitle: "Дін қызметкерлері",
+      pageIntro:
+        "Дін қызметкерлерінің карточкаларын сайтта бөлек блок ретінде көрсетуге болады. Сурет пен ТАЖ міндетті; қосымша өрістер мен сілтемелер — қалауыңызша.",
+      emptyList: "Жазбалар әлі жоқ. Жоғарыдағы түймемен біріншісін қосыңыз.",
+      addClergy: "Қосу",
+      save: "Сақтау",
+      delete: "Жою",
+      confirmDelete: "Бұл жазбаны жоясыз ба? Қайтарылмайды.",
+      cancel: "Болдырмау",
+      fullName: "ТАЖ",
+      nameLanguagesHint: "Орыс тілі әрқашан көрінеді. Басқа тілдерді жеке түймелермен қосыңыз.",
+      langRu: "RU",
+      langUk: "UK",
+      langKk: "KK",
+      langEn: "EN",
+      addNameUk: "+ ТАЖ україн тілінде",
+      addNameKk: "+ ТАЖ қазақша",
+      addNameEn: "+ Full name (EN)",
+      addFieldLangUk: "+ осы өріс үшін UK",
+      addFieldLangKk: "+ осы өріс үшін KK",
+      addFieldLangEn: "+ осы өріс үшін EN",
+      photo: "Сурет",
+      photoRequired: "Фотосурет жүктеңіз.",
+      photoHintNew: "Міндетті өріс — бет суреті немесе портрет.",
+      photoHintEdit: "Суретті ауыстыру үшін жаңа файл таңдаңыз.",
+      extraFieldsTitle: "Қосымша өрістер",
+      addField: "Өріс қосу",
+      removeField: "Өрісті жою",
+      fieldLabel: "Тақырып (міндетті емес)",
+      fieldValue: "Мәтін",
+      fieldUrl: "Сілтеме (міндетті емес)",
+      fieldUrlHint: "Көрсетілсе, мәтінді сайтта сілтеме етіп көрсетуге болады.",
+      hierarchyTitle: "Тізімдегі орын",
+      sortOrderLabel: "Нөмір (кішірек — жоғары, маңыздырақ)",
+      sortOrderHint: "Сан не кіші болса, сайтта тізімнің басында соғұрлым жақын тұрады.",
+      moveUp: "Жоғары",
+      moveDown: "Төмен",
+      edit: "Өңдеу",
+      noName: "Атаусыз",
+    },
+    en: {
+      pageTitle: "Clergy",
+      pageIntro:
+        "Clergy cards can be shown on the site in a dedicated section. Photo and full name are required; extra fields and links are optional.",
+      emptyList: "No entries yet. Add the first one using the button above.",
+      addClergy: "Add",
+      save: "Save",
+      delete: "Delete",
+      confirmDelete: "Delete this entry? This cannot be undone.",
+      cancel: "Cancel",
+      fullName: "Full name",
+      nameLanguagesHint: "Russian is always shown. Add other languages with the buttons below.",
+      langRu: "RU",
+      langUk: "UK",
+      langKk: "KK",
+      langEn: "EN",
+      addNameUk: "+ Name in Ukrainian",
+      addNameKk: "+ Name in Kazakh",
+      addNameEn: "+ Name in English",
+      addFieldLangUk: "+ UK for this field",
+      addFieldLangKk: "+ KK for this field",
+      addFieldLangEn: "+ EN for this field",
+      photo: "Photo",
+      photoRequired: "Please upload a photo.",
+      photoHintNew: "Required — a portrait or headshot works best.",
+      photoHintEdit: "Choose a new file to replace the current photo.",
+      extraFieldsTitle: "Extra fields",
+      addField: "Add field",
+      removeField: "Remove field",
+      fieldLabel: "Label (optional)",
+      fieldValue: "Text",
+      fieldUrl: "Link (optional)",
+      fieldUrlHint: "If set, the text can be shown as a link on the site.",
+      hierarchyTitle: "Order in list",
+      sortOrderLabel: "Rank (lower = higher, more prominent)",
+      sortOrderHint: "Smaller numbers appear closer to the top on the site.",
+      moveUp: "Move up",
+      moveDown: "Move down",
+      edit: "Edit",
+      noName: "Untitled",
     },
   };
   return d[lang] ?? d.ru;

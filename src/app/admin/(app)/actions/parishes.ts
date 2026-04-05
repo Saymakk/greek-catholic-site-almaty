@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireStaff } from "@/lib/admin";
 import { logAdminActivity } from "@/lib/admin-activity-log";
 import { extractMapEmbedSrc } from "@/lib/map-embed";
+import { parseHttpImageUrlFromFormData } from "@/lib/admin-image-url";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -65,12 +66,10 @@ export async function saveParish(formData: FormData) {
   const profile = await requireStaff();
   const supabase = await createClient();
   const id = ((formData.get("id") as string) ?? "").trim();
-  const published = formData.get("is_published") === "on";
   const mapRaw = (formData.get("map_embed_raw") as string) ?? "";
   const mapEmbedSrc = extractMapEmbedSrc(mapRaw);
 
   const patch: Record<string, string | number | boolean | null> = {
-    is_published: published,
     website_url: str(formData, "website_url"),
     map_embed_src: mapEmbedSrc,
     updated_at: new Date().toISOString(),
@@ -116,6 +115,11 @@ export async function saveParish(formData: FormData) {
     if (parishPhoto.size > IMAGE_MAX) throw new Error("Файл больше 8 МБ");
     const url = await uploadParishImage(supabase, parishId, "parish", parishPhoto);
     await supabase.from("kazakhstan_parishes").update({ parish_photo_url: url }).eq("id", parishId);
+  } else {
+    const parishUrl = parseHttpImageUrlFromFormData(formData, "parish_photo_url", "Фото прихода (URL)");
+    if (parishUrl) {
+      await supabase.from("kazakhstan_parishes").update({ parish_photo_url: parishUrl }).eq("id", parishId);
+    }
   }
 
   const priestPhoto = formData.get("priest_photo");
@@ -124,6 +128,11 @@ export async function saveParish(formData: FormData) {
     if (priestPhoto.size > IMAGE_MAX) throw new Error("Файл больше 8 МБ");
     const url = await uploadParishImage(supabase, parishId, "priest", priestPhoto);
     await supabase.from("kazakhstan_parishes").update({ priest_photo_url: url }).eq("id", parishId);
+  } else {
+    const priestUrl = parseHttpImageUrlFromFormData(formData, "priest_photo_url", "Фото настоятеля (URL)");
+    if (priestUrl) {
+      await supabase.from("kazakhstan_parishes").update({ priest_photo_url: priestUrl }).eq("id", parishId);
+    }
   }
 
   const titleHint =

@@ -834,6 +834,56 @@ export async function getFooterSettings(): Promise<FooterSettings> {
   return (data?.value as FooterSettings) ?? {};
 }
 
+/** Виджеты prayer-service.pp.ua на главной (между нашим календарём и Telegram). */
+export type ExternalLiturgicalWidgetSettings = {
+  new_julian: boolean;
+  gregorian: boolean;
+};
+
+const EXTERNAL_LITURGICAL_WIDGET_SRC = {
+  new_julian: "https://prayer-service.pp.ua/u-widget.html",
+  gregorian: "https://prayer-service.pp.ua/g-widget.html",
+} as const;
+
+/** Разбор JSON из БД; поддерживает старый формат `{ enabled, variant }`. */
+export function parseExternalLiturgicalWidgetValue(
+  raw: unknown,
+): ExternalLiturgicalWidgetSettings {
+  const v = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : null;
+  if (!v) return { new_julian: false, gregorian: false };
+  if ("new_julian" in v || "gregorian" in v) {
+    return {
+      new_julian: Boolean(v.new_julian),
+      gregorian: Boolean(v.gregorian),
+    };
+  }
+  const enabled = Boolean(v.enabled);
+  const variant = v.variant === "gregorian" ? "gregorian" : "new_julian";
+  if (!enabled) return { new_julian: false, gregorian: false };
+  if (variant === "gregorian") return { new_julian: false, gregorian: true };
+  return { new_julian: true, gregorian: false };
+}
+
+export async function getExternalLiturgicalWidgetSettings(): Promise<ExternalLiturgicalWidgetSettings> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("site_settings")
+    .select("value")
+    .eq("key", "external_liturgical_widget")
+    .maybeSingle();
+  return parseExternalLiturgicalWidgetValue(data?.value);
+}
+
+/** URL iframe в порядке: новоюлианский, затем григорианский. */
+export function resolveExternalLiturgicalWidgetSrcs(
+  s: ExternalLiturgicalWidgetSettings | null | undefined,
+): string[] {
+  const out: string[] = [];
+  if (s?.new_julian) out.push(EXTERNAL_LITURGICAL_WIDGET_SRC.new_julian);
+  if (s?.gregorian) out.push(EXTERNAL_LITURGICAL_WIDGET_SRC.gregorian);
+  return out;
+}
+
 function normalizeContactButtons(raw: unknown): FooterContactButton[] {
   if (!Array.isArray(raw)) return [];
   const out: FooterContactButton[] = [];
@@ -887,7 +937,6 @@ export async function getHistoryHtml(lang: Lang) {
 export type KazakhstanParishRow = {
   id: string;
   sort_order: number;
-  is_published: boolean;
   parish_photo_url: string | null;
   priest_photo_url: string | null;
   website_url: string | null;
@@ -950,7 +999,6 @@ export async function getPublishedKazakhstanParishes(lang: Lang): Promise<Public
   const { data, error } = await supabase
     .from("kazakhstan_parishes")
     .select("*")
-    .eq("is_published", true)
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: true });
   if (error) return [];
@@ -968,3 +1016,108 @@ export async function getKazakhstanParishesForAdmin(): Promise<KazakhstanParishR
   if (error) return [];
   return (data ?? []) as KazakhstanParishRow[];
 }
+
+const CLERGY_LANGS = ["ru", "uk", "kk", "en"] as const;
+
+/** Дополнительное поле: подпись и текст по языкам, общая ссылка. */
+export type ClergyExtraField = {
+  labels: Partial<Record<(typeof CLERGY_LANGS)[number], string>>;
+  values: Partial<Record<(typeof CLERGY_LANGS)[number], string>>;
+  url: string | null;
+};
+
+/** Строка БД clergy */
+export type ClergyRow = {
+  id: string;
+  sort_order: number;
+  photo_url: string | null;
+  /** Сводное ФИО (дублирует приоритетный язык для совместимости и поиска). */
+  full_name: string;
+  full_name_ru: string | null;
+  full_name_uk: string | null;
+  full_name_kk: string | null;
+  full_name_en: string | null;
+  extra_fields: ClergyExtraField[];
+  created_at: string;
+  updated_at: string;
+};
+
+function mapClergyExtraFromDb(item: Record<string, unknown>): ClergyExtraField {
+  const urlRaw = typeof item.url === "string" ? item.url.trim() : "";
+  const labels: ClergyExtraField["labels"] = {};
+  const values: ClergyExtraField["values"] = {};
+  const labelsObj = item.labels as Record<string, unknown> | undefined;
+  const valuesObj = item.values as Record<string, unknown> | undefined;
+  if (labelsObj && typeof labelsObj === "object") {
+    for (const l of CLERGY_LANGS) {
+      const v = labelsObj[l];
+      if (typeof v === "string" && v.trim()) labels[l] = v;
+    }
+  }
+  if (valuesObj && typeof valuesObj === "object") {
+    for (const l of CLERGY_LANGS) {
+      const v = valuesObj[l];
+      if (typeof v === "string" && v.trim()) values[l] = v;
+    }
+  }
+  if (Object.keys(labels).length === 0 && typeof item.label === "string" && item.label.trim()) {
+    labels.ru = item.label;
+  }
+  if (Object.keys(values).length === 0 && typeof item.value === "string" && item.value.trim()) {
+    values.ru = item.value;
+  }
+  return {
+    labels,
+    values,
+    url: urlRaw ? urlRaw : null,
+  };
+}
+
+function mapClergyDbRow(row: Record<string, unknown>): ClergyRow {
+  const rawEf = row.extra_fields;
+  let extra_fields: ClergyExtraField[] = [];
+  if (Array.isArray(rawEf)) {
+    extra_fields = rawEf.map((item) => mapClergyExtraFromDb(item as Record<string, unknown>));
+  }
+  const fn = (k: string) => {
+    const v = row[k];
+    return typeof v === "string" && v.trim() ? v.trim() : null;
+  };
+  const full_name_ru = fn("full_name_ru");
+  const full_name_uk = fn("full_name_uk");
+  const full_name_kk = fn("full_name_kk");
+  const full_name_en = fn("full_name_en");
+  const legacy = typeof row.full_name === "string" ? row.full_name.trim() : "";
+  const full_name =
+    full_name_ru ||
+    full_name_uk ||
+    full_name_kk ||
+    full_name_en ||
+    legacy ||
+    "";
+  return {
+    id: String(row.id),
+    sort_order: Number(row.sort_order) || 0,
+    photo_url: typeof row.photo_url === "string" ? row.photo_url : null,
+    full_name,
+    full_name_ru,
+    full_name_uk,
+    full_name_kk,
+    full_name_en,
+    extra_fields,
+    created_at: typeof row.created_at === "string" ? row.created_at : "",
+    updated_at: typeof row.updated_at === "string" ? row.updated_at : "",
+  };
+}
+
+export async function getClergyForAdmin(): Promise<ClergyRow[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("clergy")
+    .select("*")
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: true });
+  if (error) return [];
+  return (data ?? []).map((r) => mapClergyDbRow(r as Record<string, unknown>));
+}
+

@@ -1,5 +1,6 @@
 "use server";
 
+import { parseHttpImageUrlFromFormData } from "@/lib/admin-image-url";
 import { createClient } from "@/lib/supabase/server";
 import { requireStaff } from "@/lib/admin";
 import { logAdminActivity } from "@/lib/admin-activity-log";
@@ -229,6 +230,15 @@ export async function saveBook(formData: FormData) {
           : null;
     if (coverFile) {
       cover_image_url = await uploadBookCover(supabase, bookId, loc, coverFile);
+    } else {
+      const coverUrlField = parseHttpImageUrlFromFormData(
+        formData,
+        `cover_url_${loc}`,
+        "Обложка (URL)",
+      );
+      if (coverUrlField) {
+        cover_image_url = coverUrlField;
+      }
     }
 
     const { error } = await supabase.from("scripture_book_locales").upsert(

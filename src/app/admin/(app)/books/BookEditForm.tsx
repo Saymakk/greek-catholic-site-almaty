@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { AdminModalSavingOverlay } from "@/components/AdminModalSavingOverlay";
 import { removeBookCover, saveBook } from "../actions/books";
 import { editionLegendKey, type AdminBooksMsg } from "@/lib/admin-books-i18n";
+import type { AdminSharedImageCopy } from "@/lib/admin-shared-image-i18n";
 import {
   sortLangsForForm,
   isContentLang,
@@ -32,6 +33,7 @@ export function BookEditForm({
   locales,
   submitLabel,
   msg,
+  imageCopy,
   onCancel,
   fluidScale = false,
   modalLayout = false,
@@ -42,6 +44,7 @@ export function BookEditForm({
   locales: BookLocaleFields[];
   submitLabel: string;
   msg: AdminBooksMsg;
+  imageCopy: AdminSharedImageCopy;
   onCancel?: () => void;
   /** Типографика от размера модалки (em + cqmin на предках) */
   fluidScale?: boolean;
@@ -242,6 +245,19 @@ export function BookEditForm({
                   className={fileInput}
                 />
               </label>
+              <label className={`mt-2 block text-parish-muted ${label}`}>
+                {imageCopy.orImageUrl}
+                <input
+                  type="url"
+                  name={`cover_url_${code}`}
+                  defaultValue={storedCoverUrl ?? ""}
+                  placeholder={imageCopy.imageUrlPlaceholder}
+                  className={field}
+                />
+              </label>
+              <p className={`mt-1 text-parish-muted ${f ? "text-[0.75em]" : "text-[11px]"}`}>
+                {imageCopy.fileWinsHint}
+              </p>
               {storedCoverUrl && bookId ? (
                 <button
                   type="button"

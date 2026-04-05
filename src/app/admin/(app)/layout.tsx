@@ -44,6 +44,9 @@ export default async function AdminAppLayout({
           <Link href="/admin/parishes" className="text-parish-text hover:text-parish-accent">
             {n.parishes}
           </Link>
+          <Link href="/admin/clergy" className="text-parish-text hover:text-parish-accent">
+            {n.clergy}
+          </Link>
           <Link href="/admin/settings" className="text-parish-text hover:text-parish-accent">
             {n.settings}
           </Link>

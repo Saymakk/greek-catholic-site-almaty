@@ -5,8 +5,10 @@ import { requireStaff } from "@/lib/admin";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { logAdminActivity } from "@/lib/admin-activity-log";
+import { parseExternalLiturgicalWidgetValue } from "@/lib/data";
 import { isSchemaCacheMissingColumn } from "@/lib/supabase-column-fallback";
 import { isContentLang, type ContentLang } from "../books/book-locales";
+import { parseHttpImageUrlFromFormData } from "@/lib/admin-image-url";
 
 const LANGS: ContentLang[] = ["ru", "uk", "kk", "en"];
 
@@ -285,6 +287,17 @@ export async function saveLiturgicalEvent(formData: FormData) {
     if (coverErr && !isSchemaCacheMissingColumn(coverErr, "cover_image_url")) {
       throw new Error(coverErr.message);
     }
+  } else {
+    const coverUrl = parseHttpImageUrlFromFormData(formData, "cover_image_url", "Обложка (URL)");
+    if (coverUrl) {
+      const { error: coverErr } = await supabase
+        .from("liturgical_events")
+        .update({ cover_image_url: coverUrl })
+        .eq("id", eventId);
+      if (coverErr && !isSchemaCacheMissingColumn(coverErr, "cover_image_url")) {
+        throw new Error(coverErr.message);
+      }
+    }
   }
 
   for (const lang of locales) {
@@ -528,6 +541,45 @@ export async function updateLiturgicalTemplateForm(formData: FormData) {
     entityId: id,
     summary: name,
   });
+  revalidatePath("/admin/calendar");
+  redirect("/admin/calendar");
+}
+
+export async function saveExternalLiturgicalWidgetForm(formData: FormData) {
+  const profile = await requireStaff();
+  const supabase = await createClient();
+  const { data: row } = await supabase
+    .from("site_settings")
+    .select("value")
+    .eq("key", "external_liturgical_widget")
+    .maybeSingle();
+  const cur = parseExternalLiturgicalWidgetValue(row?.value);
+
+  const action = (formData.get("widget_action") as string)?.trim();
+  let next: { new_julian: boolean; gregorian: boolean };
+  if (action === "toggle_new_julian") {
+    next = { ...cur, new_julian: !cur.new_julian };
+  } else if (action === "toggle_gregorian") {
+    next = { ...cur, gregorian: !cur.gregorian };
+  } else {
+    redirect("/admin/calendar");
+    return;
+  }
+
+  const { error } = await supabase.from("site_settings").upsert({
+    key: "external_liturgical_widget",
+    value: next,
+  });
+  if (error) throw new Error(error.message);
+
+  const summary = `${next.new_julian ? "nj" : ""}${next.gregorian ? "g" : ""}` || "none";
+  await logAdminActivity(supabase, profile, {
+    action: "liturgical.external_widget.save",
+    entityType: "site_settings",
+    entityId: "external_liturgical_widget",
+    summary,
+  });
+  revalidatePath("/");
   revalidatePath("/admin/calendar");
   redirect("/admin/calendar");
 }

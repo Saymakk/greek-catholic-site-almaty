@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireStaff } from "@/lib/admin";
 import { logAdminActivity } from "@/lib/admin-activity-log";
 import { extractMapEmbedSrc } from "@/lib/map-embed";
+import { parseHttpImageUrlFromFormData } from "@/lib/admin-image-url";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -18,7 +19,9 @@ export async function uploadHistoryImage(formData: FormData): Promise<string> {
   const file = formData.get("file");
   const langRaw = (formData.get("lang") as string)?.trim().toLowerCase();
   if (!(file instanceof File) || file.size === 0) {
-    throw new Error("Файл не выбран");
+    const urlOnly = parseHttpImageUrlFromFormData(formData, "url", "Ссылка на изображение");
+    if (urlOnly) return urlOnly;
+    throw new Error("Выберите файл или укажите ссылку");
   }
   if (!file.type.startsWith("image/")) {
     throw new Error("Нужен файл изображения");
