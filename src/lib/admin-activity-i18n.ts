@@ -104,11 +104,41 @@ const labels: Record<string, Record<Lang, string>> = {
     kk: "Байланыс / футер сақталды",
     en: "Footer / contacts saved",
   },
+  "parish.create": {
+    ru: "Добавлен приход (Казахстан)",
+    uk: "Додано парафію (Казахстан)",
+    kk: "Қауым қосылды (Қазақстан)",
+    en: "Kazakhstan parish added",
+  },
+  "parish.update": {
+    ru: "Обновлён приход (Казахстан)",
+    uk: "Оновлено парафію (Казахстан)",
+    kk: "Қауым жаңартылды (Қазақстан)",
+    en: "Kazakhstan parish updated",
+  },
+  "parish.delete": {
+    ru: "Удалён приход (Казахстан)",
+    uk: "Видалено парафію (Казахстан)",
+    kk: "Қауым жойылды (Қазақстан)",
+    en: "Kazakhstan parish deleted",
+  },
   "user.invite": {
     ru: "Приглашён пользователь",
     uk: "Запрошено користувача",
     kk: "Пайдаланушы шақырылды",
     en: "User invited",
+  },
+  "user.update": {
+    ru: "Обновлён пользователь",
+    uk: "Оновлено користувача",
+    kk: "Пайдаланушы жаңартылды",
+    en: "User updated",
+  },
+  "user.delete": {
+    ru: "Удалён пользователь",
+    uk: "Видалено користувача",
+    kk: "Пайдаланушы жойылды",
+    en: "User deleted",
   },
 };
 
@@ -125,6 +155,12 @@ export function adminActivityEntityLabel(lang: Lang, entityType: string): string
     scripture_book: { ru: "Книги", uk: "Книги", kk: "Кітаптар", en: "Books" },
     liturgical_template: { ru: "Шаблон календаря", uk: "Шаблон календаря", kk: "Күнтізбе үлгісі", en: "Calendar template" },
     page_content: { ru: "Страница", uk: "Сторінка", kk: "Бет", en: "Page" },
+    kazakhstan_parish: {
+      ru: "Приходы Казахстана",
+      uk: "Парафії Казахстану",
+      kk: "Қазақстан қауымдары",
+      en: "Kazakhstan parishes",
+    },
     site_settings: { ru: "Настройки", uk: "Налаштування", kk: "Баптаулар", en: "Settings" },
     auth: { ru: "Пользователи", uk: "Користувачі", kk: "Пайдаланушылар", en: "Users" },
   };

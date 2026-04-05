@@ -791,6 +791,12 @@ export async function getTelegramMessages(limit = 30) {
   return data ?? [];
 }
 
+export type FooterContactButton = {
+  icon?: string;
+  label: string;
+  url: string;
+};
+
 /** Один объект JSON в site_settings.footer */
 export type FooterSettings = {
   priest_name_ru?: string;
@@ -812,6 +818,10 @@ export type FooterSettings = {
   name_uk?: string;
   name_kk?: string;
   name_en?: string;
+  /** iframe src для карты на странице «Наши контакты»; только если задано в админке */
+  map_embed_src?: string;
+  /** Кнопки (иконка, название, ссылка) */
+  contact_buttons?: FooterContactButton[];
 };
 
 export async function getFooterSettings(): Promise<FooterSettings> {
@@ -824,18 +834,36 @@ export async function getFooterSettings(): Promise<FooterSettings> {
   return (data?.value as FooterSettings) ?? {};
 }
 
+function normalizeContactButtons(raw: unknown): FooterContactButton[] {
+  if (!Array.isArray(raw)) return [];
+  const out: FooterContactButton[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const o = item as Record<string, unknown>;
+    const url = typeof o.url === "string" ? o.url.trim() : "";
+    const label = typeof o.label === "string" ? o.label.trim() : "";
+    if (!url || !label) continue;
+    const icon = typeof o.icon === "string" ? o.icon.trim() : "";
+    out.push({ url, label, icon: icon || undefined });
+  }
+  return out;
+}
+
 export function resolveFooterDisplay(footer: FooterSettings, lang: Lang) {
   const f = footer as Record<string, string | undefined>;
   const priestName =
     pickLocalized(f, "priest_name", lang) ?? pickLocalized(f, "name", lang);
   const address = pickLocalized(f, "address", lang);
   const extra = pickLocalized(f, "extra", lang);
+  const mapSrc = footer.map_embed_src?.trim();
   return {
     priestName,
     address: address ?? "",
     phone: footer.phone?.trim() || null,
     email: footer.email?.trim() || null,
     extra: extra ?? "",
+    mapEmbedSrc: mapSrc || null,
+    contactButtons: normalizeContactButtons(footer.contact_buttons),
   };
 }
 
@@ -853,4 +881,90 @@ export async function getHistoryHtml(lang: Lang) {
   const primary = byLang[lang]?.trim();
   if (primary) return primary;
   return (byLang.ru ?? "").trim();
+}
+
+/** Строка БД kazakhstan_parishes */
+export type KazakhstanParishRow = {
+  id: string;
+  sort_order: number;
+  is_published: boolean;
+  parish_photo_url: string | null;
+  priest_photo_url: string | null;
+  website_url: string | null;
+  city_ru: string | null;
+  city_uk: string | null;
+  city_kk: string | null;
+  city_en: string | null;
+  name_ru: string | null;
+  name_uk: string | null;
+  name_kk: string | null;
+  name_en: string | null;
+  address_ru: string | null;
+  address_uk: string | null;
+  address_kk: string | null;
+  address_en: string | null;
+  priest_name_ru: string | null;
+  priest_name_uk: string | null;
+  priest_name_kk: string | null;
+  priest_name_en: string | null;
+  priest_contacts_ru: string | null;
+  priest_contacts_uk: string | null;
+  priest_contacts_kk: string | null;
+  priest_contacts_en: string | null;
+  map_embed_src?: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PublicKazakhstanParish = {
+  id: string;
+  city: string;
+  name: string;
+  address: string;
+  websiteUrl: string | null;
+  parishPhotoUrl: string | null;
+  priestPhotoUrl: string | null;
+  priestName: string;
+  priestContacts: string;
+  mapEmbedSrc: string | null;
+};
+
+function mapParishRowToPublic(row: KazakhstanParishRow, lang: Lang): PublicKazakhstanParish {
+  const r = row as unknown as Record<string, string | null | undefined>;
+  return {
+    id: row.id,
+    city: pickLocalized(r, "city", lang) ?? "",
+    name: pickLocalized(r, "name", lang) ?? "",
+    address: pickLocalized(r, "address", lang) ?? "",
+    websiteUrl: row.website_url?.trim() || null,
+    parishPhotoUrl: row.parish_photo_url?.trim() || null,
+    priestPhotoUrl: row.priest_photo_url?.trim() || null,
+    priestName: pickLocalized(r, "priest_name", lang) ?? "",
+    priestContacts: pickLocalized(r, "priest_contacts", lang) ?? "",
+    mapEmbedSrc: row.map_embed_src?.trim() || null,
+  };
+}
+
+export async function getPublishedKazakhstanParishes(lang: Lang): Promise<PublicKazakhstanParish[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("kazakhstan_parishes")
+    .select("*")
+    .eq("is_published", true)
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: true });
+  if (error) return [];
+  if (!data?.length) return [];
+  return (data as KazakhstanParishRow[]).map((row) => mapParishRowToPublic(row, lang));
+}
+
+export async function getKazakhstanParishesForAdmin(): Promise<KazakhstanParishRow[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("kazakhstan_parishes")
+    .select("*")
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: true });
+  if (error) return [];
+  return (data ?? []) as KazakhstanParishRow[];
 }

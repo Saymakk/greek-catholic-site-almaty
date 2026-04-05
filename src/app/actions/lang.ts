@@ -13,6 +13,7 @@ export async function setLang(lang: string) {
     sameSite: "lax",
   });
   revalidatePath("/");
-  revalidatePath("/history");
+  revalidatePath("/about/history");
+  revalidatePath("/about/parishes-kz");
   revalidatePath("/admin", "layout");
 }

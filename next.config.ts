@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [{ source: "/history", destination: "/about/history", permanent: true }];
+  },
   experimental: {
     serverActions: {
       bodySizeLimit: "10mb",

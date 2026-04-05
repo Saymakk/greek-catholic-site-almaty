@@ -5,7 +5,13 @@ import type { AdminUsersScreenCopy } from "@/lib/admin-layout-i18n";
 
 const MIN_LEN = 8;
 
-export function CreateUserForm({ copy }: { copy: AdminUsersScreenCopy }) {
+export function CreateUserForm({
+  copy,
+  onCreated,
+}: {
+  copy: AdminUsersScreenCopy;
+  onCreated?: () => void;
+}) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
@@ -38,6 +44,7 @@ export function CreateUserForm({ copy }: { copy: AdminUsersScreenCopy }) {
         setEmail("");
         setPassword("");
         setPassword2("");
+        onCreated?.();
       }
     } catch {
       setMsg(copy.errNetwork);

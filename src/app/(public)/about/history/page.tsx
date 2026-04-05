@@ -9,7 +9,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: `${t(lang, "historyPageTitle")} · ${t(lang, "parishName")}` };
 }
 
-export default async function HistoryPage() {
+export default async function AboutHistoryPage() {
   const lang = await getLang();
   const body = await getHistoryHtml(lang);
 

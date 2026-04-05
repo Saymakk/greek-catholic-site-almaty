@@ -12,7 +12,15 @@ export async function SiteChrome({ children }: { children: React.ReactNode }) {
     <>
       <SiteHeader lang={lang} />
       <div className="min-w-0 w-full flex-1">{children}</div>
-      <SiteFooter lang={lang} {...display} />
+      <SiteFooter
+        lang={lang}
+        priestName={display.priestName}
+        address={display.address}
+        phone={display.phone}
+        email={display.email}
+        extra={display.extra}
+        contactButtons={display.contactButtons}
+      />
     </>
   );
 }

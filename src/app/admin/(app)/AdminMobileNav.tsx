@@ -80,6 +80,9 @@ export function AdminMobileNav({
           <Link href="/admin/history" className="text-parish-text hover:text-parish-accent" onClick={() => setOpen(false)}>
             {n.history}
           </Link>
+          <Link href="/admin/parishes" className="text-parish-text hover:text-parish-accent" onClick={() => setOpen(false)}>
+            {n.parishes}
+          </Link>
           <Link href="/admin/settings" className="text-parish-text hover:text-parish-accent" onClick={() => setOpen(false)}>
             {n.settings}
           </Link>

@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { requireStaff } from "@/lib/admin";
 import { logAdminActivity } from "@/lib/admin-activity-log";
+import { extractMapEmbedSrc } from "@/lib/map-embed";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -75,7 +76,7 @@ export async function saveHistory(formData: FormData) {
     entityType: "page_content",
     entityId: "history",
   });
-  revalidatePath("/history");
+  revalidatePath("/about/history");
   revalidatePath("/admin/history");
   redirect("/admin/history");
 }
@@ -83,32 +84,54 @@ export async function saveHistory(formData: FormData) {
 export async function saveFooter(formData: FormData) {
   const profile = await requireStaff();
   const supabase = await createClient();
-  const entry = formData.get("footer_json");
-  const raw =
-    typeof entry === "string"
-      ? entry.replace(/^\uFEFF/, "").trim()
-      : "";
 
-  let value: object;
-  if (!raw) {
-    value = {};
-  } else {
+  const rec: Record<string, unknown> = {};
+
+  const setText = (jsonKey: string, fieldName: string) => {
+    const v = (formData.get(fieldName) as string)?.trim() ?? "";
+    if (v) rec[jsonKey] = v;
+  };
+
+  for (const l of LANGS) {
+    setText(`priest_name_${l}`, `priest_name_${l}`);
+    setText(`address_${l}`, `address_${l}`);
+    setText(`extra_${l}`, `extra_${l}`);
+  }
+  setText("phone", "phone");
+  setText("email", "email");
+
+  const mapRaw = (formData.get("map_embed_raw") as string) ?? "";
+  const mapSrc = extractMapEmbedSrc(mapRaw);
+  if (mapSrc) rec.map_embed_src = mapSrc;
+
+  const buttonsRaw = (formData.get("contact_buttons_json") as string)?.trim() ?? "";
+  let contact_buttons: { icon?: string; label: string; url: string }[] = [];
+  if (buttonsRaw) {
     try {
-      value = JSON.parse(raw) as object;
+      const parsed = JSON.parse(buttonsRaw) as unknown;
+      if (!Array.isArray(parsed)) redirect("/admin/settings?footer_err=buttons");
+      for (const item of parsed) {
+        if (!item || typeof item !== "object") continue;
+        const o = item as Record<string, unknown>;
+        const url = typeof o.url === "string" ? o.url.trim() : "";
+        const label = typeof o.label === "string" ? o.label.trim() : "";
+        if (!url || !label) continue;
+        const icon = typeof o.icon === "string" ? o.icon.trim() : "";
+        contact_buttons.push({ url, label, ...(icon ? { icon } : {}) });
+      }
     } catch {
-      redirect("/admin/settings?footer_err=parse");
+      redirect("/admin/settings?footer_err=buttons");
     }
   }
-  if (value === null || typeof value !== "object" || Array.isArray(value)) {
-    redirect("/admin/settings?footer_err=shape");
-  }
+  rec.contact_buttons = contact_buttons;
 
-  await supabase.from("site_settings").upsert({ key: "footer", value });
+  await supabase.from("site_settings").upsert({ key: "footer", value: rec });
   await logAdminActivity(supabase, profile, {
     action: "settings.footer.save",
     entityType: "site_settings",
     entityId: "footer",
   });
   revalidatePath("/");
+  revalidatePath("/about/contacts");
   redirect("/admin/settings");
 }

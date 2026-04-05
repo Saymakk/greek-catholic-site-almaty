@@ -15,6 +15,7 @@ const nav: Record<
     calendar: string;
     books: string;
     history: string;
+    parishes: string;
     settings: string;
     account: string;
     users: string;
@@ -28,6 +29,7 @@ const nav: Record<
     calendar: "Календарь",
     books: "Книги",
     history: "История (текст)",
+    parishes: "Приходы Казахстана",
     settings: "Контакты / футер",
     account: "Пароль",
     users: "Пользователи",
@@ -40,6 +42,7 @@ const nav: Record<
     calendar: "Календар",
     books: "Книги",
     history: "Історія (текст)",
+    parishes: "Парафії Казахстану",
     settings: "Контакти / підвал",
     account: "Пароль",
     users: "Користувачі",
@@ -52,6 +55,7 @@ const nav: Record<
     calendar: "Күнтізбе",
     books: "Кітаптар",
     history: "Тарих (мәтін)",
+    parishes: "Қазақстан қауымдары",
     settings: "Байланыс / футер",
     account: "Құпия сөз",
     users: "Пайдаланушылар",
@@ -64,6 +68,7 @@ const nav: Record<
     calendar: "Calendar",
     books: "Books",
     history: "History (text)",
+    parishes: "Kazakhstan parishes",
     settings: "Contacts / footer",
     account: "Password",
     users: "Users",
@@ -470,95 +475,295 @@ export function adminNewsScreenCopy(lang: Lang): AdminNewsScreenCopy {
 
 export type AdminSettingsCopy = {
   pageTitle: string;
-  introBeforeJson: string;
-  introPriestCode: string;
-  introPriestDesc: string;
-  introEmailCode: string;
-  introAnd: string;
-  introPhoneCode: string;
-  introPerLang: string;
-  introAddressCode: string;
-  introExtraPart: string;
-  introExtraCode: string;
-  introFallback: string;
+  intro: string;
+  sharedSection: string;
+  phoneLabel: string;
+  emailLabel: string;
+  langRu: string;
+  langUk: string;
+  langKk: string;
+  langEn: string;
+  priestNameLabel: string;
+  addressLabel: string;
+  extraLabel: string;
+  mapSection: string;
+  mapHint: string;
+  contactButtonsSection: string;
+  addContactButton: string;
+  removeContactButton: string;
+  iconLabel: string;
+  buttonTitleLabel: string;
+  buttonUrlLabel: string;
+  iconHint: string;
   save: string;
-  errParse: string;
-  errShape: string;
+  errButtons: string;
 };
 
 export function adminSettingsCopy(lang: Lang): AdminSettingsCopy {
   const d: Record<Lang, AdminSettingsCopy> = {
     ru: {
       pageTitle: "Контакты и футер",
-      introBeforeJson: "Один JSON:",
-      introPriestCode: "priest_name_*",
-      introPriestDesc: "(ФИО настоятеля), общие",
-      introEmailCode: "email",
-      introAnd: "и",
-      introPhoneCode: "phone",
-      introPerLang: ", по языкам —",
-      introAddressCode: "address_*",
-      introExtraPart: "и при необходимости",
-      introExtraCode: "extra_*",
-      introFallback: ". Пустое значение для языка на сайте подменяется русским.",
+      intro:
+        "Данные отображаются в подвале сайта и на странице «Наши контакты». Пустые поля для языка на сайте подменяются русским.",
+      sharedSection: "Телефон и email",
+      phoneLabel: "Телефон",
+      emailLabel: "Email",
+      langRu: "Русский",
+      langUk: "Українська",
+      langKk: "Қазақша",
+      langEn: "English",
+      priestNameLabel: "Имя священника",
+      addressLabel: "Адрес",
+      extraLabel: "Дополнительный текст",
+      mapSection: "Карта (страница «Наши контакты»)",
+      mapHint:
+        "Вставьте полный тег iframe из Google Maps («Поделиться» → «Встроить карту») или только URL. Пустое поле — карта на сайте не показывается.",
+      contactButtonsSection: "Кнопки со ссылками",
+      addContactButton: "Добавить кнопку",
+      removeContactButton: "Удалить",
+      iconLabel: "Иконка",
+      buttonTitleLabel: "Название",
+      buttonUrlLabel: "Ссылка",
+      iconHint: "Эмодзи, слово telegram (иконка Telegram) или URL картинки",
       save: "Сохранить",
-      errParse:
-        "Некорректный JSON. Проверьте двойные кавычки у ключей и строк, запятые между полями, без запятой после последнего поля.",
-      errShape: "Корнем должен быть объект в фигурных скобках { … }, не массив и не одна строка.",
+      errButtons: "Некорректные данные кнопок. Проверьте JSON или обновите страницу.",
     },
     uk: {
       pageTitle: "Контакти та підвал сайту",
-      introBeforeJson: "Один JSON:",
-      introPriestCode: "priest_name_*",
-      introPriestDesc: "(ПІБ настоятеля), спільні",
-      introEmailCode: "email",
-      introAnd: "та",
-      introPhoneCode: "phone",
-      introPerLang: ", за мовами —",
-      introAddressCode: "address_*",
-      introExtraPart: "за потреби",
-      introExtraCode: "extra_*",
-      introFallback: ". Порожнє значення для мови на сайті замінюється російською.",
+      intro:
+        "Дані у підвалі сайту та на сторінці «Наші контакти». Порожні поля для мови замінюються російською.",
+      sharedSection: "Телефон і email",
+      phoneLabel: "Телефон",
+      emailLabel: "Email",
+      langRu: "Російська",
+      langUk: "Українська",
+      langKk: "Қазақша",
+      langEn: "English",
+      priestNameLabel: "Ім’я священика",
+      addressLabel: "Адреса",
+      extraLabel: "Додатковий текст",
+      mapSection: "Карта (сторінка «Наші контакти»)",
+      mapHint:
+        "Повний тег iframe з Google Maps або лише URL. Порожнє поле — карту не показуємо.",
+      contactButtonsSection: "Кнопки з посиланнями",
+      addContactButton: "Додати кнопку",
+      removeContactButton: "Прибрати",
+      iconLabel: "Іконка",
+      buttonTitleLabel: "Назва",
+      buttonUrlLabel: "Посилання",
+      iconHint: "Емодзі, слово telegram або URL зображення",
       save: "Зберегти",
-      errParse:
-        "Некоректний JSON. Перевірте лапки навколо ключів і рядків, коми між полями, без коми після останнього поля.",
-      errShape: "Коренем має бути об’єкт у фігурних дужках { … }, не масив і не один рядок.",
+      errButtons: "Некоректні дані кнопок.",
     },
     kk: {
       pageTitle: "Байланыс және футер",
-      introBeforeJson: "Бір JSON:",
-      introPriestCode: "priest_name_*",
-      introPriestDesc: "(настоятельдің аты-жөні), ортақ",
-      introEmailCode: "email",
-      introAnd: "және",
-      introPhoneCode: "phone",
-      introPerLang: ", тілдер бойынша —",
-      introAddressCode: "address_*",
-      introExtraPart: "қажет болса",
-      introExtraCode: "extra_*",
-      introFallback: ". Тіл үшін бос мән сайтта орыс тілімен ауыстырылады.",
+      intro:
+        "Деректер футерде және «Біздің байланыстар» бетінде. Тіл үшін бос өрістер орысшамен ауысады.",
+      sharedSection: "Телефон және email",
+      phoneLabel: "Телефон",
+      emailLabel: "Email",
+      langRu: "Орысша",
+      langUk: "Українська",
+      langKk: "Қазақша",
+      langEn: "Ағылшын",
+      priestNameLabel: "Священник аты",
+      addressLabel: "Мекенжай",
+      extraLabel: "Қосымша мәтін",
+      mapSection: "Карта («Біздің байланыстар»)",
+      mapHint: "Google Maps iframe тегі немесе тек URL. Бос — карта көрсетілмейді.",
+      contactButtonsSection: "Сілтемелі түймелер",
+      addContactButton: "Түйме қосу",
+      removeContactButton: "Жою",
+      iconLabel: "Белгіше",
+      buttonTitleLabel: "Атауы",
+      buttonUrlLabel: "Сілтеме",
+      iconHint: "Эмодзи, telegram сөзі немесе сурет URL",
       save: "Сақтау",
-      errParse:
-        "JSON дұрыс емес. Кілттер мен жолдардың тырнақшаларын, өрістер арасындағы үтірлерді тексеріңіз; соңғы өрістен кейін үтір болмауы керек.",
-      errShape: "Түбірі { … } жақшасындағы объект болуы керек, массив немесе бір жол емес.",
+      errButtons: "Түймелер дерегі дұрыс емес.",
     },
     en: {
       pageTitle: "Contacts & footer",
-      introBeforeJson: "A single JSON object:",
-      introPriestCode: "priest_name_*",
-      introPriestDesc: "(rector’s name), shared",
-      introEmailCode: "email",
-      introAnd: "and",
-      introPhoneCode: "phone",
-      introPerLang: "; per language —",
-      introAddressCode: "address_*",
-      introExtraPart: "and if needed",
-      introExtraCode: "extra_*",
-      introFallback: ". Empty values for a language fall back to Russian on the site.",
+      intro:
+        "Shown in the site footer and on “Our contacts”. Empty per-language fields fall back to Russian.",
+      sharedSection: "Phone & email",
+      phoneLabel: "Phone",
+      emailLabel: "Email",
+      langRu: "Russian",
+      langUk: "Ukrainian",
+      langKk: "Kazakh",
+      langEn: "English",
+      priestNameLabel: "Priest name",
+      addressLabel: "Address",
+      extraLabel: "Extra text",
+      mapSection: "Map (“Our contacts” page)",
+      mapHint:
+        "Paste the full iframe from Google Maps or a URL only. Empty — no map on the site.",
+      contactButtonsSection: "Link buttons",
+      addContactButton: "Add button",
+      removeContactButton: "Remove",
+      iconLabel: "Icon",
+      buttonTitleLabel: "Label",
+      buttonUrlLabel: "URL",
+      iconHint: "Emoji, the word telegram, or an image URL",
       save: "Save",
-      errParse:
-        "Invalid JSON. Check quotes around keys and strings, commas between fields, and no trailing comma after the last field.",
-      errShape: "The root must be an object in braces { … }, not an array or a single string.",
+      errButtons: "Invalid button data.",
+    },
+  };
+  return d[lang] ?? d.ru;
+}
+
+export type AdminParishesScreenCopy = {
+  pageTitle: string;
+  pageIntro: string;
+  emptyList: string;
+  addParish: string;
+  save: string;
+  delete: string;
+  confirmDelete: string;
+  cancel: string;
+  mapIframeField: string;
+  mapIframeHint: string;
+  removeParishPhoto: string;
+  removePriestPhoto: string;
+  published: string;
+  websiteUrl: string;
+  parishPhoto: string;
+  priestPhoto: string;
+  langRu: string;
+  langUk: string;
+  langKk: string;
+  langEn: string;
+  city: string;
+  name: string;
+  address: string;
+  priestName: string;
+  priestContacts: string;
+  noTitle: string;
+  edit: string;
+};
+
+export function adminParishesScreenCopy(lang: Lang): AdminParishesScreenCopy {
+  const d: Record<Lang, AdminParishesScreenCopy> = {
+    ru: {
+      pageTitle: "Приходы Казахстана",
+      pageIntro:
+        "Карточки отображаются на сайте в разделе «О церкви» → «Приходы Казахстана». Только опубликованные записи видны посетителям.",
+      emptyList: "Записей пока нет. Добавьте первый приход кнопкой выше.",
+      addParish: "Добавить приход",
+      save: "Сохранить",
+      delete: "Удалить",
+      confirmDelete: "Удалить этот приход? Действие необратимо.",
+      cancel: "Отмена",
+      mapIframeField: "Карта (тег iframe или URL)",
+      mapIframeHint:
+        "Полный код встраивания Google Maps или только ссылка. Пусто — на карточке прихода карта не показывается.",
+      removeParishPhoto: "Удалить фото прихода",
+      removePriestPhoto: "Удалить фото настоятеля",
+      published: "Опубликовано на сайте",
+      websiteUrl: "Ссылка на сайт (https://…)",
+      parishPhoto: "Фото прихода / храма",
+      priestPhoto: "Фото настоятеля",
+      langRu: "RU",
+      langUk: "UK",
+      langKk: "KK",
+      langEn: "EN",
+      city: "Город",
+      name: "Название",
+      address: "Адрес",
+      priestName: "Имя настоятеля",
+      priestContacts: "Контакты настоятеля (телефон, e-mail и т.д.)",
+      noTitle: "Без названия",
+      edit: "Редактировать",
+    },
+    uk: {
+      pageTitle: "Парафії Казахстану",
+      pageIntro:
+        "Картки на сайті: «Про церкву» → «Парафії Казахстану». Лише опубліковані записи бачать відвідувачі.",
+      emptyList: "Записів ще немає. Додайте першу парафію кнопкою вище.",
+      addParish: "Додати парафію",
+      save: "Зберегти",
+      delete: "Видалити",
+      confirmDelete: "Видалити цю парафію? Це незворотно.",
+      cancel: "Скасувати",
+      mapIframeField: "Карта (тег iframe або URL)",
+      mapIframeHint: "Повний код з Google Maps або лише посилання.",
+      removeParishPhoto: "Прибрати фото парафії",
+      removePriestPhoto: "Прибрати фото настоятеля",
+      published: "Опубліковано на сайті",
+      websiteUrl: "Посилання на сайт (https://…)",
+      parishPhoto: "Фото парафії / храму",
+      priestPhoto: "Фото настоятеля",
+      langRu: "RU",
+      langUk: "UK",
+      langKk: "KK",
+      langEn: "EN",
+      city: "Місто",
+      name: "Назва",
+      address: "Адреса",
+      priestName: "Ім’я настоятеля",
+      priestContacts: "Контакти настоятеля (телефон, e-mail тощо)",
+      noTitle: "Без назви",
+      edit: "Редагувати",
+    },
+    kk: {
+      pageTitle: "Қазақстан қауымдары",
+      pageIntro:
+        "Сайтта «Шіркеу туралы» → «Қазақстан қауымдары» бөлімінде көрінеді. Тек жарияланған жазбалар қонақтарға көрінеді.",
+      emptyList: "Жазбалар әлі жоқ. Жоғарыдағы түймемен бірінші қауымды қосыңыз.",
+      addParish: "Қауым қосу",
+      save: "Сақтау",
+      delete: "Жою",
+      confirmDelete: "Бұл қауымды жоясыз ба? Қайтарылмайды.",
+      cancel: "Болдырмау",
+      mapIframeField: "Карта (iframe немесе URL)",
+      mapIframeHint: "Google Maps толық коды немесе сілтеме.",
+      removeParishPhoto: "Қауым суретін жою",
+      removePriestPhoto: "Настоятель суретін жою",
+      published: "Сайтта жарияланған",
+      websiteUrl: "Сайт сілтемесі (https://…)",
+      parishPhoto: "Қауым / шіркеу суреті",
+      priestPhoto: "Бас священник суреті",
+      langRu: "RU",
+      langUk: "UK",
+      langKk: "KK",
+      langEn: "EN",
+      city: "Қала",
+      name: "Атауы",
+      address: "Мекенжай",
+      priestName: "Бас священник аты",
+      priestContacts: "Байланыс (телефон, e-mail т.б.)",
+      noTitle: "Атаусыз",
+      edit: "Өңдеу",
+    },
+    en: {
+      pageTitle: "Kazakhstan parishes",
+      pageIntro:
+        "Cards appear under About the parish → Parishes in Kazakhstan. Only published entries are public.",
+      emptyList: "No entries yet. Add the first parish using the button above.",
+      addParish: "Add parish",
+      save: "Save",
+      delete: "Delete",
+      confirmDelete: "Delete this parish? This cannot be undone.",
+      cancel: "Cancel",
+      mapIframeField: "Map (iframe tag or URL)",
+      mapIframeHint: "Full Google Maps embed code or URL only.",
+      removeParishPhoto: "Remove parish photo",
+      removePriestPhoto: "Remove rector photo",
+      published: "Published on site",
+      websiteUrl: "Website URL (https://…)",
+      parishPhoto: "Parish / church photo",
+      priestPhoto: "Rector photo",
+      langRu: "RU",
+      langUk: "UK",
+      langKk: "KK",
+      langEn: "EN",
+      city: "City",
+      name: "Name",
+      address: "Address",
+      priestName: "Rector name",
+      priestContacts: "Rector contacts (phone, email, etc.)",
+      noTitle: "Untitled",
+      edit: "Edit",
     },
   };
   return d[lang] ?? d.ru;
@@ -640,6 +845,25 @@ export function adminAccountCopy(lang: Lang): AdminAccountCopy {
 export type AdminUsersScreenCopy = {
   pageTitle: string;
   intro: string;
+  listTitle: string;
+  colEmail: string;
+  colName: string;
+  colRole: string;
+  colCreated: string;
+  colActions: string;
+  edit: string;
+  delete: string;
+  editTitle: string;
+  saveEdits: string;
+  cancel: string;
+  fullName: string;
+  roleLabel: string;
+  roleAdmin: string;
+  roleSuperadmin: string;
+  newPasswordOptional: string;
+  newPasswordHint: string;
+  confirmDelete: string;
+  youBadge: string;
   email: string;
   password: string;
   passwordAgain: string;
@@ -651,13 +875,34 @@ export type AdminUsersScreenCopy = {
   errGeneric: string;
   errNetwork: string;
   success: string;
+  successUpdated: string;
+  successDeleted: string;
 };
 
 export function adminUsersScreenCopy(lang: Lang): AdminUsersScreenCopy {
   const d: Record<Lang, AdminUsersScreenCopy> = {
     ru: {
       pageTitle: "Пользователи",
-      intro: "Здесь создаются администраторы",
+      intro: "Создание учётных записей администраторов и управление ими",
+      listTitle: "Список пользователей",
+      colEmail: "Email",
+      colName: "Имя",
+      colRole: "Роль",
+      colCreated: "Создан",
+      colActions: "Действия",
+      edit: "Изменить",
+      delete: "Удалить",
+      editTitle: "Редактирование пользователя",
+      saveEdits: "Сохранить",
+      cancel: "Отмена",
+      fullName: "Имя (отображение)",
+      roleLabel: "Роль",
+      roleAdmin: "Админ",
+      roleSuperadmin: "Суперадмин",
+      newPasswordOptional: "Новый пароль",
+      newPasswordHint: "оставьте пустым, если не меняете",
+      confirmDelete: "Удалить этого пользователя? Войти под ним станет невозможно.",
+      youBadge: "вы",
       email: "Email",
       password: "Пароль",
       passwordAgain: "Пароль ещё раз",
@@ -669,10 +914,31 @@ export function adminUsersScreenCopy(lang: Lang): AdminUsersScreenCopy {
       errGeneric: "Ошибка",
       errNetwork: "Сеть недоступна",
       success: "Пользователь создан. Передайте ему email и пароль любым способом.",
+      successUpdated: "Изменения сохранены",
+      successDeleted: "Пользователь удалён",
     },
     uk: {
       pageTitle: "Користувачі",
-      intro: "Тут створюються адміністратори",
+      intro: "Створення облікових записів адміністраторів та керування ними",
+      listTitle: "Список користувачів",
+      colEmail: "Email",
+      colName: "Ім’я",
+      colRole: "Роль",
+      colCreated: "Створено",
+      colActions: "Дії",
+      edit: "Змінити",
+      delete: "Видалити",
+      editTitle: "Редагування користувача",
+      saveEdits: "Зберегти",
+      cancel: "Скасувати",
+      fullName: "Ім’я (відображення)",
+      roleLabel: "Роль",
+      roleAdmin: "Адмін",
+      roleSuperadmin: "Суперадмін",
+      newPasswordOptional: "Новий пароль",
+      newPasswordHint: "залиште порожнім, якщо не змінюєте",
+      confirmDelete: "Видалити цього користувача? Увійти під ним буде неможливо.",
+      youBadge: "ви",
       email: "Email",
       password: "Пароль",
       passwordAgain: "Повторіть пароль",
@@ -684,10 +950,31 @@ export function adminUsersScreenCopy(lang: Lang): AdminUsersScreenCopy {
       errGeneric: "Помилка",
       errNetwork: "Мережа недоступна",
       success: "Користувача створено. Передайте email і пароль будь-яким способом.",
+      successUpdated: "Зміни збережено",
+      successDeleted: "Користувача видалено",
     },
     kk: {
       pageTitle: "Пайдаланушылар",
-      intro: "Мұнда әкімшілер құрылады",
+      intro: "Әкімші тіркелгілерін жасау және басқару",
+      listTitle: "Пайдаланушылар тізімі",
+      colEmail: "Email",
+      colName: "Аты",
+      colRole: "Рөлі",
+      colCreated: "Құрылған",
+      colActions: "Әрекеттер",
+      edit: "Өңдеу",
+      delete: "Жою",
+      editTitle: "Пайдаланушыны өңдеу",
+      saveEdits: "Сақтау",
+      cancel: "Болдырмау",
+      fullName: "Аты (көрініс)",
+      roleLabel: "Рөлі",
+      roleAdmin: "Әкімші",
+      roleSuperadmin: "Суперәкімші",
+      newPasswordOptional: "Жаңа құпия сөз",
+      newPasswordHint: "өзгертпесеңіз бос қалдырыңыз",
+      confirmDelete: "Бұл пайдаланушыны жоясыз ба? Кіру мүмкін болмайды.",
+      youBadge: "сіз",
       email: "Email",
       password: "Құпия сөз",
       passwordAgain: "Қайталаңыз",
@@ -699,10 +986,31 @@ export function adminUsersScreenCopy(lang: Lang): AdminUsersScreenCopy {
       errGeneric: "Қате",
       errNetwork: "Желі жоқ",
       success: "Пайдаланушы құрылды. Email мен құпия сөзді кез келген жолмен беріңіз.",
+      successUpdated: "Сақталды",
+      successDeleted: "Жойылды",
     },
     en: {
       pageTitle: "Users",
-      intro: "Create administrator accounts here",
+      intro: "Create administrator accounts and manage them",
+      listTitle: "User list",
+      colEmail: "Email",
+      colName: "Name",
+      colRole: "Role",
+      colCreated: "Created",
+      colActions: "Actions",
+      edit: "Edit",
+      delete: "Delete",
+      editTitle: "Edit user",
+      saveEdits: "Save",
+      cancel: "Cancel",
+      fullName: "Display name",
+      roleLabel: "Role",
+      roleAdmin: "Admin",
+      roleSuperadmin: "Superadmin",
+      newPasswordOptional: "New password",
+      newPasswordHint: "leave empty to keep current",
+      confirmDelete: "Delete this user? They will no longer be able to sign in.",
+      youBadge: "you",
       email: "Email",
       password: "Password",
       passwordAgain: "Repeat password",
@@ -714,6 +1022,8 @@ export function adminUsersScreenCopy(lang: Lang): AdminUsersScreenCopy {
       errGeneric: "Error",
       errNetwork: "Network unavailable",
       success: "User created. Share the email and password with them securely.",
+      successUpdated: "Saved",
+      successDeleted: "User deleted",
     },
   };
   return d[lang] ?? d.ru;
