@@ -23,14 +23,26 @@ function useFixedMenuPosition(
 
   useLayoutEffect(() => {
     if (!open || !anchorRef.current) return;
-    const r = anchorRef.current.getBoundingClientRect();
-    const width = Math.max(MENU_MIN_W, r.width);
-    let left = r.left;
-    if (left + width > window.innerWidth - 8) {
-      left = window.innerWidth - width - 8;
-    }
-    if (left < 8) left = 8;
-    setPos({ top: r.bottom + 6, left, width });
+
+    const update = () => {
+      const r = anchorRef.current?.getBoundingClientRect();
+      if (!r) return;
+      const width = Math.max(MENU_MIN_W, r.width);
+      let left = r.left;
+      if (left + width > window.innerWidth - 8) {
+        left = window.innerWidth - width - 8;
+      }
+      if (left < 8) left = 8;
+      setPos({ top: r.bottom + 6, left, width });
+    };
+
+    update();
+    window.addEventListener("resize", update);
+    window.addEventListener("scroll", update, true);
+    return () => {
+      window.removeEventListener("resize", update);
+      window.removeEventListener("scroll", update, true);
+    };
   }, [open, anchorRef]);
 
   return pos;
@@ -65,11 +77,14 @@ export function ScriptureReadPicker({
   lang,
   options,
   className,
+  anchorClassName,
   children,
 }: {
   lang: Lang;
   options: ScriptureEditionMenuItem[];
   className: string;
+  /** Обёртка якоря: для `w-full` у кнопки передайте `block w-full`. */
+  anchorClassName?: string;
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
@@ -82,14 +97,16 @@ export function ScriptureReadPicker({
   if (options.length === 0 || !hasUrl) return null;
   if (options.length === 1 && options[0].url) {
     return (
-      <a
-        href={options[0].url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={className}
-      >
-        {children}
-      </a>
+      <div className={anchorClassName ?? "inline-block"}>
+        <a
+          href={options[0].url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={className}
+        >
+          {children}
+        </a>
+      </div>
     );
   }
 
@@ -139,7 +156,7 @@ export function ScriptureReadPicker({
 
   return (
     <>
-      <div ref={anchorRef} className="inline-block">
+      <div ref={anchorRef} className={anchorClassName ?? "inline-block"}>
         <button
           type="button"
           className={className}
@@ -159,11 +176,13 @@ export function ScriptureFilePicker({
   lang,
   options,
   className,
+  anchorClassName,
   children,
 }: {
   lang: Lang;
   options: ScriptureEditionMenuItem[];
   className: string;
+  anchorClassName?: string;
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
@@ -176,9 +195,11 @@ export function ScriptureFilePicker({
   if (options.length === 0 || !hasUrl) return null;
   if (options.length === 1 && options[0].url) {
     return (
-      <BookFileDownload fileUrl={options[0].url} className={className}>
-        {children}
-      </BookFileDownload>
+      <div className={anchorClassName ?? "inline-block"}>
+        <BookFileDownload fileUrl={options[0].url} className={className}>
+          {children}
+        </BookFileDownload>
+      </div>
     );
   }
 
@@ -226,7 +247,7 @@ export function ScriptureFilePicker({
 
   return (
     <>
-      <div ref={anchorRef} className="inline-block">
+      <div ref={anchorRef} className={anchorClassName ?? "inline-block"}>
         <button
           type="button"
           className={className}

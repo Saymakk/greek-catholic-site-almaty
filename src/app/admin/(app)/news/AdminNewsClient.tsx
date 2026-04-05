@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { format, parseISO } from "date-fns";
 import type { Lang } from "@/lib/i18n";
 import { pickNewsI18nRow } from "@/lib/content-lang-chain";
+import { adminNewsScreenCopy } from "@/lib/admin-layout-i18n";
 import { deleteNewsForm } from "../actions/news";
 import { NewsEditForm, type NewsLocaleFields } from "./NewsEditForm";
 import { normalizeNewsLocales } from "./news-entity-locales";
@@ -55,6 +56,7 @@ export function AdminNewsClient({
   items: AdminNewsPayload[];
   initialNewsId: string | null;
 }) {
+  const c = adminNewsScreenCopy(lang);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [mode, setMode] = useState<"add" | "edit" | null>(null);
   const [active, setActive] = useState<AdminNewsPayload | null>(null);
@@ -101,13 +103,13 @@ export function AdminNewsClient({
   return (
     <div>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <h1 className="font-display text-2xl text-parish-text">Новости</h1>
+        <h1 className="font-display text-2xl text-parish-text">{c.pageTitle}</h1>
         <button
           type="button"
           onClick={openAdd}
           className="shrink-0 rounded-lg bg-parish-accent px-4 py-2 text-sm font-medium text-white hover:opacity-90"
         >
-          Создать
+          {c.create}
         </button>
       </div>
       <ul className="mt-8 space-y-4">
@@ -118,7 +120,7 @@ export function AdminNewsClient({
           >
             <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch sm:justify-between">
               <div className="flex min-w-0 flex-1 gap-3">
-                <div className="h-20 w-14 shrink-0 overflow-hidden rounded-md border border-parish-border bg-parish-muted/20">
+                <div className="h-20 w-14 shrink-0 overflow-hidden rounded-md border border-parish-border bg-parish-surface">
                   {n.cover_image_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -135,7 +137,7 @@ export function AdminNewsClient({
                 <div className="min-w-0 flex-1">
                   <span className="text-sm text-parish-muted">
                     {format(parseISO(n.published_at), "dd.MM.yyyy")}
-                    {!n.is_published ? " · черновик" : ""}
+                    {!n.is_published ? ` · ${c.draft}` : ""}
                   </span>
                   <p className="font-medium text-parish-text">{listTitle(n, lang)}</p>
                 </div>
@@ -146,20 +148,20 @@ export function AdminNewsClient({
                   onClick={() => openEdit(n)}
                   className="rounded-lg border border-parish-border px-3 py-2 text-center text-sm font-medium text-parish-accent hover:bg-parish-accent-soft"
                 >
-                  Редактировать
+                  {c.edit}
                 </button>
                 <form
                   action={deleteNewsForm}
                   onSubmit={(e) => {
-                    if (!confirm("Удалить эту новость?")) e.preventDefault();
+                    if (!confirm(c.confirmDelete)) e.preventDefault();
                   }}
                 >
                   <input type="hidden" name="id" value={n.id} />
                   <button
                     type="submit"
-                    className="w-full rounded-lg px-3 py-2 text-center text-sm text-red-600 hover:bg-red-50"
+                    className="w-full rounded-lg border border-parish-border px-3 py-2 text-center text-sm font-medium text-red-600 hover:bg-red-50"
                   >
-                    Удалить
+                    {c.delete}
                   </button>
                 </form>
               </div>
@@ -176,13 +178,13 @@ export function AdminNewsClient({
           <div className="admin-book-dialog__inner">
             <div className="flex shrink-0 items-start justify-between gap-3 border-b border-parish-border px-4 py-3 sm:px-6">
               <h2 className="min-w-0 flex-1 font-display text-lg font-semibold text-parish-text sm:text-xl">
-                {mode === "add" ? "Новая новость" : "Редактирование новости"}
+                {mode === "add" ? c.modalNew : c.modalEdit}
               </h2>
               <button
                 type="button"
                 onClick={closeDialog}
                 className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-parish-muted hover:bg-parish-accent-soft hover:text-parish-text"
-                aria-label="Закрыть"
+                aria-label={c.closeAria}
               >
                 <span className="text-2xl leading-none" aria-hidden>
                   ×
@@ -191,13 +193,14 @@ export function AdminNewsClient({
             </div>
             <NewsEditForm
               key={mode === "add" ? "new" : active.id}
+              formMsg={c}
               newsId={active.id}
               publishedAt={format(parseISO(active.published_at), "dd.MM.yyyy HH:mm")}
               isPublished={active.is_published}
               primaryLang={active.primary_lang}
               coverImageUrl={active.cover_image_url}
               locales={active.locales}
-              submitLabel={mode === "add" ? "Добавить" : "Сохранить"}
+              submitLabel={mode === "add" ? c.add : c.save}
               onCancel={closeDialog}
             />
           </div>

@@ -8,7 +8,7 @@ export function AdminLangBar({ current }: { current: Lang }) {
       <span className="text-xs font-medium text-parish-muted">
         {adminInterfaceLanguageLabel(current)}
       </span>
-      <LangSwitcher current={current} />
+      <LangSwitcher current={current} srOnlyLabel={adminInterfaceLanguageLabel(current)} />
     </div>
   );
 }

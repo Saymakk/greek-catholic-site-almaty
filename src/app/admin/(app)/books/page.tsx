@@ -13,17 +13,16 @@ export default async function AdminBooksPage() {
     .select(
       `
       id,
-      sort_order,
+      created_at,
       primary_lang,
       scripture_book_locales ( lang, title, description, read_url, file_url, cover_image_url )
     `,
     )
-    .order("sort_order", { ascending: true });
+    .order("created_at", { ascending: false });
 
   const payload: AdminBookPayload[] = (books ?? []).map((b) => {
     const raw = b as {
       id: string;
-      sort_order: number;
       primary_lang: string | null;
       scripture_book_locales: {
         lang: string;
@@ -40,7 +39,6 @@ export default async function AdminBooksPage() {
         : null;
     return {
       id: String(raw.id),
-      sortOrder: Number(raw.sort_order ?? 0),
       primaryLang: pl,
       locales: normalizeBookLocales(raw.scripture_book_locales ?? [], pl),
     };

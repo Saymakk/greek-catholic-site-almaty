@@ -1,12 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { requireStaff } from "@/lib/admin";
+import { getLang } from "@/lib/i18n-server";
+import { adminSettingsCopy } from "@/lib/admin-layout-i18n";
 import { saveFooter } from "../actions/content";
-
-const FOOTER_ERR: Record<string, string> = {
-  parse:
-    "Некорректный JSON. Проверьте двойные кавычки у ключей и строк, запятые между полями, без запятой после последнего поля.",
-  shape: "Корнем должен быть объект в фигурных скобках { … }, не массив и не одна строка.",
-};
 
 export default async function AdminSettingsPage({
   searchParams,
@@ -14,8 +10,12 @@ export default async function AdminSettingsPage({
   searchParams: Promise<{ footer_err?: string }>;
 }) {
   await requireStaff();
+  const lang = await getLang();
+  const s = adminSettingsCopy(lang);
   const q = await searchParams;
-  const footerErr = q.footer_err ? FOOTER_ERR[q.footer_err] ?? null : null;
+  const errKey = q.footer_err === "parse" || q.footer_err === "shape" ? q.footer_err : null;
+  const footerErr = errKey ? (errKey === "parse" ? s.errParse : s.errShape) : null;
+
   const supabase = await createClient();
   const { data } = await supabase
     .from("site_settings")
@@ -27,14 +27,18 @@ export default async function AdminSettingsPage({
 
   return (
     <div>
-      <h1 className="font-display text-2xl text-parish-text">Контакты и футер</h1>
+      <h1 className="font-display text-2xl text-parish-text">{s.pageTitle}</h1>
       <p className="mt-2 max-w-2xl text-sm text-parish-muted">
-        Один JSON: <code className="rounded bg-parish-accent-soft px-1">priest_name_*</code> (ФИО
-        настоятеля), общие <code className="rounded bg-parish-accent-soft px-1">email</code> и{" "}
-        <code className="rounded bg-parish-accent-soft px-1">phone</code>, по языкам —{" "}
-        <code className="rounded bg-parish-accent-soft px-1">address_*</code> и при необходимости{" "}
-        <code className="rounded bg-parish-accent-soft px-1">extra_*</code>. Пустое значение для
-        языка на сайте подменяется русским.
+        {s.introBeforeJson}{" "}
+        <code className="rounded bg-parish-accent-soft px-1">{s.introPriestCode}</code>{" "}
+        {s.introPriestDesc}{" "}
+        <code className="rounded bg-parish-accent-soft px-1">{s.introEmailCode}</code> {s.introAnd}{" "}
+        <code className="rounded bg-parish-accent-soft px-1">{s.introPhoneCode}</code>
+        {s.introPerLang}{" "}
+        <code className="rounded bg-parish-accent-soft px-1">{s.introAddressCode}</code>,{" "}
+        {s.introExtraPart}{" "}
+        <code className="rounded bg-parish-accent-soft px-1">{s.introExtraCode}</code>
+        {s.introFallback}
       </p>
       {footerErr ? (
         <p className="mt-4 max-w-2xl rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
@@ -52,7 +56,7 @@ export default async function AdminSettingsPage({
           type="submit"
           className="mt-4 rounded-lg bg-parish-accent px-6 py-2 text-white hover:opacity-90"
         >
-          Сохранить
+          {s.save}
         </button>
       </form>
     </div>

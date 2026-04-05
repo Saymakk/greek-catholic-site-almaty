@@ -9,7 +9,6 @@ import { sortLangsForForm, isContentLang, type ContentLang } from "./book-locale
 
 export type AdminBookPayload = {
   id: string;
-  sortOrder: number;
   /** null = старая схема с lang main */
   primaryLang: string | null;
   locales: BookLocaleFields[];
@@ -69,7 +68,6 @@ export function AdminBooksClient({
     setMode("add");
     setActiveBook({
       id: "",
-      sortOrder: 0,
       primaryLang: "ru",
       locales: [
         {
@@ -120,7 +118,7 @@ export function AdminBooksClient({
                     key={loc.lang}
                     className="flex gap-3 rounded-lg border border-parish-border/50 bg-parish-bg/40 p-2"
                   >
-                    <div className="h-20 w-14 shrink-0 overflow-hidden rounded-md border border-parish-border bg-parish-muted/20">
+                    <div className="h-20 w-14 shrink-0 overflow-hidden rounded-md border border-parish-border bg-parish-surface">
                       {loc.cover_image_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
@@ -168,7 +166,7 @@ export function AdminBooksClient({
                   <input type="hidden" name="id" value={book.id} />
                   <button
                     type="submit"
-                    className="w-full rounded-lg px-3 py-2 text-center text-sm text-red-600 hover:bg-red-50"
+                    className="w-full rounded-lg border border-parish-border px-3 py-2 text-center text-sm font-medium text-red-600 hover:bg-red-50"
                   >
                     {msg.delete}
                   </button>
@@ -207,7 +205,6 @@ export function AdminBooksClient({
             <BookEditForm
               key={mode === "add" ? "new-book" : activeBook.id}
               bookId={activeBook.id}
-              sortOrder={activeBook.sortOrder}
               primaryLang={activeBook.primaryLang}
               locales={activeBook.locales}
               submitLabel={mode === "add" ? msg.addSubmit : msg.save}

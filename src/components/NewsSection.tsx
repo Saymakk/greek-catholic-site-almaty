@@ -1,13 +1,16 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { format, parseISO, startOfDay } from "date-fns";
 import type { Lang } from "@/lib/i18n";
 import { t } from "@/lib/ui-strings";
 import type { NewsRow } from "@/lib/data";
 import { RichOrPlain, stripTagsForPreview } from "./RichOrPlain";
+import { PaginationControls } from "./PaginationControls";
+import { NewsDetailModal } from "./NewsDetailModal";
 
 const PREVIEW_LEN = 100;
+const PAGE_SIZE = 10;
 
 function FilterIcon({ className }: { className?: string }) {
   return (
@@ -29,11 +32,12 @@ function FilterIcon({ className }: { className?: string }) {
 
 export function NewsSection({ lang, news }: { lang: Lang; news: NewsRow[] }) {
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [detailNews, setDetailNews] = useState<NewsRow | null>(null);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   const [keyword, setKeyword] = useState("");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
+  const [page, setPage] = useState(1);
 
   const filtered = useMemo(() => {
     const kw = keyword.trim().toLowerCase();
@@ -51,6 +55,22 @@ export function NewsSection({ lang, news }: { lang: Lang; news: NewsRow[] }) {
     });
   }, [news, keyword, from, to]);
 
+  const totalFiltered = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(totalFiltered / PAGE_SIZE));
+  const currentPage = Math.min(Math.max(1, page), totalPages);
+  const pageItems = useMemo(() => {
+    const fromIdx = (currentPage - 1) * PAGE_SIZE;
+    return filtered.slice(fromIdx, fromIdx + PAGE_SIZE);
+  }, [filtered, currentPage]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [keyword, from, to]);
+
+  useEffect(() => {
+    setPage((p) => Math.min(p, totalPages));
+  }, [totalPages]);
+
   return (
     <section
       id="news"
@@ -63,16 +83,16 @@ export function NewsSection({ lang, news }: { lang: Lang; news: NewsRow[] }) {
         <button
           type="button"
           onClick={() => setFiltersOpen((v) => !v)}
-          className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-semibold transition ${
+          className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border text-parish-muted shadow-sm transition ${
             filtersOpen
               ? "border-parish-accent bg-parish-accent-soft text-parish-accent"
-              : "border-parish-border bg-parish-surface text-parish-muted hover:border-parish-accent/50 hover:text-parish-accent"
+              : "border-parish-border bg-parish-surface hover:border-parish-accent/50 hover:text-parish-accent"
           }`}
           aria-expanded={filtersOpen}
           aria-label={t(lang, "newsFilters")}
+          title={t(lang, "newsFilters")}
         >
           <FilterIcon />
-          <span className="hidden sm:inline">{t(lang, "newsFilters")}</span>
         </button>
       </div>
 
@@ -123,10 +143,9 @@ export function NewsSection({ lang, news }: { lang: Lang; news: NewsRow[] }) {
         {filtered.length === 0 ? (
           <li className="text-center font-medium text-parish-muted">{t(lang, "noNews")}</li>
         ) : (
-          filtered.map((n) => {
+          pageItems.map((n) => {
             const plain = stripTagsForPreview(n.body);
             const needsExpand = plain.length > PREVIEW_LEN;
-            const isOpen = expanded[n.id];
             return (
               <li
                 key={n.id}
@@ -144,9 +163,9 @@ export function NewsSection({ lang, news }: { lang: Lang; news: NewsRow[] }) {
                 {n.coverImageUrl ? (
                   <button
                     type="button"
-                    className="mx-auto mt-4 block max-w-[512px] cursor-zoom-in rounded-xl border border-parish-border/60 p-0 focus:outline-none focus:ring-2 focus:ring-parish-accent"
+                    className="mx-auto mt-4 block max-w-[512px] cursor-zoom-in rounded-xl border border-parish-border/60 bg-parish-surface p-0 focus:outline-none focus:ring-2 focus:ring-parish-accent"
                     onClick={() => setLightboxSrc(n.coverImageUrl)}
-                    aria-label={t(lang, "expandNews")}
+                    aria-label={t(lang, "imageLightboxAria")}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
@@ -160,7 +179,7 @@ export function NewsSection({ lang, news }: { lang: Lang; news: NewsRow[] }) {
                   <p className="mt-2 text-sm font-medium text-parish-muted">{n.excerpt}</p>
                 ) : null}
                 <div className="rich-html mt-4 max-w-none text-sm font-medium leading-relaxed text-parish-text">
-                  {needsExpand && !isOpen ? (
+                  {needsExpand ? (
                     <p className="text-left">
                       {plain.slice(0, PREVIEW_LEN)}
                       …
@@ -173,11 +192,9 @@ export function NewsSection({ lang, news }: { lang: Lang; news: NewsRow[] }) {
                   <button
                     type="button"
                     className="mt-3 text-sm font-semibold text-parish-accent hover:underline"
-                    onClick={() =>
-                      setExpanded((prev) => ({ ...prev, [n.id]: !prev[n.id] }))
-                    }
+                    onClick={() => setDetailNews(n)}
                   >
-                    {isOpen ? t(lang, "collapseNews") : t(lang, "expandNews")}
+                    {t(lang, "openNews")}
                   </button>
                 ) : null}
               </li>
@@ -185,6 +202,21 @@ export function NewsSection({ lang, news }: { lang: Lang; news: NewsRow[] }) {
           })
         )}
       </ul>
+
+      {filtered.length > 0 ? (
+        <PaginationControls
+          lang={lang}
+          page={currentPage}
+          totalPages={totalPages}
+          totalItems={totalFiltered}
+          pageSize={PAGE_SIZE}
+          onPageChange={setPage}
+        />
+      ) : null}
+
+      {detailNews ? (
+        <NewsDetailModal lang={lang} news={detailNews} onClose={() => setDetailNews(null)} />
+      ) : null}
 
       {lightboxSrc ? (
         <div

@@ -27,7 +27,6 @@ function editionTitle(code: string, msg: AdminBooksMsg) {
 
 export function BookEditForm({
   bookId,
-  sortOrder,
   primaryLang: primaryLangDb,
   locales,
   submitLabel,
@@ -37,7 +36,6 @@ export function BookEditForm({
   modalLayout = false,
 }: {
   bookId: string;
-  sortOrder: number;
   /** null — старая запись с lang main; после сохранения станет выбранный язык */
   primaryLang: string | null;
   locales: BookLocaleFields[];
@@ -156,19 +154,6 @@ export function BookEditForm({
         </select>
       </label>
       <input type="hidden" name="primary_lang" value={primaryLang} />
-      <label className={`block text-parish-muted ${label}`}>
-        {msg.sortOrder}
-        <input
-          type="number"
-          name="sort_order"
-          defaultValue={sortOrder}
-          className={
-            f
-              ? "mt-1 w-full max-w-[8rem] rounded border border-parish-border px-[0.45em] py-[0.35em] text-[1em] sm:w-24"
-              : "mt-1 w-full max-w-[8rem] rounded border border-parish-border px-2 py-1 sm:w-24"
-          }
-        />
-      </label>
 
       {orderedLangCodes.map((code) => {
         const row = byLang.get(code) ?? {
@@ -198,7 +183,7 @@ export function BookEditForm({
               {(isLegacy ? code !== "main" : code !== primaryLang) ? (
                 <button
                   type="button"
-                  className={`text-red-600 hover:underline ${f ? "text-[0.85em]" : "text-xs"}`}
+                  className={`rounded border border-parish-border px-2 py-1 font-medium text-red-600 hover:bg-red-50 ${f ? "text-[0.85em]" : "text-xs"}`}
                   onClick={() => removeLang(code)}
                 >
                   {msg.removeEdition}

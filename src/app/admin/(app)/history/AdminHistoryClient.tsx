@@ -77,7 +77,7 @@ export function AdminHistoryClient({
         <li className="rounded-xl border border-parish-border bg-parish-surface p-4 shadow-sm">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch sm:justify-between">
             <div className="flex min-w-0 flex-1 gap-3">
-              <div className="flex h-20 w-14 shrink-0 items-center justify-center rounded-md border border-parish-border bg-parish-muted/20 text-xs text-parish-muted">
+              <div className="flex h-20 w-14 shrink-0 items-center justify-center rounded-md border border-parish-border bg-parish-surface text-xs text-parish-muted">
                 —
               </div>
               <div className="min-w-0 flex-1">

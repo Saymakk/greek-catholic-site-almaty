@@ -177,13 +177,11 @@ export async function saveBook(formData: FormData) {
 
   const locales = orderedLocales(primary_lang, present);
 
-  const sort_order = Number(formData.get("sort_order") || 0);
-
   let bookId = id;
   if (!bookId) {
     const { data, error } = await supabase
       .from("scripture_books")
-      .insert({ sort_order, primary_lang })
+      .insert({ primary_lang })
       .select("id")
       .single();
     if (error) throw new Error(error.message);
@@ -191,7 +189,7 @@ export async function saveBook(formData: FormData) {
   } else {
     const { error: upBook } = await supabase
       .from("scripture_books")
-      .update({ sort_order, primary_lang })
+      .update({ primary_lang })
       .eq("id", bookId);
     if (upBook) throw new Error(upBook.message);
   }

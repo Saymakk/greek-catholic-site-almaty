@@ -4,9 +4,9 @@ import type { Lang } from "@/lib/i18n";
 import { t, type UiKey } from "@/lib/ui-strings";
 
 const links: { href: string; key: UiKey }[] = [
-  { href: "/#today", key: "navToday" },
+  { href: "/", key: "navHome" },
   { href: "/#news", key: "navNews" },
-  { href: "/#scripture", key: "navScripture" },
+  { href: "/library", key: "navLibrary" },
   { href: "/#telegram", key: "navTelegram" },
   { href: "/history", key: "navHistory" },
 ];
@@ -31,7 +31,7 @@ export function SiteHeader({ lang }: { lang: Lang }) {
               {t(lang, l.key)}
             </a>
           ))}
-          <LangSwitcher current={lang} />
+          <LangSwitcher current={lang} srOnlyLabel={t(lang, "siteLangSelectAria")} />
         </nav>
       </div>
     </header>

@@ -4,7 +4,7 @@ import {
   adminActivityEntityLabel,
   adminDashboardCopy,
 } from "@/lib/admin-activity-i18n";
-import { adminNavLabels, adminRoleLabel } from "@/lib/admin-layout-i18n";
+import { adminRoleLabel } from "@/lib/admin-layout-i18n";
 import { createClient } from "@/lib/supabase/server";
 import { getLang } from "@/lib/i18n-server";
 import type { Lang } from "@/lib/i18n";
@@ -12,8 +12,6 @@ import { format } from "date-fns";
 import { enUS } from "date-fns/locale/en-US";
 import { ru } from "date-fns/locale/ru";
 import { uk } from "date-fns/locale/uk";
-import Link from "next/link";
-
 type LogRow = {
   id: string;
   created_at: string;
@@ -54,7 +52,6 @@ export default async function AdminHomePage() {
   const profile = await requireStaff();
   const lang = await getLang();
   const copy = adminDashboardCopy(lang);
-  const n = adminNavLabels(lang);
 
   const supabase = await createClient();
   const { data: rawLogs, error: logError } = await supabase
@@ -124,38 +121,6 @@ export default async function AdminHomePage() {
           </div>
         )}
       </section>
-
-      <ul className="mt-10 list-inside list-disc space-y-2 text-sm text-parish-accent sm:hidden">
-        <li>
-          <Link href="/admin">{n.home}</Link>
-        </li>
-        <li>
-          <Link href="/admin/news">{n.news}</Link>
-        </li>
-        <li>
-          <Link href="/admin/calendar">{n.calendar}</Link>
-        </li>
-        <li>
-          <Link href="/admin/books">{n.scripture}</Link>
-        </li>
-        <li>
-          <Link href="/admin/history">{n.history}</Link>
-        </li>
-        <li>
-          <Link href="/admin/settings">{n.settings}</Link>
-        </li>
-        <li>
-          <Link href="/admin/account">{n.account}</Link>
-        </li>
-        {profile.role === "superadmin" ? (
-          <li>
-            <Link href="/admin/users">{n.users}</Link>
-          </li>
-        ) : null}
-        <li>
-          <Link href="/">{n.toSite}</Link>
-        </li>
-      </ul>
     </div>
   );
 }

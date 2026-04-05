@@ -1,27 +1,83 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Lang } from "@/lib/i18n";
 import { t } from "@/lib/ui-strings";
 import type { LiturgicalEventView } from "@/lib/data";
 import { LiturgicalCalendar } from "./LiturgicalCalendar";
-import { RichOrPlain } from "./RichOrPlain";
+import { LiturgicalEventModal } from "./LiturgicalEventModal";
+import { PaginationControls } from "./PaginationControls";
+import { SiteLoadingSpinner } from "./SiteLoadingSpinner";
+import { stripTagsForPreview } from "./RichOrPlain";
+
+const PAGE_SIZE = 10;
+const PREVIEW_LEN = 200;
+
+function previewBlock(e: LiturgicalEventView): string {
+  const a = stripTagsForPreview(e.explanation).trim();
+  const b = stripTagsForPreview(e.prayer ?? "").trim();
+  const body = [a, b].filter(Boolean).join("\n\n");
+  const base = body.length ? body : e.title;
+  const truncated = base.length > PREVIEW_LEN;
+  return truncated ? `${base.slice(0, PREVIEW_LEN)}…` : base;
+}
 
 export function TodayWithCalendar({
   lang,
-  events,
+  events: initialTodayEvents,
+  todayDateStr,
+  todayTotal,
   initialEvents,
   initialMonthIso,
   variant = "default",
 }: {
   lang: Lang;
   events: LiturgicalEventView[];
+  todayDateStr: string;
+  todayTotal: number;
   initialEvents: LiturgicalEventView[];
   initialMonthIso: string;
   variant?: "default" | "sidebar";
 }) {
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [page, setPage] = useState(1);
+  const [events, setEvents] = useState<LiturgicalEventView[]>(initialTodayEvents);
+  const [listLoading, setListLoading] = useState(false);
+  const [detailEvent, setDetailEvent] = useState<LiturgicalEventView | null>(null);
   const isSidebar = variant === "sidebar";
+
+  const totalPages = Math.max(1, Math.ceil(todayTotal / PAGE_SIZE));
+
+  useEffect(() => {
+    if (page !== 1) return;
+    setEvents(initialTodayEvents);
+  }, [page, initialTodayEvents]);
+
+  useEffect(() => {
+    if (page === 1) return;
+    let cancelled = false;
+    async function run() {
+      setListLoading(true);
+      try {
+        const res = await fetch(
+          `/api/liturgical/today?date=${encodeURIComponent(todayDateStr)}&page=${page}&lang=${lang}`,
+        );
+        const data = (await res.json()) as { events?: LiturgicalEventView[] };
+        if (cancelled) return;
+        setEvents(Array.isArray(data.events) ? data.events : []);
+      } finally {
+        if (!cancelled) setListLoading(false);
+      }
+    }
+    void run();
+    return () => {
+      cancelled = true;
+    };
+  }, [page, todayDateStr, lang]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [todayDateStr, lang]);
 
   return (
     <div id="today" className="scroll-mt-24">
@@ -61,7 +117,11 @@ export function TodayWithCalendar({
           </button>
         </div>
 
-        {!events.length ? (
+        {listLoading ? (
+          <div className="mt-4 flex justify-center py-6" aria-busy>
+            <SiteLoadingSpinner />
+          </div>
+        ) : !events.length ? (
           <p
             className={
               isSidebar
@@ -73,70 +133,81 @@ export function TodayWithCalendar({
           </p>
         ) : (
           <ul className={isSidebar ? "mt-3 space-y-4" : "mt-4 space-y-6"}>
-            {events.map((e) => (
-              <li key={e.id}>
-                <div
-                  className={
-                    isSidebar
-                      ? "flex gap-3"
-                      : "flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-4"
-                  }
-                >
-                  {e.coverImageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={e.coverImageUrl}
-                      alt=""
-                      className={
-                        isSidebar
-                          ? "h-20 w-14 shrink-0 rounded-md object-cover shadow-sm"
-                          : "mx-auto h-28 w-20 shrink-0 rounded-md object-cover shadow-sm sm:mx-0 sm:h-32 sm:w-[5.5rem]"
-                      }
-                    />
-                  ) : null}
-                  <div className="min-w-0 flex-1">
-                    <p
-                      className={
-                        isSidebar
-                          ? "text-sm font-semibold leading-snug text-parish-text"
-                          : "font-semibold text-parish-text"
-                      }
-                    >
-                      {e.title}
-                    </p>
-                    {e.prayer ? (
+            {events.map((e) => {
+              const previewText = previewBlock(e);
+              return (
+                <li key={e.id}>
+                  <div
+                    className={
+                      isSidebar
+                        ? "flex gap-3"
+                        : "flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-4"
+                    }
+                  >
+                    {e.coverImageUrl ? (
                       <div
                         className={
                           isSidebar
-                            ? "mt-2 rounded-lg bg-parish-surface/80 p-3 text-xs font-medium leading-relaxed text-parish-text"
-                            : "mt-3 rounded-xl bg-parish-surface/80 p-4 text-sm font-medium leading-relaxed text-parish-text"
+                            ? "h-20 w-14 shrink-0 overflow-hidden rounded-md bg-parish-surface shadow-sm"
+                            : "mx-auto h-28 w-20 shrink-0 overflow-hidden rounded-md bg-parish-surface shadow-sm sm:mx-0 sm:h-32 sm:w-[5.5rem]"
                         }
                       >
-                        <p
-                          className={
-                            isSidebar
-                              ? "text-[10px] font-bold uppercase tracking-wide text-parish-muted"
-                              : "text-xs font-bold uppercase tracking-wide text-parish-muted"
-                          }
-                        >
-                          {t(lang, "prayer")}
-                        </p>
-                        <RichOrPlain
-                          content={e.prayer}
-                          className={
-                            isSidebar
-                              ? "rich-html mt-1 max-w-none leading-relaxed"
-                              : "rich-html mt-2 max-w-none text-sm leading-relaxed text-parish-text"
-                          }
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={e.coverImageUrl}
+                          alt=""
+                          className="h-full w-full object-cover"
                         />
                       </div>
                     ) : null}
+                    <div className="min-w-0 flex-1">
+                      <p
+                        className={
+                          isSidebar
+                            ? "text-sm font-semibold leading-snug text-parish-text"
+                            : "font-semibold text-parish-text"
+                        }
+                      >
+                        {e.title}
+                      </p>
+                      <p
+                        className={
+                          isSidebar
+                            ? "mt-2 whitespace-pre-wrap text-xs font-medium leading-relaxed text-parish-muted"
+                            : "mt-2 whitespace-pre-wrap text-sm font-medium leading-relaxed text-parish-muted"
+                        }
+                      >
+                        {previewText}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setDetailEvent(e)}
+                        className={
+                          isSidebar
+                            ? "mt-2 text-xs font-semibold text-parish-accent hover:underline"
+                            : "mt-3 text-sm font-semibold text-parish-accent hover:underline"
+                        }
+                      >
+                        {t(lang, "moreDetails")}
+                      </button>
+                    </div>
                   </div>
-                </div>
-              </li>
-            ))}
+                </li>
+              );
+            })}
           </ul>
         )}
+
+        {!listLoading && todayTotal > 0 ? (
+          <PaginationControls
+            lang={lang}
+            page={Math.min(page, totalPages)}
+            totalPages={totalPages}
+            totalItems={todayTotal}
+            pageSize={PAGE_SIZE}
+            onPageChange={setPage}
+          />
+        ) : null}
       </div>
 
       {calendarOpen ? (
@@ -148,10 +219,10 @@ export function TodayWithCalendar({
           onClick={() => setCalendarOpen(false)}
         >
           <div
-            className="max-h-[92vh] w-full max-w-[min(96rem,calc(100vw-2rem))] overflow-y-auto rounded-2xl border border-parish-border bg-parish-surface p-5 shadow-xl sm:p-8"
+            className="flex max-h-[92vh] w-full max-w-[min(96rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-parish-border bg-parish-surface shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="mb-4 flex items-start justify-between gap-4 border-b border-parish-border pb-4">
+            <div className="flex shrink-0 items-start justify-between gap-4 border-b border-parish-border px-5 py-4 sm:px-8 sm:py-5">
               <h2
                 id="calendar-modal-title"
                 className="font-display text-xl font-semibold text-parish-text sm:text-2xl"
@@ -166,15 +237,21 @@ export function TodayWithCalendar({
                 {t(lang, "closeModal")}
               </button>
             </div>
-            <p className="mb-4 text-sm font-medium text-parish-muted">{t(lang, "calendarHint")}</p>
-            <LiturgicalCalendar
-              lang={lang}
-              embedded
-              initialEvents={initialEvents}
-              initialMonthIso={initialMonthIso}
-            />
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-5 pt-3 sm:px-8 sm:pb-8 sm:pt-4">
+              <p className="mb-4 text-sm font-medium text-parish-muted">{t(lang, "calendarHint")}</p>
+              <LiturgicalCalendar
+                lang={lang}
+                embedded
+                initialEvents={initialEvents}
+                initialMonthIso={initialMonthIso}
+              />
+            </div>
           </div>
         </div>
+      ) : null}
+
+      {detailEvent ? (
+        <LiturgicalEventModal lang={lang} event={detailEvent} onClose={() => setDetailEvent(null)} />
       ) : null}
     </div>
   );

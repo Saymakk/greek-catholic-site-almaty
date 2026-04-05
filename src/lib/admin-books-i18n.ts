@@ -2,7 +2,7 @@ import type { Lang } from "@/lib/i18n";
 
 const copy = {
   ru: {
-    pageTitle: "Писание (ссылки и файлы)",
+    pageTitle: "Книги (ссылки и файлы)",
     pageIntro: "Здесь можно добавлять и удалять доступные книги.",
     addBook: "Добавить книгу",
     edit: "Редактировать",
@@ -14,7 +14,6 @@ const copy = {
     cancel: "Отмена",
     save: "Сохранить",
     addSubmit: "Добавить",
-    sortOrder: "Порядок в списке (меньше — выше на сайте)",
     primaryLanguageLabel:
       "Язык основной версии (не дублируется в «Добавить версию на языке»)",
     primaryEditionMark: "основная версия",
@@ -38,7 +37,7 @@ const copy = {
     emptyList: "Пока нет книг. Нажмите «Добавить книгу».",
   },
   uk: {
-    pageTitle: "Писання (посилання та файли)",
+    pageTitle: "Книги (посилання та файли)",
     pageIntro: "Тут можна додавати й видаляти доступні книги.",
     addBook: "Додати книгу",
     edit: "Редагувати",
@@ -50,7 +49,6 @@ const copy = {
     cancel: "Скасувати",
     save: "Зберегти",
     addSubmit: "Додати",
-    sortOrder: "Порядок у списку (менше — вище на сайті)",
     primaryLanguageLabel:
       "Мова основної версії (не дублюється в «Додати версію мовою»)",
     primaryEditionMark: "основна версія",
@@ -74,7 +72,7 @@ const copy = {
     emptyList: "Книг ще немає. Натисніть «Додати книгу».",
   },
   kk: {
-    pageTitle: "Жазба (сілтемелер мен файлдар)",
+    pageTitle: "Кітаптар (сілтемелер мен файлдар)",
     pageIntro: "Мұнда қолжетімді кітаптарды қосуға және жоюға болады.",
     addBook: "Кітап қосу",
     edit: "Өңдеу",
@@ -86,7 +84,6 @@ const copy = {
     cancel: "Болдырмау",
     save: "Сақтау",
     addSubmit: "Қосу",
-    sortOrder: "Тізімдегі реті (аз болса — сайтта жоғары)",
     primaryLanguageLabel:
       "Негізгі нұсқаның тілі («Тіл бойынша нұсқа қосу»-да қайталанбайды)",
     primaryEditionMark: "негізгі нұсқа",
@@ -110,7 +107,7 @@ const copy = {
     emptyList: "Әлі кітап жоқ. «Кітап қосу» батырмасын басыңыз.",
   },
   en: {
-    pageTitle: "Scripture (links & files)",
+    pageTitle: "Books (links & files)",
     pageIntro: "Here you can add and remove the books available on the site.",
     addBook: "Add book",
     edit: "Edit",
@@ -122,7 +119,6 @@ const copy = {
     cancel: "Cancel",
     save: "Save",
     addSubmit: "Add",
-    sortOrder: "Sort order (lower — higher on the site)",
     primaryLanguageLabel:
       "Primary edition language (not listed under “Add edition in”)",
     primaryEditionMark: "primary edition",

@@ -9,6 +9,7 @@ import {
   type ContentLang,
 } from "../books/book-locales";
 import { sortNewsLangsForForm } from "./news-entity-locales";
+import type { AdminNewsScreenCopy } from "@/lib/admin-layout-i18n";
 
 export type NewsLocaleFields = {
   lang: string;
@@ -22,6 +23,7 @@ function editionTitle(code: string) {
 }
 
 export function NewsEditForm({
+  formMsg,
   newsId,
   publishedAt,
   isPublished: isPublishedInitial,
@@ -31,6 +33,7 @@ export function NewsEditForm({
   submitLabel,
   onCancel,
 }: {
+  formMsg: AdminNewsScreenCopy;
   newsId: string;
   publishedAt: string;
   isPublished: boolean;
@@ -80,7 +83,7 @@ export function NewsEditForm({
       <input type="hidden" name="locales" value={activeLangs.join(",")} />
       <div className="admin-book-dialog__scroll min-h-0 flex-1 space-y-4 px-4 py-4 sm:px-6">
         <label className="block text-xs text-parish-muted sm:text-sm">
-          Язык основной версии (не дублируется при добавлении языка)
+          {formMsg.primaryLang}
           <select
             className="mt-1 block w-full max-w-md rounded border border-parish-border bg-parish-surface px-2 py-1.5 text-sm text-parish-text"
             value={primaryLang}
@@ -98,7 +101,9 @@ export function NewsEditForm({
             ))}
           </select>
         </label>
-        <p className="text-xs text-parish-muted">Дата публикации: {publishedAt}</p>
+        <p className="text-xs text-parish-muted">
+          {formMsg.publishedAt}: {publishedAt}
+        </p>
         <label className="flex items-center gap-2 text-sm text-parish-text">
           <input
             type="checkbox"
@@ -106,10 +111,10 @@ export function NewsEditForm({
             defaultChecked={isPublishedInitial}
             className="rounded"
           />
-          Опубликовано
+          {formMsg.isPublished}
         </label>
         <div className="rounded-lg border border-parish-border/70 p-3">
-          <p className="text-xs font-medium text-parish-muted">Обложка</p>
+          <p className="text-xs font-medium text-parish-muted">{formMsg.cover}</p>
           {displayCover ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -118,10 +123,10 @@ export function NewsEditForm({
               className="mt-2 h-28 max-w-xs rounded-md border border-parish-border object-cover"
             />
           ) : (
-            <p className="mt-2 text-xs text-parish-muted">Нет обложки</p>
+            <p className="mt-2 text-xs text-parish-muted">{formMsg.noCover}</p>
           )}
           <label className="mt-2 block text-xs text-parish-muted">
-            Загрузить или заменить
+            {formMsg.uploadCover}
             <input
               type="file"
               name="cover"
@@ -142,7 +147,7 @@ export function NewsEditForm({
                 });
               }}
             >
-              Удалить обложку
+              {formMsg.removeCover}
             </button>
           ) : null}
         </div>
@@ -163,22 +168,22 @@ export function NewsEditForm({
                   {editionTitle(code)}
                   {code === primaryLang ? (
                     <span className="ml-1 font-normal text-parish-muted">
-                      — основная версия
+                      — {formMsg.mainEdition}
                     </span>
                   ) : null}
                 </legend>
                 {code !== primaryLang ? (
                   <button
                     type="button"
-                    className="text-xs text-red-600 hover:underline"
+                    className="rounded border border-parish-border px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
                     onClick={() => removeLang(code)}
                   >
-                    Убрать версию
+                    {formMsg.removeVersion}
                   </button>
                 ) : null}
               </div>
               <label className="mt-2 block text-xs text-parish-muted">
-                Заголовок
+                {formMsg.title}
                 <input
                   name={`title_${code}`}
                   defaultValue={row.title}
@@ -186,7 +191,7 @@ export function NewsEditForm({
                 />
               </label>
               <label className="mt-2 block text-xs text-parish-muted">
-                Кратко
+                {formMsg.excerpt}
                 <input
                   name={`excerpt_${code}`}
                   defaultValue={row.excerpt}
@@ -194,7 +199,7 @@ export function NewsEditForm({
                 />
               </label>
               <label className="mt-2 block text-xs text-parish-muted">
-                Текст (обычный или HTML)
+                {formMsg.body}
                 <textarea
                   name={`body_${code}`}
                   rows={5}
@@ -207,9 +212,7 @@ export function NewsEditForm({
         })}
         {canAdd.length > 0 ? (
           <div className="flex flex-wrap gap-2">
-            <span className="w-full text-xs text-parish-muted">
-              Добавить версию на языке:
-            </span>
+            <span className="w-full text-xs text-parish-muted">{formMsg.addLocale}</span>
             {canAdd.map((code) => (
               <button
                 key={code}
@@ -230,7 +233,7 @@ export function NewsEditForm({
             onClick={onCancel}
             className="rounded-lg border border-parish-border px-4 py-2 text-sm text-parish-text hover:bg-parish-accent-soft"
           >
-            Отмена
+            {formMsg.cancel}
           </button>
         ) : null}
         <button

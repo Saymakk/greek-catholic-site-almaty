@@ -4,6 +4,7 @@ import { signOut } from "@/app/actions/auth";
 import { getLang } from "@/lib/i18n-server";
 import { adminNavLabels, adminRoleLabel } from "@/lib/admin-layout-i18n";
 import { AdminLangBar } from "./AdminLangBar";
+import { AdminMobileNav } from "./AdminMobileNav";
 
 export default async function AdminAppLayout({
   children,
@@ -35,7 +36,7 @@ export default async function AdminAppLayout({
             {n.calendar}
           </Link>
           <Link href="/admin/books" className="text-parish-text hover:text-parish-accent">
-            {n.scripture}
+            {n.books}
           </Link>
           <Link href="/admin/history" className="text-parish-text hover:text-parish-accent">
             {n.history}
@@ -65,9 +66,7 @@ export default async function AdminAppLayout({
         </form>
       </aside>
       <div className="min-w-0 flex-1 p-4 sm:p-8">
-        <div className="mb-4 sm:hidden">
-          <AdminLangBar current={lang} />
-        </div>
+        <AdminMobileNav lang={lang} profile={profile} />
         {children}
       </div>
     </div>

@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import type { AdminUsersScreenCopy } from "@/lib/admin-layout-i18n";
 
 const MIN_LEN = 8;
 
-export function CreateUserForm() {
+export function CreateUserForm({ copy }: { copy: AdminUsersScreenCopy }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
@@ -15,11 +16,11 @@ export function CreateUserForm() {
     e.preventDefault();
     setMsg(null);
     if (password.length < MIN_LEN) {
-      setMsg(`Пароль не короче ${MIN_LEN} символов`);
+      setMsg(copy.errMin);
       return;
     }
     if (password !== password2) {
-      setMsg("Пароли не совпадают");
+      setMsg(copy.errMismatch);
       return;
     }
     setLoading(true);
@@ -31,15 +32,15 @@ export function CreateUserForm() {
       });
       const data = (await res.json()) as { error?: string };
       if (!res.ok) {
-        setMsg(data.error ?? "Ошибка");
+        setMsg(data.error ?? copy.errGeneric);
       } else {
-        setMsg("Пользователь создан. Передайте ему email и пароль любым способом.");
+        setMsg(copy.success);
         setEmail("");
         setPassword("");
         setPassword2("");
       }
     } catch {
-      setMsg("Сеть недоступна");
+      setMsg(copy.errNetwork);
     }
     setLoading(false);
   }
@@ -47,7 +48,7 @@ export function CreateUserForm() {
   return (
     <form onSubmit={onSubmit} className="mt-8 max-w-md space-y-4">
       <label className="block text-sm text-parish-muted">
-        Email
+        {copy.email}
         <input
           type="email"
           required
@@ -58,7 +59,7 @@ export function CreateUserForm() {
         />
       </label>
       <label className="block text-sm text-parish-muted">
-        Пароль (не короче {MIN_LEN} символов)
+        {copy.password} ({copy.passwordHint})
         <input
           type="password"
           required
@@ -69,7 +70,7 @@ export function CreateUserForm() {
         />
       </label>
       <label className="block text-sm text-parish-muted">
-        Пароль ещё раз
+        {copy.passwordAgain}
         <input
           type="password"
           required
@@ -85,7 +86,7 @@ export function CreateUserForm() {
         disabled={loading}
         className="rounded-lg bg-parish-accent px-4 py-2 text-sm text-white disabled:opacity-50"
       >
-        {loading ? "…" : "Создать пользователя"}
+        {loading ? copy.loading : copy.createUser}
       </button>
     </form>
   );

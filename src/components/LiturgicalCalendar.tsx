@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  addDays,
   addMonths,
   eachDayOfInterval,
   endOfMonth,
@@ -12,12 +13,13 @@ import {
   startOfWeek,
   subMonths,
 } from "date-fns";
-import { ru } from "date-fns/locale";
+import { enUS, ru, uk } from "date-fns/locale";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Lang } from "@/lib/i18n";
 import { t } from "@/lib/ui-strings";
 import type { LiturgicalEventView } from "@/lib/data";
-import { RichOrPlain } from "./RichOrPlain";
+import { LiturgicalEventModal } from "./LiturgicalEventModal";
+import { SiteLoadingSpinner } from "./SiteLoadingSpinner";
 
 type Props = {
   lang: Lang;
@@ -28,6 +30,12 @@ type Props = {
   embedded?: boolean;
 };
 
+function dateFnsLocale(siteLang: Lang) {
+  if (siteLang === "uk") return uk;
+  if (siteLang === "en") return enUS;
+  return ru;
+}
+
 export function LiturgicalCalendar({
   lang,
   initialEvents,
@@ -37,7 +45,7 @@ export function LiturgicalCalendar({
   const [month, setMonth] = useState(() => new Date(initialMonthIso));
   const [events, setEvents] = useState<LiturgicalEventView[]>(initialEvents);
   const [modal, setModal] = useState<LiturgicalEventView | null>(null);
-  const [coverLightboxUrl, setCoverLightboxUrl] = useState<string | null>(null);
+  const [rangeLoading, setRangeLoading] = useState(false);
   const skipInitialFetch = useRef(!!embedded);
 
   const gridStart = startOfWeek(startOfMonth(month), { weekStartsOn: 1 });
@@ -57,9 +65,13 @@ export function LiturgicalCalendar({
   const gridStartKey = format(gridStart, "yyyy-MM-dd");
   const gridEndKey = format(gridEnd, "yyyy-MM-dd");
 
-  useEffect(() => {
-    if (!modal) setCoverLightboxUrl(null);
-  }, [modal]);
+  const dfLocale = dateFnsLocale(lang);
+  const mondayRef = startOfWeek(new Date(2024, 0, 1), { weekStartsOn: 1 });
+  const weekdayLabels = useMemo(
+    () =>
+      Array.from({ length: 7 }, (_, i) => format(addDays(mondayRef, i), "EEE", { locale: dfLocale })),
+    [dfLocale],
+  );
 
   useEffect(() => {
     if (skipInitialFetch.current) {
@@ -68,23 +80,26 @@ export function LiturgicalCalendar({
     }
     let cancelled = false;
     async function run() {
-      const res = await fetch(
-        `/api/liturgical?start=${gridStartKey}&end=${gridEndKey}&lang=${lang}`,
-      );
-      const data = (await res.json()) as LiturgicalEventView[];
-      if (cancelled) return;
-      const next = Array.isArray(data) ? data : [];
-      setEvents((prev) =>
-        JSON.stringify(prev) === JSON.stringify(next) ? prev : next,
-      );
+      setRangeLoading(true);
+      try {
+        const res = await fetch(
+          `/api/liturgical?start=${gridStartKey}&end=${gridEndKey}&lang=${lang}`,
+        );
+        const data = (await res.json()) as LiturgicalEventView[];
+        if (cancelled) return;
+        const next = Array.isArray(data) ? data : [];
+        setEvents((prev) =>
+          JSON.stringify(prev) === JSON.stringify(next) ? prev : next,
+        );
+      } finally {
+        if (!cancelled) setRangeLoading(false);
+      }
     }
     void run();
     return () => {
       cancelled = true;
     };
   }, [gridStartKey, gridEndKey, lang]);
-
-  const locale = lang === "ru" ? ru : undefined;
 
   const inner = (
     <>
@@ -93,9 +108,7 @@ export function LiturgicalCalendar({
           <h2 className="font-display text-2xl font-semibold text-parish-text">
             {t(lang, "calendarTitle")}
           </h2>
-          <p className="mt-2 text-sm font-medium text-parish-muted">
-            {t(lang, "calendarHint")}
-          </p>
+          <p className="mt-2 text-sm font-medium text-parish-muted">{t(lang, "calendarHint")}</p>
         </>
       ) : null}
       <div className={`${embedded ? "mt-0" : "mt-6"} flex items-center justify-between gap-4`}>
@@ -103,26 +116,34 @@ export function LiturgicalCalendar({
           type="button"
           onClick={() => setMonth(subMonths(month, 1))}
           className="rounded-lg border border-parish-border px-3 py-1 text-sm font-semibold text-parish-accent hover:bg-parish-accent-soft"
-          aria-label="Previous month"
+          aria-label={t(lang, "calendarPrevMonth")}
         >
           ←
         </button>
         <span className="font-display text-lg font-semibold capitalize text-parish-text">
-          {format(month, "LLLL yyyy", { locale })}
+          {format(month, "LLLL yyyy", { locale: dfLocale })}
         </span>
         <button
           type="button"
           onClick={() => setMonth(addMonths(month, 1))}
           className="rounded-lg border border-parish-border px-3 py-1 text-sm font-semibold text-parish-accent hover:bg-parish-accent-soft"
-          aria-label="Next month"
+          aria-label={t(lang, "calendarNextMonth")}
         >
           →
         </button>
       </div>
-      <div className="mt-4 min-h-[22rem]">
+      <div className="relative mt-4 min-h-[22rem]">
+        {rangeLoading ? (
+          <div
+            className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-parish-surface/80 backdrop-blur-[2px]"
+            aria-busy
+          >
+            <SiteLoadingSpinner />
+          </div>
+        ) : null}
         <div className="grid grid-cols-7 gap-1 text-center text-xs font-semibold text-parish-muted sm:gap-2 sm:text-sm">
-          {["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"].map((d) => (
-            <div key={d} className="py-2">
+          {weekdayLabels.map((d, i) => (
+            <div key={i} className="py-2">
               {d}
             </div>
           ))}
@@ -177,81 +198,7 @@ export function LiturgicalCalendar({
         </section>
       )}
 
-      {modal ? (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-parish-text/25 p-4 backdrop-blur-sm"
-          role="dialog"
-          aria-modal
-          onClick={() => setModal(null)}
-        >
-          <div
-            className="max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-parish-border bg-parish-surface p-6 shadow-xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="font-display text-xl font-semibold text-parish-text">{modal.title}</h3>
-            <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-parish-muted">
-              {modal.kind.replace(/_/g, " ")}
-            </p>
-            {modal.coverImageUrl ? (
-              <button
-                type="button"
-                className="mt-4 block w-full rounded-xl focus:outline-none focus:ring-2 focus:ring-parish-accent/50"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setCoverLightboxUrl(modal.coverImageUrl);
-                }}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={modal.coverImageUrl}
-                  alt=""
-                  className="mx-auto max-h-[min(512px,70vh)] max-w-full w-auto cursor-zoom-in rounded-xl border border-parish-border object-contain shadow-sm"
-                />
-              </button>
-            ) : null}
-            <RichOrPlain
-              content={modal.explanation}
-              className="rich-html mt-4 max-w-none text-sm font-medium leading-relaxed text-parish-text"
-            />
-            {modal.prayer ? (
-              <div className="mt-6 rounded-xl bg-parish-accent-soft/80 p-4">
-                <p className="text-xs font-bold uppercase tracking-wide text-parish-muted">
-                  {t(lang, "prayer")}
-                </p>
-                <RichOrPlain
-                  content={modal.prayer}
-                  className="rich-html mt-2 max-w-none text-sm font-medium leading-relaxed text-parish-text"
-                />
-              </div>
-            ) : null}
-            <button
-              type="button"
-              className="mt-6 w-full rounded-lg border border-parish-border py-2 text-sm font-semibold text-parish-accent hover:bg-parish-accent-soft"
-              onClick={() => setModal(null)}
-            >
-              {t(lang, "closeModal")}
-            </button>
-          </div>
-        </div>
-      ) : null}
-
-      {coverLightboxUrl ? (
-        <div
-          className="fixed inset-0 z-[110] flex items-center justify-center bg-parish-text/40 p-4 backdrop-blur-sm"
-          role="dialog"
-          aria-modal
-          aria-label="Image"
-          onClick={() => setCoverLightboxUrl(null)}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={coverLightboxUrl}
-            alt=""
-            className="max-h-[95vh] max-w-[95vw] object-contain shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
-      ) : null}
+      {modal ? <LiturgicalEventModal lang={lang} event={modal} onClose={() => setModal(null)} /> : null}
     </>
   );
 }
