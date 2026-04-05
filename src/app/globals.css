@@ -61,6 +61,19 @@ body {
   margin-bottom: 0.75rem;
 }
 
+/* Публичная страница «История»: средний размер, клик — лайтбокс (HistoryBody) */
+.history-page-body.rich-html img {
+  max-height: min(26rem, 70vh);
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  cursor: zoom-in;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  background: var(--surface);
+}
+
 /* Модальные окна админки (native <dialog>) */
 dialog::backdrop {
   background: rgb(15 39 68 / 0.45);

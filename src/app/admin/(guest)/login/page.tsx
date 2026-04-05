@@ -15,7 +15,7 @@ export default async function AdminLoginPage() {
         </div>
       }
     >
-      <AdminLoginForm copy={copy} />
+      <AdminLoginForm copy={copy} lang={lang} />
     </Suspense>
   );
 }

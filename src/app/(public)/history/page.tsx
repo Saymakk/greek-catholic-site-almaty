@@ -16,7 +16,7 @@ export default async function HistoryPage() {
   return (
     <article className="w-full px-4 py-12 sm:px-6 lg:px-10 xl:px-14 2xl:px-20">
       <h1 className="font-display text-3xl text-parish-text">{t(lang, "historyPageTitle")}</h1>
-      <HistoryBody body={body} />
+      <HistoryBody body={body} lang={lang} />
     </article>
   );
 }

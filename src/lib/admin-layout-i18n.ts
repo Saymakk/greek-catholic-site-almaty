@@ -107,6 +107,7 @@ export function adminCalendarScreenCopy(lang: Lang) {
       editEvent: string;
       closeAria: string;
       templatesTitle: string;
+      templatesListEmpty: string;
       deleteTemplate: string;
       confirmDeleteTemplate: string;
       editTemplate: string;
@@ -130,6 +131,7 @@ export function adminCalendarScreenCopy(lang: Lang) {
       editEvent: "Редактирование события",
       closeAria: "Закрыть",
       templatesTitle: "Шаблоны полей",
+      templatesListEmpty: "Шаблонов пока нет.",
       deleteTemplate: "Удалить шаблон",
       confirmDeleteTemplate: "Удалить этот шаблон?",
       editTemplate: "Редактировать шаблон",
@@ -153,6 +155,7 @@ export function adminCalendarScreenCopy(lang: Lang) {
       editEvent: "Редагування події",
       closeAria: "Закрити",
       templatesTitle: "Шаблони полів",
+      templatesListEmpty: "Шаблонів ще немає.",
       deleteTemplate: "Видалити шаблон",
       confirmDeleteTemplate: "Видалити цей шаблон?",
       editTemplate: "Редагувати шаблон",
@@ -176,6 +179,7 @@ export function adminCalendarScreenCopy(lang: Lang) {
       editEvent: "Оқиғаны өңдеу",
       closeAria: "Жабу",
       templatesTitle: "Өріс үлгілері",
+      templatesListEmpty: "Үлгілер әлі жоқ.",
       deleteTemplate: "Үлгіні жою",
       confirmDeleteTemplate: "Бұл үлгіні жою керек пе?",
       editTemplate: "Үлгіні өңдеу",
@@ -199,6 +203,7 @@ export function adminCalendarScreenCopy(lang: Lang) {
       editEvent: "Edit event",
       closeAria: "Close",
       templatesTitle: "Field templates",
+      templatesListEmpty: "No templates yet.",
       deleteTemplate: "Delete template",
       confirmDeleteTemplate: "Delete this template?",
       editTemplate: "Edit template",

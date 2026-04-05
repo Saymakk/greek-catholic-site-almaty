@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Lang } from "@/lib/i18n";
 import { adminHistoryScreenCopy } from "@/lib/admin-layout-i18n";
 import { HistoryEditForm } from "./HistoryEditForm";
+import { firstHistoryImageForAdmin } from "@/lib/history-images";
 import type { HistoryLocaleFields } from "./history-entity-locales";
 
 function textSnippet(raw: string, max = 160): string {
@@ -63,6 +64,7 @@ export function AdminHistoryClient({
   }
 
   const preview = snippetForList(locales, uiLang, copy.emptySnippet);
+  const thumbSrc = firstHistoryImageForAdmin(locales, uiLang);
 
   return (
     <div>
@@ -77,9 +79,16 @@ export function AdminHistoryClient({
         <li className="rounded-xl border border-parish-border bg-parish-surface p-4 shadow-sm">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch sm:justify-between">
             <div className="flex min-w-0 flex-1 gap-3">
-              <div className="flex h-20 w-14 shrink-0 items-center justify-center rounded-md border border-parish-border bg-parish-surface text-xs text-parish-muted">
-                —
-              </div>
+              {thumbSrc ? (
+                <div className="h-20 w-14 shrink-0 overflow-hidden rounded-md border border-parish-border bg-parish-surface">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={thumbSrc} alt="" className="h-full w-full object-cover" />
+                </div>
+              ) : (
+                <div className="flex h-20 w-14 shrink-0 items-center justify-center rounded-md border border-parish-border bg-parish-surface text-xs text-parish-muted">
+                  —
+                </div>
+              )}
               <div className="min-w-0 flex-1">
                 <span className="text-xs font-medium uppercase tracking-wide text-parish-muted">
                   {copy.versionsCount}

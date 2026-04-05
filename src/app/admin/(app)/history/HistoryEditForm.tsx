@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState, useTransition } from "react";
+import { AdminModalSavingOverlay } from "@/components/AdminModalSavingOverlay";
 import { saveHistory, uploadHistoryImage } from "../actions/content";
 import {
   CONTENT_ORDER,
@@ -182,6 +183,7 @@ export function HistoryEditForm({
           {submitLabel}
         </button>
       </div>
+      <AdminModalSavingOverlay />
     </form>
   );
 }

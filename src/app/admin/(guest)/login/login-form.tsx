@@ -3,9 +3,11 @@
 import { createClient } from "@/lib/supabase/client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import type { AdminLoginCopy } from "@/lib/admin-layout-i18n";
+import { LangSwitcher } from "@/components/LangSwitcher";
+import type { Lang } from "@/lib/i18n";
+import { adminInterfaceLanguageLabel, type AdminLoginCopy } from "@/lib/admin-layout-i18n";
 
-export function AdminLoginForm({ copy }: { copy: AdminLoginCopy }) {
+export function AdminLoginForm({ copy, lang }: { copy: AdminLoginCopy; lang: Lang }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get("next") ?? "/admin";
@@ -31,7 +33,12 @@ export function AdminLoginForm({ copy }: { copy: AdminLoginCopy }) {
 
   return (
     <main className="w-full max-w-sm rounded-2xl border border-parish-border bg-parish-surface p-8 shadow-sm">
-      <h1 className="font-display text-2xl text-parish-text">{copy.title}</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="min-w-0 font-display text-2xl text-parish-text">{copy.title}</h1>
+        <div className="shrink-0">
+          <LangSwitcher current={lang} srOnlyLabel={adminInterfaceLanguageLabel(lang)} />
+        </div>
+      </div>
       <p className="mt-2 text-sm text-parish-muted">{copy.subtitle}</p>
       <form onSubmit={onSubmit} className="mt-8 space-y-4">
         <label className="block text-sm text-parish-muted">

@@ -342,6 +342,10 @@ export async function saveLiturgicalEvent(formData: FormData) {
 
   revalidatePath("/");
   revalidatePath("/library");
+  const skipOffer = (formData.get("skip_offer_template") as string) === "1";
+  if (skipOffer) {
+    redirect("/admin/calendar");
+  }
   redirect(`/admin/calendar?offerTemplate=${encodeURIComponent(eventId)}`);
 }
 

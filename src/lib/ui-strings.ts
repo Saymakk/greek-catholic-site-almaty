@@ -58,7 +58,7 @@ export const ui = {
     langNativeKk: "Қазақша",
     langNativeEn: "English",
     telegramTitle: "Сообщения из Telegram",
-    telegramEmpty: "Сообщений пока нет. Подключите бота к группе и вебхук.",
+    telegramEmpty: "Сообщений пока нет.",
     contacts: "Контакты",
     address: "Адрес",
     historyPageTitle: "История Церкви",

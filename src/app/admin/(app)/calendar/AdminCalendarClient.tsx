@@ -8,6 +8,7 @@ import type { Lang } from "@/lib/i18n";
 import { pickLiturgicalI18nRow } from "@/lib/content-lang-chain";
 import { adminCalendarScreenCopy } from "@/lib/admin-layout-i18n";
 import { adminCalendarFormMsg } from "@/lib/admin-calendar-form-i18n";
+import { AdminModalSavingOverlay } from "@/components/AdminModalSavingOverlay";
 import {
   deleteLiturgicalEventForm,
   deleteLiturgicalTemplateForm,
@@ -69,6 +70,95 @@ const emptyEvent = (): AdminCalendarPayload => ({
   extras: [],
 });
 
+function CalendarTemplatesListModal({
+  open,
+  onClose,
+  templates,
+  onPickEdit,
+  copy,
+}: {
+  open: boolean;
+  onClose: () => void;
+  templates: CalendarTemplatePayload[];
+  onPickEdit: (t: CalendarTemplatePayload) => void;
+  copy: ReturnType<typeof adminCalendarScreenCopy>;
+}) {
+  if (!open) return null;
+  return (
+    <div
+      className="fixed inset-0 z-[230] flex items-center justify-center bg-parish-text/40 p-4 backdrop-blur-sm"
+      role="dialog"
+      aria-modal
+      aria-labelledby="cal-tpl-list-title"
+      onClick={onClose}
+    >
+      <div
+        className="flex max-h-[min(90dvh,calc(100dvh-2rem))] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-parish-border bg-parish-surface shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex shrink-0 items-start justify-between gap-3 border-b border-parish-border px-4 py-3 sm:px-5">
+          <h2 id="cal-tpl-list-title" className="font-display text-lg font-semibold text-parish-text">
+            {copy.templatesTitle}
+          </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-parish-muted hover:bg-parish-accent-soft hover:text-parish-text"
+            aria-label={copy.closeAria}
+          >
+            <span className="text-2xl leading-none" aria-hidden>
+              ×
+            </span>
+          </button>
+        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-5">
+          {templates.length === 0 ? (
+            <p className="text-sm text-parish-muted">{copy.templatesListEmpty}</p>
+          ) : (
+            <ul className="space-y-2">
+              {templates.map((tpl) => (
+                <li
+                  key={tpl.id}
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-parish-border px-3 py-2"
+                >
+                  <span className="text-sm text-parish-text">{tpl.name}</span>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onPickEdit(tpl);
+                        onClose();
+                      }}
+                      className="text-xs font-medium text-parish-accent hover:underline"
+                    >
+                      {copy.editTemplate}
+                    </button>
+                    <form
+                      action={deleteLiturgicalTemplateForm}
+                      onSubmit={(ev) => {
+                        if (!confirm(copy.confirmDeleteTemplate)) ev.preventDefault();
+                      }}
+                    >
+                      <input type="hidden" name="id" value={tpl.id} />
+                      <button
+                        type="submit"
+                        className="rounded border border-parish-border px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
+                      >
+                        {copy.deleteTemplate}
+                      </button>
+                      <AdminModalSavingOverlay />
+                    </form>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function AdminCalendarClient({
   lang,
   items,
@@ -91,6 +181,7 @@ export function AdminCalendarClient({
   const [mode, setMode] = useState<"add" | "edit" | null>(null);
   const [active, setActive] = useState<AdminCalendarPayload | null>(null);
   const [editingTemplate, setEditingTemplate] = useState<CalendarTemplatePayload | null>(null);
+  const [templatesModalOpen, setTemplatesModalOpen] = useState(false);
 
   const offerEvent = useMemo(
     () => (offerTemplateEventId ? items.find((x) => x.id === offerTemplateEventId) : undefined),
@@ -162,13 +253,22 @@ export function AdminCalendarClient({
           <h1 className="font-display text-2xl text-parish-text">{c.title}</h1>
           <p className="mt-2 max-w-2xl text-sm text-parish-muted">{c.intro}</p>
         </div>
-        <button
-          type="button"
-          onClick={openAdd}
-          className="shrink-0 rounded-lg bg-parish-accent px-4 py-2 text-sm font-medium text-white hover:opacity-90"
-        >
-          {c.add}
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setTemplatesModalOpen(true)}
+            className="shrink-0 rounded-lg border border-parish-border bg-parish-surface px-4 py-2 text-sm font-medium text-parish-text shadow-sm hover:bg-parish-accent-soft"
+          >
+            {c.templatesTitle}
+          </button>
+          <button
+            type="button"
+            onClick={openAdd}
+            className="shrink-0 rounded-lg bg-parish-accent px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+          >
+            {c.add}
+          </button>
+        </div>
       </div>
       <ul className="mt-8 space-y-4">
         {items.map((e) => (
@@ -227,44 +327,13 @@ export function AdminCalendarClient({
         ))}
       </ul>
 
-      {templates.length > 0 ? (
-        <div className="mt-12">
-          <h2 className="font-display text-lg font-semibold text-parish-text">{c.templatesTitle}</h2>
-          <ul className="mt-3 space-y-2">
-            {templates.map((tpl) => (
-              <li
-                key={tpl.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-parish-border px-3 py-2"
-              >
-                <span className="text-sm text-parish-text">{tpl.name}</span>
-                <div className="flex flex-wrap items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setEditingTemplate(tpl)}
-                    className="text-xs font-medium text-parish-accent hover:underline"
-                  >
-                    {c.editTemplate}
-                  </button>
-                  <form
-                    action={deleteLiturgicalTemplateForm}
-                    onSubmit={(ev) => {
-                      if (!confirm(c.confirmDeleteTemplate)) ev.preventDefault();
-                    }}
-                  >
-                    <input type="hidden" name="id" value={tpl.id} />
-                    <button
-                      type="submit"
-                      className="rounded border border-parish-border px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
-                    >
-                      {c.deleteTemplate}
-                    </button>
-                  </form>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
+      <CalendarTemplatesListModal
+        open={templatesModalOpen}
+        onClose={() => setTemplatesModalOpen(false)}
+        templates={templates}
+        onPickEdit={(t) => setEditingTemplate(t)}
+        copy={c}
+      />
 
       <dialog
         ref={dialogRef}
@@ -344,6 +413,7 @@ export function AdminCalendarClient({
                   {c.offerTemplateSave}
                 </button>
               </div>
+              <AdminModalSavingOverlay />
             </form>
           </div>
         </div>

@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { AdminModalSavingOverlay } from "@/components/AdminModalSavingOverlay";
 import { removeBookCover, saveBook } from "../actions/books";
 import { editionLegendKey, type AdminBooksMsg } from "@/lib/admin-books-i18n";
 import {
@@ -318,6 +319,7 @@ export function BookEditForm({
           </button>
         </div>
       )}
+      <AdminModalSavingOverlay />
     </form>
   );
 }

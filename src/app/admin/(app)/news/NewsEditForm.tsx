@@ -9,6 +9,7 @@ import {
   type ContentLang,
 } from "../books/book-locales";
 import { sortNewsLangsForForm } from "./news-entity-locales";
+import { AdminModalSavingOverlay } from "@/components/AdminModalSavingOverlay";
 import type { AdminNewsScreenCopy } from "@/lib/admin-layout-i18n";
 
 export type NewsLocaleFields = {
@@ -243,6 +244,7 @@ export function NewsEditForm({
           {submitLabel}
         </button>
       </div>
+      <AdminModalSavingOverlay />
     </form>
   );
 }

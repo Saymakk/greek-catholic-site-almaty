@@ -13,6 +13,7 @@ import {
   type CalendarLocaleFields,
 } from "./calendar-entity-locales";
 import type { Lang } from "@/lib/i18n";
+import { AdminModalSavingOverlay } from "@/components/AdminModalSavingOverlay";
 import { adminCalendarFormMsg } from "@/lib/admin-calendar-form-i18n";
 import type { CalendarExtraRow, CalendarTemplatePayload } from "./calendar-admin-types";
 
@@ -136,6 +137,10 @@ export function CalendarEventEditForm({
     PRESET_KINDS.has(kindInitial) ? "" : kindInitial,
   );
   const [extras, setExtras] = useState<ExtraFormRow[]>(() => toFormRows(initialExtras));
+  /** Последний шаблон, применённый из списка в этой сессии (для пропуска предложения «сохранить шаблон»). */
+  const [templateAppliedId, setTemplateAppliedId] = useState<string | null>(null);
+  /** Добавление/удаление строк доп. полей после применения шаблона. */
+  const [extrasStructureDirty, setExtrasStructureDirty] = useState(false);
   const [kindSiteInputs, setKindSiteInputs] = useState(() => ({
     ru: kindSiteLabels.ru ?? "",
     uk: kindSiteLabels.uk ?? "",
@@ -198,6 +203,11 @@ export function CalendarEventEditForm({
     <div className="flex min-h-0 min-w-0 flex-1 flex-col">
       <form action={saveLiturgicalEvent} className="flex min-h-0 min-w-0 flex-1 flex-col">
         <input type="hidden" name="id" value={eventId} />
+        <input
+          type="hidden"
+          name="skip_offer_template"
+          value={templateAppliedId !== null && !extrasStructureDirty ? "1" : "0"}
+        />
         <input type="hidden" name="primary_lang" value={primaryLang} />
         <input type="hidden" name="locales" value={activeLangs.join(",")} />
         <input
@@ -390,6 +400,8 @@ export function CalendarEventEditForm({
                     if (!id) return;
                     const t = templates.find((x) => x.id === id);
                     if (t) {
+                      setTemplateAppliedId(t.id);
+                      setExtrasStructureDirty(false);
                       setExtras(
                         t.rows.map((r) => ({
                           label_ru: r.label_ru ?? "",
@@ -424,7 +436,10 @@ export function CalendarEventEditForm({
                       type="button"
                       className="rounded border border-parish-border px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
                       aria-label={msg.extraRemoveRow}
-                      onClick={() => setExtras((prev) => prev.filter((_, i) => i !== idx))}
+                      onClick={() => {
+                        setExtrasStructureDirty(true);
+                        setExtras((prev) => prev.filter((_, i) => i !== idx));
+                      }}
                     >
                       {msg.extraFieldRemove}
                     </button>
@@ -484,7 +499,10 @@ export function CalendarEventEditForm({
             <button
               type="button"
               className="mt-3 rounded-lg border border-parish-border px-3 py-1.5 text-xs font-medium text-parish-accent hover:bg-parish-accent-soft"
-              onClick={() => setExtras((prev) => [...prev, emptyExtraRow()])}
+              onClick={() => {
+                setExtrasStructureDirty(true);
+                setExtras((prev) => [...prev, emptyExtraRow()]);
+              }}
             >
               {msg.addExtraRow}
             </button>
@@ -581,6 +599,7 @@ export function CalendarEventEditForm({
             {submitLabel}
           </button>
         </div>
+        <AdminModalSavingOverlay />
       </form>
 
       {coverLightboxOpen && displayCover ? (

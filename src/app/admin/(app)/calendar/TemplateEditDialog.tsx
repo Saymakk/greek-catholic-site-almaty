@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { AdminModalSavingOverlay } from "@/components/AdminModalSavingOverlay";
 import { updateLiturgicalTemplateForm } from "../actions/calendar";
 import { adminCalendarFormMsg } from "@/lib/admin-calendar-form-i18n";
 import type { Lang } from "@/lib/i18n";
@@ -181,6 +182,7 @@ export function TemplateEditDialog({
               {screen.save}
             </button>
           </div>
+          <AdminModalSavingOverlay />
         </form>
       </div>
     </div>
