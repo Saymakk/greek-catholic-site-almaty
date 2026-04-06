@@ -30,6 +30,15 @@ export const metadata: Metadata = {
   },
   description: siteDescription,
   applicationName: siteTitle,
+  icons: {
+    icon: [{ url: "/web-app-icon.jpg", type: "image/jpeg", sizes: "512x512" }],
+    apple: [{ url: "/web-app-icon.jpg", sizes: "180x180", type: "image/jpeg" }],
+  },
+  appleWebApp: {
+    capable: true,
+    title: siteTitle,
+    statusBarStyle: "default",
+  },
   robots: {
     index: true,
     follow: true,
@@ -54,6 +63,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
+  themeColor: "#2c5a94",
 };
 
 export default async function RootLayout({
