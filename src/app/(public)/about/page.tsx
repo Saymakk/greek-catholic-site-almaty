@@ -1,14 +1,8 @@
 import Link from "next/link";
 import { getLang } from "@/lib/i18n-server";
-import { t, type UiKey } from "@/lib/ui-strings";
+import { ABOUT_SUBNAV_SECTIONS } from "@/lib/about-nav";
+import { t } from "@/lib/ui-strings";
 import type { Metadata } from "next";
-
-const SECTIONS: { href: string; key: UiKey }[] = [
-  { href: "/about/hierarchy", key: "aboutNavHierarchy" },
-  { href: "/about/history", key: "aboutNavHistory" },
-  { href: "/about/parishes-kz", key: "aboutNavKazakhstanParishes" },
-  { href: "/about/contacts", key: "aboutNavContacts" },
-];
 
 export async function generateMetadata(): Promise<Metadata> {
   const lang = await getLang();
@@ -27,7 +21,7 @@ export default async function AboutPage() {
       <h1 className="font-display text-3xl font-semibold text-parish-text">{t(lang, "aboutChurchPageTitle")}</h1>
       <p className="mt-3 max-w-2xl text-sm font-medium leading-relaxed text-parish-muted">{t(lang, "aboutChurchIntro")}</p>
       <nav className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 lg:gap-6">
-        {SECTIONS.map(({ href, key }) => (
+        {ABOUT_SUBNAV_SECTIONS.map(({ href, key }) => (
           <Link
             key={href}
             href={href}

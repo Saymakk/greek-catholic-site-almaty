@@ -25,12 +25,14 @@ export function ClergyHierarchyList({ lang, rows }: { lang: Lang; rows: ClergyRo
     );
   }
 
+  const intro = t(lang, "hierarchyPageIntro").trim();
+
   return (
     <>
-      <p className="mt-6 max-w-2xl text-sm font-medium leading-relaxed text-parish-muted">
-        {t(lang, "hierarchyPageIntro")}
-      </p>
-      <ul className="mt-10 space-y-12">
+      {intro ? (
+        <p className="mt-6 max-w-2xl text-sm font-medium leading-relaxed text-parish-muted">{intro}</p>
+      ) : null}
+      <ul className={intro ? "mt-10 space-y-12" : "mt-6 space-y-12"}>
         {rows.map((row) => {
           const name = displayClergyName(row, lang);
           return (

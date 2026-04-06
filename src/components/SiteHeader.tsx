@@ -3,22 +3,35 @@ import Image from "next/image";
 import { LangSwitcher } from "./LangSwitcher";
 import { SiteMobileNav } from "./SiteMobileNav";
 import type { Lang } from "@/lib/i18n";
-import { t, type UiKey } from "@/lib/ui-strings";
+import { ABOUT_SUBNAV_SECTIONS } from "@/lib/about-nav";
+import { t } from "@/lib/ui-strings";
 import gerb from "@/app/gerb.jpg";
-
-const links: { href: string; key: UiKey }[] = [
-  { href: "/", key: "navHome" },
-  { href: "/library", key: "navLibrary" },
-  { href: "/about", key: "navAboutChurch" },
-];
 
 const navLinkClass =
   "inline-flex shrink-0 items-center rounded-lg px-2.5 py-2 text-sm font-semibold text-parish-muted transition hover:bg-parish-accent-soft hover:text-parish-accent min-h-10 sm:min-h-0 sm:px-3 sm:py-2";
 
+function ChevronDownNav({ className }: { className?: string }) {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      aria-hidden
+      className={className}
+    >
+      <path
+        fill="currentColor"
+        d="M7 10l5 5 5-5H7z"
+      />
+    </svg>
+  );
+}
+
 export function SiteHeader({ lang }: { lang: Lang }) {
   const mobileNavItems = [
-    ...links.map((l) => ({ href: l.href, label: t(lang, l.key) })),
-    { href: "/about/contacts", label: t(lang, "contacts") },
+    { href: "/", label: t(lang, "navHome") },
+    { href: "/library", label: t(lang, "navLibrary") },
+    ...ABOUT_SUBNAV_SECTIONS.map(({ href, key }) => ({ href, label: t(lang, key) })),
   ];
 
   return (
@@ -56,11 +69,44 @@ export function SiteHeader({ lang }: { lang: Lang }) {
 
         <div className="flex justify-end justify-self-end sm:contents">
           <nav className="hidden min-w-0 max-w-full flex-nowrap items-center justify-end gap-0.5 sm:flex sm:flex-wrap sm:gap-x-1">
-            {links.map((l) => (
-              <a key={l.href} href={l.href} className={navLinkClass}>
-                {t(lang, l.key)}
-              </a>
-            ))}
+            <Link href="/" className={navLinkClass}>
+              {t(lang, "navHome")}
+            </Link>
+            <Link href="/library" className={navLinkClass}>
+              {t(lang, "navLibrary")}
+            </Link>
+            <div className="relative group">
+              <button
+                type="button"
+                className={`${navLinkClass} gap-0.5`}
+                aria-haspopup="menu"
+                aria-expanded="false"
+              >
+                {t(lang, "navAboutChurch")}
+                <ChevronDownNav className="opacity-70" />
+              </button>
+              <div
+                className="pointer-events-none absolute left-0 top-full z-50 pt-1 opacity-0 transition-opacity duration-150 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100"
+                role="menu"
+                aria-label={t(lang, "navAboutChurch")}
+              >
+                <div className="min-w-[min(16rem,calc(100vw-2rem))] rounded-xl border border-parish-border bg-parish-surface/98 p-1.5 shadow-lg shadow-parish-text/[0.07] backdrop-blur-sm">
+                  <ul className="flex flex-col gap-0.5">
+                    {ABOUT_SUBNAV_SECTIONS.map(({ href, key }) => (
+                      <li key={href} role="none">
+                        <Link
+                          href={href}
+                          role="menuitem"
+                          className="block rounded-lg px-3 py-2 text-sm font-semibold text-parish-text transition hover:bg-parish-accent-soft hover:text-parish-accent"
+                        >
+                          {t(lang, key)}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
             <div className="shrink-0 ps-0.5 sm:ps-1">
               <LangSwitcher current={lang} srOnlyLabel={t(lang, "siteLangSelectAria")} />
             </div>
