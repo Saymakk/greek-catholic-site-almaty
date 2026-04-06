@@ -271,6 +271,8 @@ export function AdminParishesClient({
               imageCopy={imageCopy}
               submitLabel={c.save}
               onCancel={closeDialog}
+              uiLang={lang}
+              isNew={mode === "add"}
             />
           </div>
         ) : null}

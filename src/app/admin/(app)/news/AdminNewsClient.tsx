@@ -8,6 +8,7 @@ import { adminNewsScreenCopy } from "@/lib/admin-layout-i18n";
 import { adminSharedImageCopy } from "@/lib/admin-shared-image-i18n";
 import { deleteNewsForm } from "../actions/news";
 import { NewsEditForm, type NewsLocaleFields } from "./NewsEditForm";
+import type { ContentLang } from "../books/book-locales";
 import { normalizeNewsLocales } from "./news-entity-locales";
 
 export type AdminNewsPayload = {
@@ -39,13 +40,13 @@ function listTitle(item: AdminNewsPayload, uiLang: Lang): string {
   );
 }
 
-const emptyNewsItem = (): AdminNewsPayload => ({
+const emptyNewsItem = (uiLang: Lang): AdminNewsPayload => ({
   id: "",
   published_at: new Date().toISOString(),
   is_published: true,
-  primary_lang: "ru",
+  primary_lang: uiLang,
   cover_image_url: null,
-  locales: normalizeNewsLocales([], "ru"),
+  locales: normalizeNewsLocales([], null, uiLang as ContentLang),
 });
 
 export function AdminNewsClient({
@@ -92,7 +93,7 @@ export function AdminNewsClient({
 
   function openAdd() {
     setMode("add");
-    setActive(emptyNewsItem());
+    setActive(emptyNewsItem(lang));
     requestAnimationFrame(() => dialogRef.current?.showModal());
   }
 
@@ -205,6 +206,7 @@ export function AdminNewsClient({
               locales={active.locales}
               submitLabel={mode === "add" ? c.add : c.save}
               onCancel={closeDialog}
+              uiLang={lang}
             />
           </div>
         ) : null}

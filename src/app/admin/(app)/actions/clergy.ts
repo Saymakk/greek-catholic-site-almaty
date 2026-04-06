@@ -142,6 +142,24 @@ export async function reorderClergyForm(formData: FormData) {
   redirect("/admin/clergy");
 }
 
+export async function removeClergyPhoto(clergyId: string) {
+  const profile = await requireStaff();
+  if (!clergyId) return;
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("clergy")
+    .update({ photo_url: null, updated_at: new Date().toISOString() })
+    .eq("id", clergyId);
+  if (error) throw new Error(error.message);
+  await logAdminActivity(supabase, profile, {
+    action: "clergy.photo_remove",
+    entityType: "clergy",
+    entityId: clergyId,
+  });
+  revalidatePath("/admin/clergy");
+  revalidatePath("/about/hierarchy");
+}
+
 export async function saveClergy(formData: FormData) {
   const profile = await requireStaff();
   const supabase = await createClient();

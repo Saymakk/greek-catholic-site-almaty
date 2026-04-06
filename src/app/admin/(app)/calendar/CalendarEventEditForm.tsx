@@ -121,13 +121,14 @@ export function CalendarEventEditForm({
   onCancel?: () => void;
 }) {
   const msg = adminCalendarFormMsg(uiLang);
+  const ui = uiLang as ContentLang;
   const [primaryLang, setPrimaryLang] = useState<ContentLang>(() =>
-    primaryLangDb && isContentLang(primaryLangDb) ? primaryLangDb : "ru",
+    primaryLangDb && isContentLang(primaryLangDb) ? primaryLangDb : ui,
   );
   const [activeLangs, setActiveLangs] = useState<string[]>(() =>
     sortCalendarLangsForForm(
       locales.map((l) => l.lang),
-      primaryLangDb && isContentLang(primaryLangDb) ? primaryLangDb : "ru",
+      primaryLangDb && isContentLang(primaryLangDb) ? primaryLangDb : ui,
     ),
   );
   const [coverRemoved, setCoverRemoved] = useState(false);
@@ -375,9 +376,10 @@ export function CalendarEventEditForm({
             <label className="mt-2 block text-xs text-parish-muted">
               {imageCopy.orImageUrl}
               <input
+                key={`cal-cover-url-${coverImageUrlProp ?? ""}-${coverRemoved}`}
                 type="url"
                 name="cover_image_url"
-                defaultValue={coverImageUrlProp ?? ""}
+                defaultValue={coverRemoved ? "" : (coverImageUrlProp ?? "")}
                 placeholder={imageCopy.imageUrlPlaceholder}
                 className="mt-1 block w-full rounded border border-parish-border px-2 py-1.5 text-sm text-parish-text"
               />

@@ -19,9 +19,10 @@ export function normalizeCalendarLocales(
     prayer: string | null;
   }[],
   primaryLang: string | null,
+  uiFallback: ContentLang = "ru",
 ): CalendarLocaleFields[] {
   const primary: ContentLang =
-    primaryLang && isContentLang(primaryLang) ? primaryLang : "ru";
+    primaryLang && isContentLang(primaryLang) ? primaryLang : uiFallback;
   const map = new Map(
     rows
       .filter((r) => ["ru", "uk", "kk", "en"].includes(r.lang))

@@ -653,6 +653,8 @@ export type AdminParishesScreenCopy = {
   hierarchyTitle: string;
   moveUp: string;
   moveDown: string;
+  /** Подсказка перед кнопками добавления блоков RU/UK/KK/EN */
+  parishAddLocaleHint: string;
 };
 
 export function adminParishesScreenCopy(lang: Lang): AdminParishesScreenCopy {
@@ -689,6 +691,7 @@ export function adminParishesScreenCopy(lang: Lang): AdminParishesScreenCopy {
       hierarchyTitle: "Порядок в списке",
       moveUp: "Выше",
       moveDown: "Ниже",
+      parishAddLocaleHint: "Другие языки — откройте поля кнопкой.",
     },
     uk: {
       pageTitle: "Парафії Казахстану",
@@ -721,6 +724,7 @@ export function adminParishesScreenCopy(lang: Lang): AdminParishesScreenCopy {
       hierarchyTitle: "Порядок у списку",
       moveUp: "Вище",
       moveDown: "Нижче",
+      parishAddLocaleHint: "Інші мови — відкрийте поля кнопкою.",
     },
     kk: {
       pageTitle: "Қазақстан қауымдары",
@@ -753,6 +757,7 @@ export function adminParishesScreenCopy(lang: Lang): AdminParishesScreenCopy {
       hierarchyTitle: "Тізімдегі орын",
       moveUp: "Жоғары",
       moveDown: "Төмен",
+      parishAddLocaleHint: "Қосымша тілдер — түймемен өрістерді ашыңыз.",
     },
     en: {
       pageTitle: "Kazakhstan parishes",
@@ -785,6 +790,7 @@ export function adminParishesScreenCopy(lang: Lang): AdminParishesScreenCopy {
       hierarchyTitle: "Order in list",
       moveUp: "Move up",
       moveDown: "Move down",
+      parishAddLocaleHint: "Other languages — open fields with a button below.",
     },
   };
   return d[lang] ?? d.ru;
@@ -805,9 +811,11 @@ export type AdminClergyScreenCopy = {
   langUk: string;
   langKk: string;
   langEn: string;
+  addNameRu: string;
   addNameUk: string;
   addNameKk: string;
   addNameEn: string;
+  addFieldLangRu: string;
   addFieldLangUk: string;
   addFieldLangKk: string;
   addFieldLangEn: string;
@@ -815,6 +823,7 @@ export type AdminClergyScreenCopy = {
   photoRequired: string;
   photoHintNew: string;
   photoHintEdit: string;
+  removePhoto: string;
   extraFieldsTitle: string;
   addField: string;
   removeField: string;
@@ -849,9 +858,11 @@ export function adminClergyScreenCopy(lang: Lang): AdminClergyScreenCopy {
       langUk: "UK",
       langKk: "KK",
       langEn: "EN",
+      addNameRu: "+ ФИО на русском",
       addNameUk: "+ ФИО українською",
       addNameKk: "+ ФИО қазақша",
       addNameEn: "+ Full name (EN)",
+      addFieldLangRu: "+ RU для этого поля",
       addFieldLangUk: "+ UK для этого поля",
       addFieldLangKk: "+ KK для этого поля",
       addFieldLangEn: "+ EN для этого поля",
@@ -859,6 +870,7 @@ export function adminClergyScreenCopy(lang: Lang): AdminClergyScreenCopy {
       photoRequired: "Загрузите фотографию.",
       photoHintNew: "Обязательное поле — изображение лица или портрет.",
       photoHintEdit: "Чтобы заменить фото, выберите новый файл.",
+      removePhoto: "Удалить фото",
       extraFieldsTitle: "Дополнительные поля",
       addField: "Добавить поле",
       removeField: "Убрать поле",
@@ -890,9 +902,11 @@ export function adminClergyScreenCopy(lang: Lang): AdminClergyScreenCopy {
       langUk: "UK",
       langKk: "KK",
       langEn: "EN",
+      addNameRu: "+ ПІБ російською",
       addNameUk: "+ ПІБ українською",
       addNameKk: "+ ПІБ қазақша",
       addNameEn: "+ ПІБ English",
+      addFieldLangRu: "+ RU для цього поля",
       addFieldLangUk: "+ UK для цього поля",
       addFieldLangKk: "+ KK для цього поля",
       addFieldLangEn: "+ EN для цього поля",
@@ -900,6 +914,7 @@ export function adminClergyScreenCopy(lang: Lang): AdminClergyScreenCopy {
       photoRequired: "Завантажте фотографію.",
       photoHintNew: "Обов’язкове поле — зображення обличчя або портрет.",
       photoHintEdit: "Щоб замінити фото, оберіть новий файл.",
+      removePhoto: "Видалити фото",
       extraFieldsTitle: "Додаткові поля",
       addField: "Додати поле",
       removeField: "Прибрати поле",
@@ -931,9 +946,11 @@ export function adminClergyScreenCopy(lang: Lang): AdminClergyScreenCopy {
       langUk: "UK",
       langKk: "KK",
       langEn: "EN",
+      addNameRu: "+ ТАЖ орыс тілінде",
       addNameUk: "+ ТАЖ україн тілінде",
       addNameKk: "+ ТАЖ қазақша",
       addNameEn: "+ Full name (EN)",
+      addFieldLangRu: "+ осы өріс үшін RU",
       addFieldLangUk: "+ осы өріс үшін UK",
       addFieldLangKk: "+ осы өріс үшін KK",
       addFieldLangEn: "+ осы өріс үшін EN",
@@ -941,6 +958,7 @@ export function adminClergyScreenCopy(lang: Lang): AdminClergyScreenCopy {
       photoRequired: "Фотосурет жүктеңіз.",
       photoHintNew: "Міндетті өріс — бет суреті немесе портрет.",
       photoHintEdit: "Суретті ауыстыру үшін жаңа файл таңдаңыз.",
+      removePhoto: "Суретті жою",
       extraFieldsTitle: "Қосымша өрістер",
       addField: "Өріс қосу",
       removeField: "Өрісті жою",
@@ -972,9 +990,11 @@ export function adminClergyScreenCopy(lang: Lang): AdminClergyScreenCopy {
       langUk: "UK",
       langKk: "KK",
       langEn: "EN",
+      addNameRu: "+ Name in Russian",
       addNameUk: "+ Name in Ukrainian",
       addNameKk: "+ Name in Kazakh",
       addNameEn: "+ Name in English",
+      addFieldLangRu: "+ RU for this field",
       addFieldLangUk: "+ UK for this field",
       addFieldLangKk: "+ KK for this field",
       addFieldLangEn: "+ EN for this field",
@@ -982,6 +1002,7 @@ export function adminClergyScreenCopy(lang: Lang): AdminClergyScreenCopy {
       photoRequired: "Please upload a photo.",
       photoHintNew: "Required — a portrait or headshot works best.",
       photoHintEdit: "Choose a new file to replace the current photo.",
+      removePhoto: "Remove photo",
       extraFieldsTitle: "Extra fields",
       addField: "Add field",
       removeField: "Remove field",

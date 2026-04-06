@@ -13,9 +13,11 @@ export function normalizeNewsLocales(
     body: string;
   }[],
   primaryLang: string | null,
+  /** Если primary в БД нет — порядок и «главный» язык по интерфейсу админки */
+  uiFallback: ContentLang = "ru",
 ): NewsLocaleFields[] {
   const primary: ContentLang =
-    primaryLang && isContentLang(primaryLang) ? primaryLang : "ru";
+    primaryLang && isContentLang(primaryLang) ? primaryLang : uiFallback;
   const map = new Map(
     rows
       .filter((r) => ["ru", "uk", "kk", "en"].includes(r.lang))

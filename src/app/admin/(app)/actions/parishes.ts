@@ -92,6 +92,25 @@ export async function reorderParishForm(formData: FormData) {
   redirect("/admin/parishes");
 }
 
+export async function removeParishImage(parishId: string, role: "parish" | "priest") {
+  const profile = await requireStaff();
+  if (!parishId || (role !== "parish" && role !== "priest")) return;
+  const supabase = await createClient();
+  const col = role === "parish" ? "parish_photo_url" : "priest_photo_url";
+  const { error } = await supabase
+    .from("kazakhstan_parishes")
+    .update({ [col]: null, updated_at: new Date().toISOString() })
+    .eq("id", parishId);
+  if (error) throw new Error(error.message);
+  await logAdminActivity(supabase, profile, {
+    action: role === "parish" ? "parish.photo_remove" : "parish.priest_photo_remove",
+    entityType: "kazakhstan_parish",
+    entityId: parishId,
+  });
+  revalidatePath("/about/parishes-kz");
+  revalidatePath("/admin/parishes");
+}
+
 export async function saveParish(formData: FormData) {
   const profile = await requireStaff();
   const supabase = await createClient();
@@ -111,9 +130,6 @@ export async function saveParish(formData: FormData) {
     patch[`priest_name_${l}`] = str(formData, `priest_name_${l}`);
     patch[`priest_contacts_${l}`] = str(formData, `priest_contacts_${l}`);
   }
-
-  if (formData.get("remove_parish_photo") === "on") patch.parish_photo_url = null;
-  if (formData.get("remove_priest_photo") === "on") patch.priest_photo_url = null;
 
   let parishId = id;
   if (!parishId) {

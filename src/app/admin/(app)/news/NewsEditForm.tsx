@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { removeNewsCover, saveNews } from "../actions/news";
+import type { Lang } from "@/lib/i18n";
 import {
   CONTENT_ORDER,
   isContentLang,
@@ -35,6 +36,7 @@ export function NewsEditForm({
   locales,
   submitLabel,
   onCancel,
+  uiLang,
 }: {
   formMsg: AdminNewsScreenCopy;
   imageCopy: AdminSharedImageCopy;
@@ -46,14 +48,16 @@ export function NewsEditForm({
   locales: NewsLocaleFields[];
   submitLabel: string;
   onCancel?: () => void;
+  uiLang: Lang;
 }) {
+  const ui = uiLang as ContentLang;
   const [primaryLang, setPrimaryLang] = useState<ContentLang>(() =>
-    primaryLangDb && isContentLang(primaryLangDb) ? primaryLangDb : "ru",
+    primaryLangDb && isContentLang(primaryLangDb) ? primaryLangDb : ui,
   );
   const [activeLangs, setActiveLangs] = useState<string[]>(() =>
     sortNewsLangsForForm(
       locales.map((l) => l.lang),
-      primaryLangDb && isContentLang(primaryLangDb) ? primaryLangDb : "ru",
+      primaryLangDb && isContentLang(primaryLangDb) ? primaryLangDb : ui,
     ),
   );
   const [coverRemoved, setCoverRemoved] = useState(false);
@@ -141,9 +145,10 @@ export function NewsEditForm({
           <label className="mt-2 block text-xs text-parish-muted">
             {imageCopy.orImageUrl}
             <input
+              key={`news-cover-url-${coverImageUrlProp ?? ""}-${coverRemoved}`}
               type="url"
               name="cover_image_url"
-              defaultValue={coverImageUrlProp ?? ""}
+              defaultValue={coverRemoved ? "" : (coverImageUrlProp ?? "")}
               placeholder={imageCopy.imageUrlPlaceholder}
               className="mt-1 block w-full rounded border border-parish-border px-2 py-1.5 text-sm text-parish-text"
             />

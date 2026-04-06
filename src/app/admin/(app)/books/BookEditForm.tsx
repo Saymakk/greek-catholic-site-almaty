@@ -35,6 +35,7 @@ export function BookEditForm({
   msg,
   imageCopy,
   onCancel,
+  uiLang,
   fluidScale = false,
   modalLayout = false,
 }: {
@@ -46,6 +47,8 @@ export function BookEditForm({
   msg: AdminBooksMsg;
   imageCopy: AdminSharedImageCopy;
   onCancel?: () => void;
+  /** Язык интерфейса админки — начальный «основной» язык для новой книги */
+  uiLang: ContentLang;
   /** Типографика от размера модалки (em + cqmin на предках) */
   fluidScale?: boolean;
   /** Поля в прокрутке, кнопки закреплены внизу модалки */
@@ -58,13 +61,13 @@ export function BookEditForm({
 
   const [primaryLang, setPrimaryLang] = useState<ContentLang>(() => {
     if (primaryLangDb && isContentLang(primaryLangDb)) return primaryLangDb;
-    return "ru";
+    return uiLang;
   });
 
   const [activeLangs, setActiveLangs] = useState<string[]>(() =>
     sortLangsForForm(
       locales.map((l) => l.lang),
-      primaryLangDb && isContentLang(primaryLangDb) ? primaryLangDb : "ru",
+      primaryLangDb && isContentLang(primaryLangDb) ? primaryLangDb : uiLang,
       primaryLangDb === null && locales.some((l) => l.lang === "main"),
     ),
   );
@@ -248,6 +251,7 @@ export function BookEditForm({
               <label className={`mt-2 block text-parish-muted ${label}`}>
                 {imageCopy.orImageUrl}
                 <input
+                  key={`book-cover-url-${code}-${storedCoverUrl ?? "empty"}`}
                   type="url"
                   name={`cover_url_${code}`}
                   defaultValue={storedCoverUrl ?? ""}

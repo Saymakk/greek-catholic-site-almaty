@@ -143,7 +143,9 @@ export function HistoryEditForm({
 }) {
   const copy = adminHistoryScreenCopy(uiLang);
   const imageCopy = adminSharedImageCopy(uiLang);
-  const [primaryLang, setPrimaryLang] = useState<ContentLang>(() => "ru");
+  const [primaryLang, setPrimaryLang] = useState<ContentLang>(() =>
+    isContentLang(uiLang) ? uiLang : "ru",
+  );
   const textareaRefs = useRef<Record<string, HTMLTextAreaElement | null>>({});
 
   const byLang = useMemo(() => {

@@ -190,6 +190,7 @@ export function AdminClergyClient({ lang, rows }: { lang: Lang; rows: ClergyRow[
               imageCopy={imageCopy}
               submitLabel={c.save}
               onCancel={closeDialog}
+              uiLang={lang}
             />
           </div>
         ) : null}

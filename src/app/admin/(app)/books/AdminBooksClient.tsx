@@ -18,10 +18,11 @@ export type AdminBookPayload = {
 function sortEditionRowsForBook(
   locales: BookLocaleFields[],
   primaryLang: string | null,
+  uiFallback: ContentLang,
 ): BookLocaleFields[] {
   const legacy = primaryLang === null && locales.some((l) => l.lang === "main");
   const primary: ContentLang =
-    primaryLang && isContentLang(primaryLang) ? primaryLang : "ru";
+    primaryLang && isContentLang(primaryLang) ? primaryLang : uiFallback;
   const codes = sortLangsForForm(
     locales.map((l) => l.lang),
     primary,
@@ -68,12 +69,13 @@ export function AdminBooksClient({
 
   function openAdd() {
     setMode("add");
+    const pl = lang as ContentLang;
     setActiveBook({
       id: "",
-      primaryLang: "ru",
+      primaryLang: pl,
       locales: [
         {
-          lang: "ru",
+          lang: pl,
           title: "",
           description: "",
           read_url: "",
@@ -115,7 +117,8 @@ export function AdminBooksClient({
           >
             <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch sm:justify-between">
               <div className="min-w-0 flex-1 space-y-3">
-                {sortEditionRowsForBook(book.locales, book.primaryLang).map((loc) => (
+                {sortEditionRowsForBook(book.locales, book.primaryLang, lang as ContentLang).map(
+                  (loc) => (
                   <div
                     key={loc.lang}
                     className="flex gap-3 rounded-lg border border-parish-border/50 bg-parish-bg/40 p-2"
@@ -213,6 +216,7 @@ export function AdminBooksClient({
               msg={msg}
               imageCopy={imageCopy}
               onCancel={closeDialog}
+              uiLang={lang as ContentLang}
               fluidScale
               modalLayout
             />

@@ -65,7 +65,7 @@ export default async function AdminNewsListPage({
       is_published: r.is_published,
       primary_lang: pl,
       cover_image_url: r.cover_image_url ?? null,
-      locales: normalizeNewsLocales(r.news_i18n ?? [], pl),
+      locales: normalizeNewsLocales(r.news_i18n ?? [], pl, lang),
     };
   });
 

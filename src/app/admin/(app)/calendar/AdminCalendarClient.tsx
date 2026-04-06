@@ -18,6 +18,7 @@ import {
 } from "../actions/calendar";
 import { CalendarEventEditForm } from "./CalendarEventEditForm";
 import { TemplateEditDialog } from "./TemplateEditDialog";
+import type { ContentLang } from "../books/book-locales";
 import { normalizeCalendarLocales } from "./calendar-entity-locales";
 import type { ExternalLiturgicalWidgetSettings } from "@/lib/data";
 import { todayStr } from "@/lib/liturgical-site-dates";
@@ -62,17 +63,20 @@ function extrasHaveAnyLabel(extras: CalendarExtraRow[]): boolean {
   );
 }
 
-const emptyEvent = (): AdminCalendarPayload => ({
-  id: "",
-  event_date: todayIso(),
-  kind: "feast",
-  kindListLabel: "",
-  kindSiteLabels: {},
-  primary_lang: "ru",
-  cover_image_url: null,
-  locales: normalizeCalendarLocales([], "ru"),
-  extras: [],
-});
+function emptyEvent(uiLang: Lang): AdminCalendarPayload {
+  const pl = uiLang as ContentLang;
+  return {
+    id: "",
+    event_date: todayIso(),
+    kind: "feast",
+    kindListLabel: "",
+    kindSiteLabels: {},
+    primary_lang: pl,
+    cover_image_url: null,
+    locales: normalizeCalendarLocales([], null, pl),
+    extras: [],
+  };
+}
 
 function CalendarTemplatesListModal({
   open,
@@ -240,7 +244,7 @@ export function AdminCalendarClient({
 
   function openAdd() {
     setMode("add");
-    setActive(emptyEvent());
+    setActive(emptyEvent(lang));
     requestAnimationFrame(() => dialogRef.current?.showModal());
   }
 

@@ -168,7 +168,7 @@ export default async function AdminCalendarPage({
       kindSiteLabels: siteLabels,
       primary_lang: pl,
       cover_image_url: row.cover_image_url ?? null,
-      locales: normalizeCalendarLocales(row.liturgical_event_i18n ?? [], pl),
+      locales: normalizeCalendarLocales(row.liturgical_event_i18n ?? [], pl, lang),
       extras: extrasByEvent.get(row.id) ?? [],
     };
   });
