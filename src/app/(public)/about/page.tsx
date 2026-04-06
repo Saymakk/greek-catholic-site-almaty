@@ -6,8 +6,8 @@ import type { Metadata } from "next";
 const SECTIONS: { href: string; key: UiKey }[] = [
   { href: "/about/hierarchy", key: "aboutNavHierarchy" },
   { href: "/about/history", key: "aboutNavHistory" },
-  { href: "/about/contacts", key: "aboutNavContacts" },
   { href: "/about/parishes-kz", key: "aboutNavKazakhstanParishes" },
+  { href: "/about/contacts", key: "aboutNavContacts" },
 ];
 
 export async function generateMetadata(): Promise<Metadata> {
