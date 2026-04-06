@@ -32,7 +32,7 @@ const nav: Record<
     history: "История (текст)",
     parishes: "Приходы Казахстана",
     clergy: "Священнослужители",
-    settings: "Контакты / футер",
+    settings: "Контакты",
     account: "Пароль",
     users: "Пользователи",
     toSite: "На сайт",
@@ -46,7 +46,7 @@ const nav: Record<
     history: "Історія (текст)",
     parishes: "Парафії Казахстану",
     clergy: "Духовенство",
-    settings: "Контакти / підвал",
+    settings: "Контакти",
     account: "Пароль",
     users: "Користувачі",
     toSite: "На сайт",
@@ -60,7 +60,7 @@ const nav: Record<
     history: "Тарих (мәтін)",
     parishes: "Қазақстан қауымдары",
     clergy: "Дін қызметкерлері",
-    settings: "Байланыс / футер",
+    settings: "Байланыс",
     account: "Құпия сөз",
     users: "Пайдаланушылар",
     toSite: "Сайтқа",
@@ -74,7 +74,7 @@ const nav: Record<
     history: "History (text)",
     parishes: "Kazakhstan parishes",
     clergy: "Clergy",
-    settings: "Contacts / footer",
+    settings: "Contacts",
     account: "Password",
     users: "Users",
     toSite: "To website",
@@ -517,9 +517,8 @@ export type AdminSettingsCopy = {
 export function adminSettingsCopy(lang: Lang): AdminSettingsCopy {
   const d: Record<Lang, AdminSettingsCopy> = {
     ru: {
-      pageTitle: "Контакты и футер",
-      intro:
-        "Данные отображаются в подвале сайта и на странице «Наши контакты». Пустые поля для языка на сайте подменяются русским.",
+      pageTitle: "Контакты",
+      intro: "Данные отображаются на странице «Наши контакты».",
       sharedSection: "Телефон и email",
       phoneLabel: "Телефон",
       emailLabel: "Email",
@@ -544,9 +543,8 @@ export function adminSettingsCopy(lang: Lang): AdminSettingsCopy {
       errButtons: "Некорректные данные кнопок. Проверьте JSON или обновите страницу.",
     },
     uk: {
-      pageTitle: "Контакти та підвал сайту",
-      intro:
-        "Дані у підвалі сайту та на сторінці «Наші контакти». Порожні поля для мови замінюються російською.",
+      pageTitle: "Контакти",
+      intro: "Дані відображаються на сторінці «Наші контакти».",
       sharedSection: "Телефон і email",
       phoneLabel: "Телефон",
       emailLabel: "Email",
@@ -571,9 +569,8 @@ export function adminSettingsCopy(lang: Lang): AdminSettingsCopy {
       errButtons: "Некоректні дані кнопок.",
     },
     kk: {
-      pageTitle: "Байланыс және футер",
-      intro:
-        "Деректер футерде және «Біздің байланыстар» бетінде. Тіл үшін бос өрістер орысшамен ауысады.",
+      pageTitle: "Байланыс",
+      intro: "Деректер «Біздің байланыстар» бетінде көрсетіледі.",
       sharedSection: "Телефон және email",
       phoneLabel: "Телефон",
       emailLabel: "Email",
@@ -597,9 +594,8 @@ export function adminSettingsCopy(lang: Lang): AdminSettingsCopy {
       errButtons: "Түймелер дерегі дұрыс емес.",
     },
     en: {
-      pageTitle: "Contacts & footer",
-      intro:
-        "Shown in the site footer and on “Our contacts”. Empty per-language fields fall back to Russian.",
+      pageTitle: "Contacts",
+      intro: "Shown on the “Our contacts” page.",
       sharedSection: "Phone & email",
       phoneLabel: "Phone",
       emailLabel: "Email",

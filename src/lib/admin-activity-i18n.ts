@@ -105,10 +105,10 @@ const labels: Record<string, Record<Lang, string>> = {
     en: "History page saved",
   },
   "settings.footer.save": {
-    ru: "Сохранены контакты / футер",
-    uk: "Збережено контакти / підвал",
-    kk: "Байланыс / футер сақталды",
-    en: "Footer / contacts saved",
+    ru: "Сохранены контакты",
+    uk: "Збережено контакти",
+    kk: "Байланыс сақталды",
+    en: "Contacts saved",
   },
   "parish.create": {
     ru: "Добавлен приход (Казахстан)",

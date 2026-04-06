@@ -1,4 +1,4 @@
-export const LANGS = ["ru", "uk", "kk", "en"] as const;
+export const LANGS = ["uk", "ru", "kk", "en"] as const;
 export type Lang = (typeof LANGS)[number];
 
 export const LANG_NAMES: Record<Lang, string> = {

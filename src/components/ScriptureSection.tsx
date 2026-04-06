@@ -39,6 +39,7 @@ export function ScriptureSection({
 }) {
   const isSidebar = variant === "sidebar";
   const [page, setPage] = useState(1);
+  const [mobileBooksOpen, setMobileBooksOpen] = useState(false);
   const [detailBook, setDetailBook] = useState<ScriptureBook | null>(null);
   const [coverLightboxUrl, setCoverLightboxUrl] = useState<string | null>(null);
 
@@ -74,6 +75,25 @@ export function ScriptureSection({
       >
         {t(lang, "scriptureHint")}
       </p>
+      {isSidebar ? (
+        <button
+          type="button"
+          className="mt-3 flex w-full touch-manipulation items-center justify-center rounded-xl border border-parish-border bg-parish-surface py-3 text-sm font-semibold text-parish-accent shadow-sm transition hover:bg-parish-accent-soft lg:hidden"
+          aria-expanded={mobileBooksOpen}
+          onClick={() => setMobileBooksOpen((v) => !v)}
+        >
+          {mobileBooksOpen ? t(lang, "scriptureHideBooks") : t(lang, "scriptureShowBooks")}
+        </button>
+      ) : null}
+      <div
+        className={
+          isSidebar
+            ? mobileBooksOpen
+              ? "lg:contents"
+              : "max-lg:hidden lg:contents"
+            : undefined
+        }
+      >
       <ul className={isSidebar ? "mt-4 space-y-3 overflow-visible" : "mt-6 space-y-4 overflow-visible"}>
         {books.length === 0 ? (
           <li className="font-medium text-parish-muted">{t(lang, "notAvailableLang")}</li>
@@ -213,6 +233,7 @@ export function ScriptureSection({
           onPageChange={setPage}
         />
       ) : null}
+      </div>
       {detailBook ? (
         <BookDetailModal lang={lang} book={detailBook} onClose={() => setDetailBook(null)} />
       ) : null}

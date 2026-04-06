@@ -35,10 +35,20 @@ export function NewsDetailModal({
       onClick={onClose}
     >
       <div
-        className="flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-parish-border bg-parish-surface shadow-xl sm:max-w-2xl"
+        className="relative flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-parish-border bg-parish-surface shadow-xl sm:max-w-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-6 text-left sm:p-7">
+        <button
+          type="button"
+          className="absolute right-2 top-2 z-10 flex h-11 w-11 items-center justify-center rounded-lg text-parish-muted transition hover:bg-parish-accent-soft hover:text-parish-text touch-manipulation"
+          aria-label={t(lang, "closeModal")}
+          onClick={onClose}
+        >
+          <span className="text-2xl leading-none" aria-hidden>
+            ×
+          </span>
+        </button>
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-6 pt-14 text-left sm:p-7 sm:pt-16">
           <time className="text-xs font-semibold text-parish-muted" dateTime={news.published_at}>
             {format(parseISO(news.published_at), "dd.MM.yyyy")}
           </time>

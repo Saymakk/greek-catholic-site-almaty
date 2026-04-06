@@ -4,7 +4,6 @@ import {
   getLiturgicalForDateCount,
   getLiturgicalRange,
   getScriptureBooksPage,
-  getTelegramMessages,
   getExternalLiturgicalWidgetSettings,
   resolveExternalLiturgicalWidgetSrcs,
   liturgicalGridRangeForSiteNow,
@@ -16,7 +15,6 @@ import { getSiteUrl } from "@/lib/site-url";
 import { NewsSection } from "@/components/NewsSection";
 import { TodayWithCalendar } from "@/components/TodayWithCalendar";
 import { ScriptureSection } from "@/components/ScriptureSection";
-import { TelegramSection } from "@/components/TelegramSection";
 import { t } from "@/lib/ui-strings";
 import { format } from "date-fns";
 
@@ -33,7 +31,7 @@ export default async function HomePage() {
   const today = todayStr();
   const { gridStart, gridEnd } = liturgicalGridRangeForSiteNow();
 
-  const [newsRes, todayPage, todayCount, initialEvents, booksRes, telegram, widgetSettings] =
+  const [newsRes, todayPage, todayCount, initialEvents, booksRes, widgetSettings] =
     await Promise.all([
       getNewsPage(lang, 1, 200),
       getLiturgicalForDatePage(today, lang, 1, 10),
@@ -44,7 +42,6 @@ export default async function HomePage() {
         lang,
       ),
       getScriptureBooksPage(lang, 1, 200),
-      getTelegramMessages(25),
       getExternalLiturgicalWidgetSettings(),
     ]);
   const externalWidgetSrcs = resolveExternalLiturgicalWidgetSrcs(widgetSettings);
@@ -89,7 +86,6 @@ export default async function HomePage() {
               ))}
             </div>
           ) : null}
-          <TelegramSection lang={lang} messages={telegram} variant="sidebar" />
         </aside>
       </div>
     </div>
