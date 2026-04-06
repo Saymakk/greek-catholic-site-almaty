@@ -62,6 +62,36 @@ export async function deleteParishForm(formData: FormData) {
   redirect("/admin/parishes");
 }
 
+export async function reorderParishForm(formData: FormData) {
+  await requireStaff();
+  const id = (formData.get("id") as string)?.trim();
+  const dir = (formData.get("dir") as string)?.trim();
+  if (!id || (dir !== "up" && dir !== "down")) {
+    redirect("/admin/parishes");
+  }
+  const supabase = await createClient();
+  const { data: rows, error } = await supabase
+    .from("kazakhstan_parishes")
+    .select("id, sort_order")
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: true });
+  if (error || !rows?.length) redirect("/admin/parishes");
+  const list = rows as { id: string; sort_order: number }[];
+  const idx = list.findIndex((r) => r.id === id);
+  if (idx < 0) redirect("/admin/parishes");
+  const j = dir === "up" ? idx - 1 : idx + 1;
+  if (j < 0 || j >= list.length) redirect("/admin/parishes");
+  const a = list[idx];
+  const b = list[j];
+  const sa = a.sort_order;
+  const sb = b.sort_order;
+  await supabase.from("kazakhstan_parishes").update({ sort_order: sb }).eq("id", a.id);
+  await supabase.from("kazakhstan_parishes").update({ sort_order: sa }).eq("id", b.id);
+  revalidatePath("/admin/parishes");
+  revalidatePath("/about/parishes-kz");
+  redirect("/admin/parishes");
+}
+
 export async function saveParish(formData: FormData) {
   const profile = await requireStaff();
   const supabase = await createClient();

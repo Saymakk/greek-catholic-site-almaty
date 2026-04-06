@@ -5,6 +5,7 @@ import { ParishMapEmbed } from "@/components/ParishMapEmbed";
 
 export function KazakhstanParishCard({ lang, parish: p }: { lang: Lang; parish: PublicKazakhstanParish }) {
   const hasPriestBlock = Boolean(p.priestPhotoUrl || p.priestName || p.priestContacts);
+  const hasMap = Boolean(p.mapEmbedSrc);
   const mapTitle = t(lang, "mapEmbedTitle");
 
   const parishPhotoClass =
@@ -13,9 +14,21 @@ export function KazakhstanParishCard({ lang, parish: p }: { lang: Lang; parish: 
     "h-24 w-24 shrink-0 rounded-full border border-parish-border object-cover";
 
   return (
-    <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-parish-border bg-parish-surface shadow-sm">
-      <div className="flex flex-1 flex-col gap-6 p-5">
-        <div className="grid gap-6 min-[520px]:grid-cols-2 min-[520px]:items-start">
+    <article
+      className={
+        hasMap
+          ? "flex min-h-0 h-full w-full flex-1 flex-col overflow-hidden rounded-2xl border border-parish-border bg-parish-surface shadow-sm"
+          : "flex w-full flex-col self-start overflow-hidden rounded-2xl border border-parish-border bg-parish-surface shadow-sm"
+      }
+    >
+      <div className={hasMap ? "flex min-h-0 flex-1 flex-col p-5" : "flex flex-col p-5"}>
+        <div
+          className={
+            hasMap
+              ? "grid min-h-0 flex-1 gap-6 min-[520px]:grid-cols-2 min-[520px]:items-start"
+              : "grid gap-6 min-[520px]:grid-cols-2 min-[520px]:items-start"
+          }
+        >
           <div className="min-w-0">
             <div className="flex items-start gap-4">
               {p.parishPhotoUrl ? (
@@ -69,11 +82,13 @@ export function KazakhstanParishCard({ lang, parish: p }: { lang: Lang; parish: 
             ) : null}
           </aside>
         </div>
-
-        {p.mapEmbedSrc ? (
-          <ParishMapEmbed src={p.mapEmbedSrc} title={mapTitle} className="mt-0" />
-        ) : null}
       </div>
+
+      {hasMap ? (
+        <div className="mt-auto shrink-0 border-t border-parish-border px-5 pb-5 pt-4">
+          <ParishMapEmbed src={p.mapEmbedSrc!} title={mapTitle} className="mt-0" />
+        </div>
+      ) : null}
     </article>
   );
 }

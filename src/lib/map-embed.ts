@@ -23,9 +23,9 @@ export function mapEmbedRawForForm(storedSrc: string | undefined | null): string
   return mapEmbedSnippetFromSrc(s);
 }
 
-/** Поле карты в форме прихода: по умолчанию — пример iframe; если в БД уже есть src — подставляем. */
+/** Поле карты в форме прихода: как у футера — пусто, пока в БД нет src; иначе полный iframe для редактирования. */
 export function mapEmbedRawForParishForm(storedSrc: string | undefined | null): string {
   const s = storedSrc?.trim();
-  if (!s) return DEFAULT_MAP_IFRAME_SNIPPET;
+  if (!s) return "";
   return mapEmbedSnippetFromSrc(s);
 }

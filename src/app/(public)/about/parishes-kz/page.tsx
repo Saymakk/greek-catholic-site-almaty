@@ -27,7 +27,7 @@ export default async function KazakhstanParishesPage() {
       ) : (
         <ul className="mt-10 grid gap-6 sm:grid-cols-2 lg:gap-8">
           {parishes.map((p) => (
-            <li key={p.id} className="min-w-0">
+            <li key={p.id} className="flex h-full min-w-0 flex-col">
               <KazakhstanParishCard lang={lang} parish={p} />
             </li>
           ))}

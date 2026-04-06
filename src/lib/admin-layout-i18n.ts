@@ -650,6 +650,9 @@ export type AdminParishesScreenCopy = {
   priestContacts: string;
   noTitle: string;
   edit: string;
+  hierarchyTitle: string;
+  moveUp: string;
+  moveDown: string;
 };
 
 export function adminParishesScreenCopy(lang: Lang): AdminParishesScreenCopy {
@@ -683,6 +686,9 @@ export function adminParishesScreenCopy(lang: Lang): AdminParishesScreenCopy {
       priestContacts: "Контакты настоятеля (телефон, e-mail и т.д.)",
       noTitle: "Без названия",
       edit: "Редактировать",
+      hierarchyTitle: "Порядок в списке",
+      moveUp: "Выше",
+      moveDown: "Ниже",
     },
     uk: {
       pageTitle: "Парафії Казахстану",
@@ -712,6 +718,9 @@ export function adminParishesScreenCopy(lang: Lang): AdminParishesScreenCopy {
       priestContacts: "Контакти настоятеля (телефон, e-mail тощо)",
       noTitle: "Без назви",
       edit: "Редагувати",
+      hierarchyTitle: "Порядок у списку",
+      moveUp: "Вище",
+      moveDown: "Нижче",
     },
     kk: {
       pageTitle: "Қазақстан қауымдары",
@@ -741,6 +750,9 @@ export function adminParishesScreenCopy(lang: Lang): AdminParishesScreenCopy {
       priestContacts: "Байланыс (телефон, e-mail т.б.)",
       noTitle: "Атаусыз",
       edit: "Өңдеу",
+      hierarchyTitle: "Тізімдегі орын",
+      moveUp: "Жоғары",
+      moveDown: "Төмен",
     },
     en: {
       pageTitle: "Kazakhstan parishes",
@@ -770,6 +782,9 @@ export function adminParishesScreenCopy(lang: Lang): AdminParishesScreenCopy {
       priestContacts: "Rector contacts (phone, email, etc.)",
       noTitle: "Untitled",
       edit: "Edit",
+      hierarchyTitle: "Order in list",
+      moveUp: "Move up",
+      moveDown: "Move down",
     },
   };
   return d[lang] ?? d.ru;

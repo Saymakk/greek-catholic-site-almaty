@@ -3,15 +3,17 @@
 import { useEffect, useRef, useState } from "react";
 import type { Lang } from "@/lib/i18n";
 import type { KazakhstanParishRow } from "@/lib/data";
+import { pickLocalized } from "@/lib/locale-fallback";
 import { adminParishesScreenCopy } from "@/lib/admin-layout-i18n";
 import { adminSharedImageCopy } from "@/lib/admin-shared-image-i18n";
-import { deleteParishForm } from "../actions/parishes";
+import { deleteParishForm, reorderParishForm } from "../actions/parishes";
 import { ParishEditForm } from "./ParishEditForm";
 
-function emptyParish(): KazakhstanParishRow {
+function emptyParish(rows: KazakhstanParishRow[]): KazakhstanParishRow {
+  const maxSo = rows.reduce((m, r) => Math.max(m, r.sort_order), -1);
   return {
     id: "",
-    sort_order: 0,
+    sort_order: maxSo + 1,
     parish_photo_url: null,
     priest_photo_url: null,
     website_url: null,
@@ -61,6 +63,20 @@ function listThumb(row: KazakhstanParishRow): { url: string; variant: "parish" |
   return null;
 }
 
+function listCityPriestLine(
+  row: KazakhstanParishRow,
+  lang: Lang,
+  c: ReturnType<typeof adminParishesScreenCopy>,
+): string | null {
+  const r = row as unknown as Record<string, string | null | undefined>;
+  const city = pickLocalized(r, "city", lang);
+  const priest = pickLocalized(r, "priest_name", lang);
+  const parts: string[] = [];
+  if (city) parts.push(`${c.city}: ${city}`);
+  if (priest) parts.push(`${c.priestName}: ${priest}`);
+  return parts.length ? parts.join(" · ") : null;
+}
+
 export function AdminParishesClient({
   lang,
   rows,
@@ -93,7 +109,7 @@ export function AdminParishesClient({
 
   function openAdd() {
     setMode("add");
-    setActive(emptyParish());
+    setActive(emptyParish(rows));
     requestAnimationFrame(() => dialogRef.current?.showModal());
   }
 
@@ -122,8 +138,9 @@ export function AdminParishesClient({
       </div>
 
       <ul className="mt-8 space-y-4">
-        {rows.map((row) => {
+        {rows.map((row, idx) => {
           const thumb = listThumb(row);
+          const cityPriest = listCityPriestLine(row, lang, c);
           return (
           <li
             key={row.id}
@@ -146,9 +163,43 @@ export function AdminParishesClient({
                   —
                 </div>
               )}
-              <p className="min-w-0 font-medium text-parish-text">{listTitle(row, c)}</p>
+              <div className="min-w-0">
+                <p className="font-medium text-parish-text">{listTitle(row, c)}</p>
+                {cityPriest ? (
+                  <p className="mt-0.5 text-xs text-parish-muted">{cityPriest}</p>
+                ) : null}
+                <p
+                  className={
+                    cityPriest ? "mt-0.5 text-xs text-parish-muted" : "text-xs text-parish-muted"
+                  }
+                >
+                  {c.hierarchyTitle}: {row.sort_order}
+                </p>
+              </div>
             </div>
-            <div className="flex shrink-0 flex-wrap gap-2">
+            <div className="flex shrink-0 flex-wrap items-center gap-2">
+              <form action={reorderParishForm} className="inline">
+                <input type="hidden" name="id" value={row.id} />
+                <input type="hidden" name="dir" value="up" />
+                <button
+                  type="submit"
+                  disabled={idx === 0}
+                  className="rounded-lg border border-parish-border px-2 py-2 text-xs font-medium text-parish-muted hover:bg-parish-accent-soft disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {c.moveUp}
+                </button>
+              </form>
+              <form action={reorderParishForm} className="inline">
+                <input type="hidden" name="id" value={row.id} />
+                <input type="hidden" name="dir" value="down" />
+                <button
+                  type="submit"
+                  disabled={idx >= rows.length - 1}
+                  className="rounded-lg border border-parish-border px-2 py-2 text-xs font-medium text-parish-muted hover:bg-parish-accent-soft disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {c.moveDown}
+                </button>
+              </form>
               <button
                 type="button"
                 onClick={() => openEdit(row)}
