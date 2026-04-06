@@ -16,7 +16,10 @@ const navLinkClass =
   "inline-flex shrink-0 items-center rounded-lg px-2.5 py-2 text-sm font-semibold text-parish-muted transition hover:bg-parish-accent-soft hover:text-parish-accent min-h-10 sm:min-h-0 sm:px-3 sm:py-2";
 
 export function SiteHeader({ lang }: { lang: Lang }) {
-  const mobileNavItems = links.map((l) => ({ href: l.href, label: t(lang, l.key) }));
+  const mobileNavItems = [
+    ...links.map((l) => ({ href: l.href, label: t(lang, l.key) })),
+    { href: "/about/contacts", label: t(lang, "contacts") },
+  ];
 
   return (
     <header className="sticky top-0 z-40 border-b border-parish-border/80 bg-parish-surface/95 pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur-sm">

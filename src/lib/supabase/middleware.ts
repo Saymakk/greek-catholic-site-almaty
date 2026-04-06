@@ -4,10 +4,18 @@ import { NextResponse, type NextRequest } from "next/server";
 const INACTIVITY_MS = 30 * 60 * 1000;
 const ACTIVITY_COOKIE = "parish_activity_at";
 
+function needsSupabaseSession(pathname: string): boolean {
+  return pathname.startsWith("/admin") || pathname.startsWith("/api/admin");
+}
+
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({
     request,
   });
+
+  if (!needsSupabaseSession(request.nextUrl.pathname)) {
+    return response;
+  }
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

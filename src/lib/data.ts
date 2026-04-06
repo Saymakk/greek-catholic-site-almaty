@@ -1,4 +1,5 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createPublicClient } from "@/lib/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Lang } from "@/lib/i18n";
 import { format } from "date-fns";
 import { pickLocalized } from "@/lib/locale-fallback";
@@ -36,7 +37,7 @@ export async function getNewsPage(
   page: number,
   pageSize = HOME_PAGE_SIZE,
 ): Promise<PagedResult<NewsRow>> {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const p = Math.max(1, page);
   const size = Math.min(50, Math.max(1, pageSize));
   const from = (p - 1) * size;
@@ -193,7 +194,7 @@ type LiturgicalRowFilter =
   | { mode: "range"; start: string; end: string };
 
 async function loadLiturgicalEventRows(
-  supabase: Awaited<ReturnType<typeof createClient>>,
+  supabase: SupabaseClient,
   filter: LiturgicalRowFilter,
   opts?: { limit?: number; offset?: number },
 ): Promise<LiturgicalEventPickRow[]> {
@@ -244,7 +245,7 @@ async function loadLiturgicalEventRows(
 }
 
 async function loadLiturgicalKindLabelMap(
-  supabase: Awaited<ReturnType<typeof createClient>>,
+  supabase: SupabaseClient,
   slugs: string[],
 ): Promise<Map<string, Partial<Record<Lang, string>>>> {
   const uniq = [...new Set(slugs)].filter(Boolean);
@@ -267,7 +268,7 @@ async function loadLiturgicalKindLabelMap(
 }
 
 async function loadLiturgicalExtrasByEventIds(
-  supabase: Awaited<ReturnType<typeof createClient>>,
+  supabase: SupabaseClient,
   eventIds: string[],
 ): Promise<Map<string, LiturgicalExtraRow[]>> {
   const out = new Map<string, LiturgicalExtraRow[]>();
@@ -347,7 +348,7 @@ function liturgicalExtrasToViews(
 }
 
 async function mapLiturgicalRowsToViews(
-  supabase: Awaited<ReturnType<typeof createClient>>,
+  supabase: SupabaseClient,
   events: LiturgicalEventPickRow[],
   lang: Lang,
 ): Promise<LiturgicalEventView[]> {
@@ -384,7 +385,7 @@ export async function getLiturgicalForDatePage(
   page: number,
   pageSize = 10,
 ): Promise<LiturgicalDatePage> {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const offset = Math.max(0, page - 1) * pageSize;
   const events = await loadLiturgicalEventRows(
     supabase,
@@ -406,7 +407,7 @@ export async function getLiturgicalForDate(
 }
 
 export async function getLiturgicalForDateCount(dateStr: string): Promise<number> {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const { count, error } = await supabase
     .from("liturgical_events")
     .select("id", { count: "exact", head: true })
@@ -420,7 +421,7 @@ export async function getLiturgicalRange(
   end: string,
   lang: Lang,
 ): Promise<LiturgicalEventView[]> {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const events = await loadLiturgicalEventRows(supabase, {
     mode: "range",
     start,
@@ -655,7 +656,7 @@ export async function getScriptureBooksPage(
   page: number,
   pageSize = HOME_PAGE_SIZE,
 ): Promise<PagedResult<ScriptureBook>> {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const p = Math.max(1, page);
   const size = Math.min(50, Math.max(1, pageSize));
   const from = (p - 1) * size;
@@ -686,7 +687,7 @@ export async function getScriptureBooksPage(
 }
 
 export async function getScriptureBooks(siteLang: Lang): Promise<ScriptureBook[]> {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const { data } = await supabase
     .from("scripture_books")
     .select(SCRIPTURE_SELECT)
@@ -720,7 +721,7 @@ export async function getScriptureLibraryPage(
   pageSize: number,
   filters: ScriptureLibraryFilters,
 ): Promise<PagedResult<ScriptureBook>> {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const p = Math.max(1, page);
   const size = Math.min(50, Math.max(1, pageSize));
 
@@ -780,7 +781,7 @@ export async function getScriptureLibraryPage(
 }
 
 export async function getTelegramMessages(limit = 30) {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const { data } = await supabase
     .from("telegram_messages")
     .select("id, text, sent_at")
@@ -823,7 +824,7 @@ export type FooterSettings = {
 };
 
 export async function getFooterSettings(): Promise<FooterSettings> {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const { data } = await supabase
     .from("site_settings")
     .select("value")
@@ -863,7 +864,7 @@ export function parseExternalLiturgicalWidgetValue(
 }
 
 export async function getExternalLiturgicalWidgetSettings(): Promise<ExternalLiturgicalWidgetSettings> {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const { data } = await supabase
     .from("site_settings")
     .select("value")
@@ -916,7 +917,7 @@ export function resolveFooterDisplay(footer: FooterSettings, lang: Lang) {
 }
 
 export async function getHistoryHtml(lang: Lang) {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const { data: rows } = await supabase
     .from("page_content")
     .select("lang, body")
@@ -993,7 +994,7 @@ function mapParishRowToPublic(row: KazakhstanParishRow, lang: Lang): PublicKazak
 }
 
 export async function getPublishedKazakhstanParishes(lang: Lang): Promise<PublicKazakhstanParish[]> {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const { data, error } = await supabase
     .from("kazakhstan_parishes")
     .select("*")
@@ -1108,8 +1109,7 @@ function mapClergyDbRow(row: Record<string, unknown>): ClergyRow {
   };
 }
 
-async function queryClergyRows(): Promise<ClergyRow[]> {
-  const supabase = await createClient();
+async function queryClergyRows(supabase: SupabaseClient): Promise<ClergyRow[]> {
   const { data, error } = await supabase
     .from("clergy")
     .select("*")
@@ -1120,11 +1120,12 @@ async function queryClergyRows(): Promise<ClergyRow[]> {
 }
 
 export async function getClergyForAdmin(): Promise<ClergyRow[]> {
-  return queryClergyRows();
+  const supabase = await createClient();
+  return queryClergyRows(supabase);
 }
 
 /** Публичный список (RLS: select для всех). */
 export async function getClergyForPublic(): Promise<ClergyRow[]> {
-  return queryClergyRows();
+  return queryClergyRows(createPublicClient());
 }
 
