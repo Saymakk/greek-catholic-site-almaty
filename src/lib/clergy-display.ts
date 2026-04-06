@@ -1,4 +1,5 @@
 import type { Lang } from "@/lib/i18n";
+import type { ClergyExtraField } from "@/lib/data";
 
 /** Поля имён без зависимости от server-only `data.ts`. */
 export type ClergyNameRow = {
@@ -26,4 +27,26 @@ export function displayClergyName(row: ClergyNameRow, lang: Lang): string {
     row.full_name.trim() ||
     ""
   );
+}
+
+const EXTRA_LANG_FALLBACK: Lang[] = ["ru", "uk", "kk", "en"];
+
+function pickExtraLangString(
+  map: Partial<Record<Lang, string>>,
+  lang: Lang,
+): string {
+  const order: Lang[] = [lang, ...EXTRA_LANG_FALLBACK.filter((l) => l !== lang)];
+  for (const l of order) {
+    const v = map[l]?.trim();
+    if (v) return v;
+  }
+  return "";
+}
+
+export function displayClergyExtraLabel(field: ClergyExtraField, lang: Lang): string {
+  return pickExtraLangString(field.labels, lang);
+}
+
+export function displayClergyExtraValue(field: ClergyExtraField, lang: Lang): string {
+  return pickExtraLangString(field.values, lang);
 }

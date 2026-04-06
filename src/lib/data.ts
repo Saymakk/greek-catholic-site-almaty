@@ -1108,7 +1108,7 @@ function mapClergyDbRow(row: Record<string, unknown>): ClergyRow {
   };
 }
 
-export async function getClergyForAdmin(): Promise<ClergyRow[]> {
+async function queryClergyRows(): Promise<ClergyRow[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("clergy")
@@ -1117,5 +1117,14 @@ export async function getClergyForAdmin(): Promise<ClergyRow[]> {
     .order("created_at", { ascending: true });
   if (error) return [];
   return (data ?? []).map((r) => mapClergyDbRow(r as Record<string, unknown>));
+}
+
+export async function getClergyForAdmin(): Promise<ClergyRow[]> {
+  return queryClergyRows();
+}
+
+/** Публичный список (RLS: select для всех). */
+export async function getClergyForPublic(): Promise<ClergyRow[]> {
+  return queryClergyRows();
 }
 

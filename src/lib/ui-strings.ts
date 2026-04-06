@@ -19,7 +19,9 @@ export const ui = {
     parishCardWebsite: "Сайт",
     parishCardPriest: "Настоятель",
     hierarchyPageTitle: "Иерархия",
-    hierarchyPageIntro: "Информация об иерархии Церкви будет размещена здесь позже.",
+    hierarchyPageIntro: "Священнослужители греко-католического прихода.",
+    hierarchyPageEmpty:
+      "Список священнослужителей пока не заполнен. Его можно добавить в разделе «Священнослужители» в админке.",
     mapSectionTitle: "Карта",
     mapEmbedTitle: "Местоположение прихода на карте",
     openCalendar: "Открыть календарь на выбранную дату",
@@ -97,7 +99,9 @@ export const ui = {
     parishCardWebsite: "Сайт",
     parishCardPriest: "Настоятель",
     hierarchyPageTitle: "Ієрархія",
-    hierarchyPageIntro: "Інформацію про ієрархію Церкви буде розміщено тут пізніше.",
+    hierarchyPageIntro: "Священнослужителі греко-католицької парафії.",
+    hierarchyPageEmpty:
+      "Список священнослужителів ще не заповнений. Його можна додати в адмінці в розділі «Духовенство».",
     mapSectionTitle: "Мапа",
     mapEmbedTitle: "Розташування парафії на карті",
     openCalendar: "Відкрити календар на обрану дату",
@@ -175,7 +179,9 @@ export const ui = {
     parishCardWebsite: "Сайт",
     parishCardPriest: "Бас священник",
     hierarchyPageTitle: "Иерархия",
-    hierarchyPageIntro: "Шіркеу иерархиясы туралы ақпарат кейінірек осы жерде болады.",
+    hierarchyPageIntro: "Грек-католик қауымының дін қызметкерлері.",
+    hierarchyPageEmpty:
+      "Дін қызметкерлер тізімі әлі толтырылмаған. Оны әкімшіліктегі «Дін қызметкерлері» бөлімінен қосуға болады.",
     mapSectionTitle: "Картадағы орналасу",
     mapEmbedTitle: "Қауымның карттағы орны",
     openCalendar: "Таңдалған күнге күнтізбені ашу",
@@ -253,7 +259,9 @@ export const ui = {
     parishCardWebsite: "Website",
     parishCardPriest: "Rector",
     hierarchyPageTitle: "Hierarchy",
-    hierarchyPageIntro: "Information on Church hierarchy will appear here later.",
+    hierarchyPageIntro: "Clergy of the Greek Catholic parish.",
+    hierarchyPageEmpty:
+      "No clergy entries yet. Add them in the admin under “Clergy”.",
     mapSectionTitle: "Map",
     mapEmbedTitle: "Parish location on the map",
     openCalendar: "Open calendar for the selected date",

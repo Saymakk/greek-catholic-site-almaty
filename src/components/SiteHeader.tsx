@@ -24,7 +24,10 @@ export function SiteHeader({ lang }: { lang: Lang }) {
         >
           <span className="block truncate whitespace-nowrap">
             {t(lang, "parishName")}
-            <span className="font-medium text-parish-muted"> · {t(lang, "city")}</span>
+            <span className="font-medium text-parish-muted"> · </span>
+            <span className="align-baseline text-[0.6875rem] font-medium text-parish-muted sm:text-base lg:text-lg">
+              {t(lang, "city")}
+            </span>
           </span>
         </Link>
 

@@ -245,7 +245,7 @@ export function ClergyEditForm({
             <img
               src={clergy.photo_url}
               alt=""
-              className="h-32 w-32 rounded-full border border-parish-border object-cover"
+              className="max-h-48 max-w-full rounded-lg border border-parish-border object-contain object-left"
             />
           ) : null}
           <input type="file" name="photo" accept="image/*" className="block w-full text-xs" />

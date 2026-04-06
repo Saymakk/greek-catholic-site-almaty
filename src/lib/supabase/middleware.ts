@@ -32,9 +32,17 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: authData, error: authError } = await supabase.auth.getUser();
+
+  if (
+    authError &&
+    (authError.code === "refresh_token_not_found" ||
+      authError.code === "invalid_refresh_token")
+  ) {
+    await supabase.auth.signOut();
+  }
+
+  const user = authData?.user ?? null;
 
   if (user) {
     const raw = request.cookies.get(ACTIVITY_COOKIE)?.value;

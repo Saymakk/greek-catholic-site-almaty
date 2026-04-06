@@ -108,6 +108,7 @@ export async function deleteClergyForm(formData: FormData) {
     entityId: id,
   });
   revalidatePath("/admin/clergy");
+  revalidatePath("/about/hierarchy");
   redirect("/admin/clergy");
 }
 
@@ -137,6 +138,7 @@ export async function reorderClergyForm(formData: FormData) {
   await supabase.from("clergy").update({ sort_order: sb }).eq("id", a.id);
   await supabase.from("clergy").update({ sort_order: sa }).eq("id", b.id);
   revalidatePath("/admin/clergy");
+  revalidatePath("/about/hierarchy");
   redirect("/admin/clergy");
 }
 
@@ -268,5 +270,6 @@ export async function saveClergy(formData: FormData) {
   }
 
   revalidatePath("/admin/clergy");
+  revalidatePath("/about/hierarchy");
   redirect("/admin/clergy");
 }
