@@ -13,7 +13,7 @@ import {
 } from "date-fns";
 import { formatInTimeZone, toZonedTime } from "date-fns-tz";
 import { enUS, ru, uk } from "date-fns/locale";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import type { Lang } from "@/lib/i18n";
 import { getSiteTimeZone } from "@/lib/site-timezone";
 import { t } from "@/lib/ui-strings";
@@ -34,6 +34,22 @@ function dateFnsLocale(siteLang: Lang) {
   return ru;
 }
 
+function subscribeMaxSm(cb: () => void) {
+  if (typeof window === "undefined") return () => {};
+  const mq = window.matchMedia("(max-width: 639px)");
+  mq.addEventListener("change", cb);
+  return () => mq.removeEventListener("change", cb);
+}
+
+function getMaxSmSnapshot() {
+  if (typeof window === "undefined") return false;
+  return window.matchMedia("(max-width: 639px)").matches;
+}
+
+function useMaxSmScreen() {
+  return useSyncExternalStore(subscribeMaxSm, getMaxSmSnapshot, () => false);
+}
+
 export function LiturgicalCalendar({
   lang,
   initialEvents,
@@ -43,8 +59,10 @@ export function LiturgicalCalendar({
   const [month, setMonth] = useState(() => startOfMonth(toZonedTime(new Date(), tz)));
   const [events, setEvents] = useState<LiturgicalEventView[]>(initialEvents);
   const [modal, setModal] = useState<LiturgicalEventView | null>(null);
+  const [daySheet, setDaySheet] = useState<{ day: Date; events: LiturgicalEventView[] } | null>(null);
   const [rangeLoading, setRangeLoading] = useState(false);
   const skipInitialFetch = useRef(!!embedded);
+  const isMaxSm = useMaxSmScreen();
 
   const gridStart = startOfWeek(startOfMonth(month), { weekStartsOn: 1 });
   const gridEnd = endOfWeek(endOfMonth(month), { weekStartsOn: 1 });
@@ -99,6 +117,18 @@ export function LiturgicalCalendar({
       cancelled = true;
     };
   }, [gridStartKey, gridEndKey, lang]);
+
+  useEffect(() => {
+    if (!daySheet) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setDaySheet(null);
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [daySheet]);
 
   const inner = (
     <>
@@ -163,13 +193,23 @@ export function LiturgicalCalendar({
                   list.length ? "cursor-pointer hover:border-parish-accent/80" : "cursor-default",
                 ].join(" ")}
                 onClick={() => {
-                  if (list[0]) setModal(list[0]);
+                  if (!list[0]) return;
+                  if (isMaxSm && list.length > 1) {
+                    setDaySheet({ day, events: list });
+                    return;
+                  }
+                  setModal(list[0]);
                 }}
                 onKeyDown={(e) => {
                   if (!list.length) return;
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
-                    if (list[0]) setModal(list[0]);
+                    if (!list[0]) return;
+                    if (isMaxSm && list.length > 1) {
+                      setDaySheet({ day, events: list });
+                      return;
+                    }
+                    setModal(list[0]);
                   }
                 }}
               >
@@ -182,6 +222,10 @@ export function LiturgicalCalendar({
                         className="w-full truncate rounded border border-transparent bg-parish-accent-soft px-1 py-0.5 text-left text-[10px] font-semibold text-parish-accent transition hover:border-parish-accent/50 hover:bg-parish-accent/25 hover:text-parish-text hover:shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-parish-accent/50 sm:text-xs"
                         onClick={(e) => {
                           e.stopPropagation();
+                          if (isMaxSm && list.length > 1) {
+                            setDaySheet({ day, events: list });
+                            return;
+                          }
                           setModal(ev);
                         }}
                       >
@@ -207,6 +251,62 @@ export function LiturgicalCalendar({
           {inner}
         </section>
       )}
+
+      {daySheet ? (
+        <div
+          className="fixed inset-0 z-[90] flex items-end justify-center bg-parish-text/40 p-0 backdrop-blur-sm sm:items-center sm:p-4"
+          role="dialog"
+          aria-modal
+          aria-labelledby="cal-day-events-title"
+          onClick={() => setDaySheet(null)}
+        >
+          <div
+            className="flex max-h-[min(88dvh,100%)] w-full max-w-lg flex-col overflow-hidden rounded-t-2xl border border-parish-border border-b-0 bg-parish-surface shadow-xl sm:max-h-[min(85dvh,100%)] sm:rounded-2xl sm:border-b"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex shrink-0 items-start justify-between gap-3 border-b border-parish-border px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:pt-3">
+              <div className="min-w-0">
+                <h2
+                  id="cal-day-events-title"
+                  className="font-display text-lg font-semibold capitalize text-parish-text sm:text-xl"
+                >
+                  {format(daySheet.day, "EEEE, d MMMM yyyy", { locale: dfLocale })}
+                </h2>
+                <p className="mt-1 text-sm font-medium text-parish-muted">{t(lang, "calendarDayChooseEvent")}</p>
+              </div>
+              <button
+                type="button"
+                className="flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-lg text-parish-muted transition hover:bg-parish-accent-soft hover:text-parish-text"
+                aria-label={t(lang, "closeModal")}
+                onClick={() => setDaySheet(null)}
+              >
+                <span className="text-2xl leading-none" aria-hidden>
+                  ×
+                </span>
+              </button>
+            </div>
+            <ul className="min-h-0 flex-1 list-none space-y-2 overflow-y-auto overscroll-contain px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:px-5 sm:pb-5">
+              {daySheet.events.map((ev) => (
+                <li key={ev.id}>
+                  <button
+                    type="button"
+                    className="w-full rounded-xl border border-parish-border/70 bg-parish-bg/30 px-4 py-3 text-left transition hover:border-parish-accent/50 hover:bg-parish-accent-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-parish-accent/50"
+                    onClick={() => {
+                      setDaySheet(null);
+                      setModal(ev);
+                    }}
+                  >
+                    <span className="block text-sm font-semibold text-parish-text">{ev.title}</span>
+                    <span className="mt-1 block text-xs font-medium uppercase tracking-wide text-parish-muted">
+                      {ev.kindLabel}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      ) : null}
 
       {modal ? <LiturgicalEventModal lang={lang} event={modal} onClose={() => setModal(null)} /> : null}
     </>

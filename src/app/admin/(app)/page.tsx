@@ -12,6 +12,8 @@ import { format } from "date-fns";
 import { enUS } from "date-fns/locale/en-US";
 import { ru } from "date-fns/locale/ru";
 import { uk } from "date-fns/locale/uk";
+import { AdminActivityPagination } from "./AdminActivityPagination";
+import { AdminActivityPerPageSelect } from "./AdminActivityPerPageSelect";
 type LogRow = {
   id: string;
   created_at: string;
@@ -48,20 +50,54 @@ function formatLogDetails(lang: Lang, row: LogRow): string | null {
   return null;
 }
 
-export default async function AdminHomePage() {
+const PER_PAGE_OPTIONS = [20, 50, 100] as const;
+type PerPage = (typeof PER_PAGE_OPTIONS)[number];
+
+function parsePerPage(v: string | undefined): PerPage {
+  const n = Number(v);
+  if (n === 50 || n === 100) return n;
+  return 20;
+}
+
+function parsePageIndex(v: string | undefined): number {
+  const n = parseInt(v ?? "1", 10);
+  return Number.isFinite(n) && n >= 1 ? n : 1;
+}
+
+export default async function AdminHomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string; per?: string }>;
+}) {
+  const sp = await searchParams;
   const profile = await requireStaff();
   const lang = await getLang();
   const copy = adminDashboardCopy(lang);
 
+  const perPage = parsePerPage(sp.per);
+
   const supabase = await createClient();
+  const { count: totalCount, error: countError } = await supabase
+    .from("admin_activity_log")
+    .select("id", { count: "exact", head: true });
+
+  const total = typeof totalCount === "number" ? totalCount : 0;
+  const totalPages = Math.max(1, Math.ceil(total / perPage));
+  let page = parsePageIndex(sp.page);
+  if (page > totalPages) page = totalPages;
+
+  const from = (page - 1) * perPage;
+  const to = from + perPage - 1;
+
   const { data: rawLogs, error: logError } = await supabase
     .from("admin_activity_log")
     .select("id, created_at, actor_email, action, entity_type, entity_id, summary, meta")
     .order("created_at", { ascending: false })
-    .limit(50);
+    .range(from, to);
 
   const logs = (rawLogs ?? []) as LogRow[];
   const dfLocale = dateLocaleForUi(lang);
+  const showActivityControls = !logError && !countError && total > 0;
 
   return (
     <div>
@@ -76,49 +112,69 @@ export default async function AdminHomePage() {
         <h2 className="font-display text-lg font-semibold text-parish-text">
           {copy.activityTitle}
         </h2>
-        {logError ? (
+        {logError || countError ? (
           <p className="mt-3 text-sm text-amber-800 dark:text-amber-200">{copy.activityUnavailable}</p>
-        ) : logs.length === 0 ? (
+        ) : total === 0 ? (
           <p className="mt-3 text-sm text-parish-muted">{copy.activityEmpty}</p>
         ) : (
-          <div className="mt-4 overflow-x-auto rounded-xl border border-parish-border bg-parish-surface">
-            <table className="w-full min-w-[36rem] border-collapse text-left text-sm">
-              <thead>
-                <tr className="border-b border-parish-border bg-parish-bg/80 text-xs font-semibold uppercase tracking-wide text-parish-muted">
-                  <th className="px-3 py-2.5 sm:px-4">{copy.colTime}</th>
-                  <th className="px-3 py-2.5 sm:px-4">{copy.colUser}</th>
-                  <th className="px-3 py-2.5 sm:px-4">{copy.colAction}</th>
-                  <th className="px-3 py-2.5 sm:px-4">{copy.colDetails}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {logs.map((row) => (
-                  <tr
-                    key={row.id}
-                    className="border-b border-parish-border/70 last:border-0 hover:bg-parish-accent-soft/30"
-                  >
-                    <td className="whitespace-nowrap px-3 py-2.5 text-parish-muted sm:px-4">
-                      {format(new Date(row.created_at), "dd.MM.yyyy HH:mm", { locale: dfLocale })}
-                    </td>
-                    <td className="max-w-[10rem] truncate px-3 py-2.5 sm:max-w-[14rem] sm:px-4">
-                      {row.actor_email || "—"}
-                    </td>
-                    <td className="px-3 py-2.5 sm:px-4">
-                      <span className="font-medium text-parish-text">
-                        {adminActivityActionLabel(lang, row.action)}
-                      </span>
-                      <span className="mt-0.5 block text-xs text-parish-muted">
-                        {adminActivityEntityLabel(lang, row.entity_type)}
-                      </span>
-                    </td>
-                    <td className="max-w-xs px-3 py-2.5 text-parish-muted sm:max-w-md sm:px-4">
-                      {formatLogDetails(lang, row) ?? "—"}
-                    </td>
+          <>
+            <div className="mt-4 overflow-x-auto rounded-xl border border-parish-border bg-parish-surface">
+              <table className="w-full min-w-[36rem] border-collapse text-left text-sm">
+                <thead>
+                  <tr className="border-b border-parish-border bg-parish-bg/80 text-xs font-semibold uppercase tracking-wide text-parish-muted">
+                    <th className="px-3 py-2.5 sm:px-4">{copy.colTime}</th>
+                    <th className="px-3 py-2.5 sm:px-4">{copy.colUser}</th>
+                    <th className="px-3 py-2.5 sm:px-4">{copy.colAction}</th>
+                    <th className="px-3 py-2.5 sm:px-4">{copy.colDetails}</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {logs.map((row) => (
+                    <tr
+                      key={row.id}
+                      className="border-b border-parish-border/70 last:border-0 hover:bg-parish-accent-soft/30"
+                    >
+                      <td className="whitespace-nowrap px-3 py-2.5 text-parish-muted sm:px-4">
+                        {format(new Date(row.created_at), "dd.MM.yyyy HH:mm", { locale: dfLocale })}
+                      </td>
+                      <td className="max-w-[10rem] truncate px-3 py-2.5 sm:max-w-[14rem] sm:px-4">
+                        {row.actor_email || "—"}
+                      </td>
+                      <td className="px-3 py-2.5 sm:px-4">
+                        <span className="font-medium text-parish-text">
+                          {adminActivityActionLabel(lang, row.action)}
+                        </span>
+                        <span className="mt-0.5 block text-xs text-parish-muted">
+                          {adminActivityEntityLabel(lang, row.entity_type)}
+                        </span>
+                      </td>
+                      <td className="max-w-xs px-3 py-2.5 text-parish-muted sm:max-w-md sm:px-4">
+                        {formatLogDetails(lang, row) ?? "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {showActivityControls ? (
+              <div
+                className={
+                  totalPages > 1
+                    ? "mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+                    : "mt-4 flex justify-center sm:justify-end"
+                }
+              >
+                {totalPages > 1 ? (
+                  <div className="flex justify-center sm:justify-start">
+                    <AdminActivityPagination lang={lang} page={page} perPage={perPage} total={total} />
+                  </div>
+                ) : null}
+                <div className={totalPages > 1 ? "flex justify-center sm:justify-end" : ""}>
+                  <AdminActivityPerPageSelect label={copy.activityPerPage} value={perPage} />
+                </div>
+              </div>
+            ) : null}
+          </>
         )}
       </section>
     </div>

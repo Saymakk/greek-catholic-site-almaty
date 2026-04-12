@@ -212,6 +212,7 @@ export function adminDashboardCopy(lang: Lang) {
       colUser: string;
       colAction: string;
       colDetails: string;
+      activityPerPage: string;
     }
   > = {
     ru: {
@@ -224,6 +225,7 @@ export function adminDashboardCopy(lang: Lang) {
       colUser: "Кто",
       colAction: "Действие",
       colDetails: "Детали",
+      activityPerPage: "Записей на странице",
     },
     uk: {
       pageTitle: "Панель",
@@ -235,6 +237,7 @@ export function adminDashboardCopy(lang: Lang) {
       colUser: "Хто",
       colAction: "Дія",
       colDetails: "Деталі",
+      activityPerPage: "Записів на сторінці",
     },
     kk: {
       pageTitle: "Панель",
@@ -246,6 +249,7 @@ export function adminDashboardCopy(lang: Lang) {
       colUser: "Кім",
       colAction: "Әрекет",
       colDetails: "Толығырақ",
+      activityPerPage: "Беттегі жазбалар",
     },
     en: {
       pageTitle: "Dashboard",
@@ -257,6 +261,7 @@ export function adminDashboardCopy(lang: Lang) {
       colUser: "Who",
       colAction: "Action",
       colDetails: "Details",
+      activityPerPage: "Rows per page",
     },
   };
   return d[lang] ?? d.ru;
