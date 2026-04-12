@@ -138,11 +138,6 @@ export function BookEditForm({
 
   const mainFields = (
     <>
-      <AdminGalleryEditor
-        key={`book-gal-${bookId}-${galleryImageUrls.join("|")}`}
-        imageCopy={imageCopy}
-        initialUrls={galleryImageUrls}
-      />
       <label className={`block text-parish-muted ${label}`}>
         {msg.primaryLanguageLabel}
         <select
@@ -285,6 +280,15 @@ export function BookEditForm({
                 >
                   {msg.removeCover}
                 </button>
+              ) : null}
+              {(isLegacy && code === "main") || (!isLegacy && code === primaryLang) ? (
+                <div className="mt-4 border-t border-parish-border/50 pt-4">
+                  <AdminGalleryEditor
+                    key={`book-gal-${bookId}-${galleryImageUrls.join("|")}`}
+                    imageCopy={imageCopy}
+                    initialUrls={galleryImageUrls}
+                  />
+                </div>
               ) : null}
             </div>
           </fieldset>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Lang } from "@/lib/i18n";
 import { t } from "@/lib/ui-strings";
 
@@ -33,6 +33,7 @@ export function ImageLightboxOverlay({
   zClass?: string;
 }) {
   const [index, setIndex] = useState(0);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     if (!open || images.length === 0) return;
@@ -62,10 +63,48 @@ export function ImageLightboxOverlay({
     return () => window.removeEventListener("keydown", onKey);
   }, [open, images.length, onClose]);
 
+  useEffect(() => {
+    if (!open) touchStartRef.current = null;
+  }, [open]);
+
   if (!open || images.length === 0) return null;
 
   const src = images[index] ?? images[0];
   const hasNav = images.length > 1;
+
+  function handleTouchStart(e: React.TouchEvent) {
+    if (!hasNav || e.touches.length !== 1) return;
+    touchStartRef.current = {
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY,
+    };
+  }
+
+  function handleTouchEnd(e: React.TouchEvent) {
+    if (!hasNav) return;
+    const start = touchStartRef.current;
+    touchStartRef.current = null;
+    if (!start || e.changedTouches.length === 0) return;
+
+    const endX = e.changedTouches[0].clientX;
+    const endY = e.changedTouches[0].clientY;
+    const dx = endX - start.x;
+    const dy = endY - start.y;
+
+    const minDx = 48;
+    if (Math.abs(dx) < minDx) return;
+    if (Math.abs(dx) < Math.abs(dy) * 1.15) return;
+
+    if (dx < 0) {
+      setIndex((i) => Math.min(images.length - 1, i + 1));
+    } else {
+      setIndex((i) => Math.max(0, i - 1));
+    }
+  }
+
+  function handleTouchCancel() {
+    touchStartRef.current = null;
+  }
 
   return (
     <div
@@ -76,8 +115,11 @@ export function ImageLightboxOverlay({
       onClick={onClose}
     >
       <div
-        className="relative mx-auto w-max max-h-[95vh] max-w-[95vw]"
+        className={`relative mx-auto w-max max-h-[95vh] max-w-[95vw] ${hasNav ? "touch-none select-none" : ""}`}
         onClick={(e) => e.stopPropagation()}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchCancel}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
