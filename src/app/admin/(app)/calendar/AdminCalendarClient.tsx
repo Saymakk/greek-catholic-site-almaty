@@ -67,6 +67,7 @@ function emptyEvent(uiLang: Lang): AdminCalendarPayload {
   const pl = uiLang as ContentLang;
   return {
     id: "",
+    recurrence_series_id: null,
     event_date: todayIso(),
     kind: "feast",
     kindListLabel: "",
@@ -335,6 +336,11 @@ export function AdminCalendarClient({
                 <div className="min-w-0 flex-1">
                   <span className="text-sm text-parish-muted">
                     {format(parseISO(e.event_date), "dd.MM.yyyy")} · {kindLine(e)}
+                    {e.recurrence_series_id ? (
+                      <span className="ml-2 inline-block rounded bg-parish-accent-soft px-1.5 py-0.5 text-[10px] font-medium text-parish-accent">
+                        {c.recurringSeriesBadge}
+                      </span>
+                    ) : null}
                   </span>
                   <p className="font-medium text-parish-text">{listTitle(e, lang)}</p>
                 </div>

@@ -1,7 +1,9 @@
 "use server";
 
+import { randomUUID } from "crypto";
 import { createClient } from "@/lib/supabase/server";
 import { requireStaff } from "@/lib/admin";
+import type { StaffProfile } from "@/lib/admin";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { logAdminActivity } from "@/lib/admin-activity-log";
@@ -9,6 +11,10 @@ import { parseExternalLiturgicalWidgetValue } from "@/lib/data";
 import { isSchemaCacheMissingColumn } from "@/lib/supabase-column-fallback";
 import { isContentLang, type ContentLang } from "../books/book-locales";
 import { parseHttpImageUrlFromFormData } from "@/lib/admin-image-url";
+import {
+  expandLiturgicalRecurrence,
+  type LiturgicalRecurrenceFreq,
+} from "@/lib/liturgical-recurrence";
 
 const LANGS: ContentLang[] = ["ru", "uk", "kk", "en"];
 
@@ -131,6 +137,87 @@ function orderedLocales(primary: ContentLang, present: Set<string>): ContentLang
   return [primary, ...LANGS.filter((l) => l !== primary && present.has(l))];
 }
 
+function parseRecurrenceForNewEvent(formData: FormData): {
+  freq: LiturgicalRecurrenceFreq;
+  total: number;
+} | null {
+  if ((formData.get("recurrence_repeat") as string) !== "1") return null;
+  const freqRaw = (formData.get("recurrence_freq") as string) ?? "weekly";
+  const freq: LiturgicalRecurrenceFreq =
+    freqRaw === "daily" || freqRaw === "monthly" ? freqRaw : "weekly";
+  let total = parseInt(String(formData.get("recurrence_total") ?? "2"), 10);
+  if (!Number.isFinite(total)) total = 2;
+  total = Math.min(100, Math.max(2, total));
+  return { freq, total };
+}
+
+async function insertNewLiturgicalEventRow(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  profile: StaffProfile,
+  event_date: string,
+  kind: string,
+  primary_lang: ContentLang,
+): Promise<string> {
+  let ins = await supabase
+    .from("liturgical_events")
+    .insert({
+      event_date,
+      kind,
+      primary_lang,
+      created_by: profile.id,
+    })
+    .select("id")
+    .single();
+  if (ins.error && isSchemaCacheMissingColumn(ins.error, "created_by")) {
+    ins = await supabase
+      .from("liturgical_events")
+      .insert({
+        event_date,
+        kind,
+        primary_lang,
+      })
+      .select("id")
+      .single();
+  }
+  if (ins.error && isSchemaCacheMissingColumn(ins.error, "primary_lang")) {
+    ins = await supabase
+      .from("liturgical_events")
+      .insert({
+        event_date,
+        kind,
+        created_by: profile.id,
+      })
+      .select("id")
+      .single();
+  }
+  if (ins.error && isSchemaCacheMissingColumn(ins.error, "created_by")) {
+    ins = await supabase
+      .from("liturgical_events")
+      .insert({
+        event_date,
+        kind,
+      })
+      .select("id")
+      .single();
+  }
+  if (ins.error) throw new Error(ins.error.message);
+  return ins.data!.id;
+}
+
+async function setLiturgicalRecurrenceSeriesId(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  eventId: string,
+  seriesId: string,
+) {
+  const { error } = await supabase
+    .from("liturgical_events")
+    .update({ recurrence_series_id: seriesId })
+    .eq("id", eventId);
+  if (error && !isSchemaCacheMissingColumn(error, "recurrence_series_id")) {
+    throw new Error(error.message);
+  }
+}
+
 async function uploadLiturgicalCover(
   supabase: Awaited<ReturnType<typeof createClient>>,
   eventId: string,
@@ -146,6 +233,99 @@ async function uploadLiturgicalCover(
   if (error) throw new Error(error.message);
   const { data } = supabase.storage.from("news-images").getPublicUrl(path);
   return data.publicUrl;
+}
+
+async function applyLiturgicalCoverFromForm(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  eventId: string,
+  formData: FormData,
+): Promise<string | null> {
+  const cover = formData.get("cover");
+  if (cover instanceof File && cover.size > 0) {
+    const url = await uploadLiturgicalCover(supabase, eventId, cover);
+    const { error: coverErr } = await supabase
+      .from("liturgical_events")
+      .update({ cover_image_url: url })
+      .eq("id", eventId);
+    if (coverErr && !isSchemaCacheMissingColumn(coverErr, "cover_image_url")) {
+      throw new Error(coverErr.message);
+    }
+    return url;
+  }
+  const coverUrl = parseHttpImageUrlFromFormData(formData, "cover_image_url", "Обложка (URL)");
+  if (coverUrl) {
+    const { error: coverErr } = await supabase
+      .from("liturgical_events")
+      .update({ cover_image_url: coverUrl })
+      .eq("id", eventId);
+    if (coverErr && !isSchemaCacheMissingColumn(coverErr, "cover_image_url")) {
+      throw new Error(coverErr.message);
+    }
+    return coverUrl;
+  }
+  return null;
+}
+
+async function copyLiturgicalCoverUrl(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  eventId: string,
+  coverUrl: string,
+) {
+  const { error } = await supabase
+    .from("liturgical_events")
+    .update({ cover_image_url: coverUrl })
+    .eq("id", eventId);
+  if (error && !isSchemaCacheMissingColumn(error, "cover_image_url")) {
+    throw new Error(error.message);
+  }
+}
+
+async function persistLiturgicalEventTranslations(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  eventId: string,
+  formData: FormData,
+  locales: ContentLang[],
+) {
+  for (const lang of locales) {
+    const title = (formData.get(`title_${lang}`) as string)?.trim() ?? "";
+    const explanation = (formData.get(`explanation_${lang}`) as string)?.trim() ?? "";
+    if (!title && !explanation) {
+      await supabase
+        .from("liturgical_event_i18n")
+        .delete()
+        .eq("event_id", eventId)
+        .eq("lang", lang);
+      continue;
+    }
+    const prayer = (formData.get(`prayer_${lang}`) as string)?.trim() || null;
+    const { error } = await supabase.from("liturgical_event_i18n").upsert(
+      {
+        event_id: eventId,
+        lang,
+        title: title || "—",
+        explanation: explanation || "<p></p>",
+        prayer,
+      },
+      { onConflict: "event_id,lang" },
+    );
+    if (error) throw new Error(error.message);
+  }
+
+  const { data: existingRows } = await supabase
+    .from("liturgical_event_i18n")
+    .select("lang")
+    .eq("event_id", eventId);
+  for (const r of existingRows ?? []) {
+    const lg = (r as { lang: string }).lang;
+    if (!(locales as readonly string[]).includes(lg)) {
+      const { error } = await supabase
+        .from("liturgical_event_i18n")
+        .delete()
+        .eq("event_id", eventId)
+        .eq("lang", lg);
+      if (error) throw new Error(error.message);
+    }
+  }
 }
 
 export async function removeLiturgicalCover(eventId: string) {
@@ -210,52 +390,57 @@ export async function saveLiturgicalEvent(formData: FormData) {
 
   const extrasRows = parseExtrasJson((formData.get("extras_json") as string) ?? "[]");
 
+  const recurrenceOpts = !id ? parseRecurrenceForNewEvent(formData) : null;
+  if (!id && recurrenceOpts) {
+    const dates = expandLiturgicalRecurrence(
+      event_date,
+      recurrenceOpts.freq,
+      recurrenceOpts.total,
+    );
+    if (dates.length >= 2) {
+      const titleHint = firstTitleFromCalendarForm(formData);
+      const seriesId = randomUUID();
+      let firstEventId = "";
+      let sharedCover: string | null = null;
+      for (let i = 0; i < dates.length; i++) {
+        const d = dates[i]!;
+        const eid = await insertNewLiturgicalEventRow(supabase, profile, d, kind, primary_lang);
+        await setLiturgicalRecurrenceSeriesId(supabase, eid, seriesId);
+        if (i === 0) {
+          sharedCover = await applyLiturgicalCoverFromForm(supabase, eid, formData);
+          firstEventId = eid;
+        } else if (sharedCover) {
+          await copyLiturgicalCoverUrl(supabase, eid, sharedCover);
+        }
+        await persistLiturgicalEventTranslations(supabase, eid, formData, locales);
+        await persistLiturgicalExtras(supabase, eid, extrasRows);
+      }
+      await syncKindLabelsFromForm(supabase, kind, formData);
+      await logAdminActivity(supabase, profile, {
+        action: "liturgical.create",
+        entityType: "liturgical_event",
+        entityId: firstEventId,
+        summary: titleHint,
+        meta: {
+          event_date,
+          kind,
+          recurrence_series_id: seriesId,
+          recurrence_count: dates.length,
+        },
+      });
+      revalidatePath("/");
+      revalidatePath("/library");
+      const skipOffer = (formData.get("skip_offer_template") as string) === "1";
+      if (skipOffer) {
+        redirect("/admin/calendar");
+      }
+      redirect(`/admin/calendar?offerTemplate=${encodeURIComponent(firstEventId)}`);
+    }
+  }
+
   let eventId = id;
   if (!eventId) {
-    let ins = await supabase
-      .from("liturgical_events")
-      .insert({
-        event_date,
-        kind,
-        primary_lang,
-        created_by: profile.id,
-      })
-      .select("id")
-      .single();
-    if (ins.error && isSchemaCacheMissingColumn(ins.error, "created_by")) {
-      ins = await supabase
-        .from("liturgical_events")
-        .insert({
-          event_date,
-          kind,
-          primary_lang,
-        })
-        .select("id")
-        .single();
-    }
-    if (ins.error && isSchemaCacheMissingColumn(ins.error, "primary_lang")) {
-      ins = await supabase
-        .from("liturgical_events")
-        .insert({
-          event_date,
-          kind,
-          created_by: profile.id,
-        })
-        .select("id")
-        .single();
-    }
-    if (ins.error && isSchemaCacheMissingColumn(ins.error, "created_by")) {
-      ins = await supabase
-        .from("liturgical_events")
-        .insert({
-          event_date,
-          kind,
-        })
-        .select("id")
-        .single();
-    }
-    if (ins.error) throw new Error(ins.error.message);
-    eventId = ins.data!.id;
+    eventId = await insertNewLiturgicalEventRow(supabase, profile, event_date, kind, primary_lang);
   } else {
     let up = await supabase
       .from("liturgical_events")
@@ -277,69 +462,9 @@ export async function saveLiturgicalEvent(formData: FormData) {
     if (up.error) throw new Error(up.error.message);
   }
 
-  const cover = formData.get("cover");
-  if (cover instanceof File && cover.size > 0) {
-    const url = await uploadLiturgicalCover(supabase, eventId, cover);
-    const { error: coverErr } = await supabase
-      .from("liturgical_events")
-      .update({ cover_image_url: url })
-      .eq("id", eventId);
-    if (coverErr && !isSchemaCacheMissingColumn(coverErr, "cover_image_url")) {
-      throw new Error(coverErr.message);
-    }
-  } else {
-    const coverUrl = parseHttpImageUrlFromFormData(formData, "cover_image_url", "Обложка (URL)");
-    if (coverUrl) {
-      const { error: coverErr } = await supabase
-        .from("liturgical_events")
-        .update({ cover_image_url: coverUrl })
-        .eq("id", eventId);
-      if (coverErr && !isSchemaCacheMissingColumn(coverErr, "cover_image_url")) {
-        throw new Error(coverErr.message);
-      }
-    }
-  }
+  await applyLiturgicalCoverFromForm(supabase, eventId, formData);
 
-  for (const lang of locales) {
-    const title = (formData.get(`title_${lang}`) as string)?.trim() ?? "";
-    const explanation = (formData.get(`explanation_${lang}`) as string)?.trim() ?? "";
-    if (!title && !explanation) {
-      await supabase
-        .from("liturgical_event_i18n")
-        .delete()
-        .eq("event_id", eventId)
-        .eq("lang", lang);
-      continue;
-    }
-    const prayer = (formData.get(`prayer_${lang}`) as string)?.trim() || null;
-    const { error } = await supabase.from("liturgical_event_i18n").upsert(
-      {
-        event_id: eventId,
-        lang,
-        title: title || "—",
-        explanation: explanation || "<p></p>",
-        prayer,
-      },
-      { onConflict: "event_id,lang" },
-    );
-    if (error) throw new Error(error.message);
-  }
-
-  const { data: existingRows } = await supabase
-    .from("liturgical_event_i18n")
-    .select("lang")
-    .eq("event_id", eventId);
-  for (const r of existingRows ?? []) {
-    const lg = (r as { lang: string }).lang;
-    if (!(locales as readonly string[]).includes(lg)) {
-      const { error } = await supabase
-        .from("liturgical_event_i18n")
-        .delete()
-        .eq("event_id", eventId)
-        .eq("lang", lg);
-      if (error) throw new Error(error.message);
-    }
-  }
+  await persistLiturgicalEventTranslations(supabase, eventId, formData, locales);
 
   await persistLiturgicalExtras(supabase, eventId, extrasRows);
   await syncKindLabelsFromForm(supabase, kind, formData);

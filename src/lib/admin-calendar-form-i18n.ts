@@ -44,6 +44,14 @@ export type AdminCalendarFormMsg = {
   removeVersion: string;
   addLocale: string;
   cancel: string;
+  recurrenceSection: string;
+  recurrenceEnable: string;
+  recurrenceFreq: string;
+  recurrenceDaily: string;
+  recurrenceWeekly: string;
+  recurrenceMonthly: string;
+  recurrenceTotal: string;
+  recurrenceHint: string;
 };
 
 const M: Record<Lang, AdminCalendarFormMsg> = {
@@ -90,6 +98,15 @@ const M: Record<Lang, AdminCalendarFormMsg> = {
     removeVersion: "Убрать версию",
     addLocale: "Добавить версию на языке:",
     cancel: "Отмена",
+    recurrenceSection: "Повторение",
+    recurrenceEnable: "Создать несколько событий по расписанию",
+    recurrenceFreq: "Как повторять",
+    recurrenceDaily: "каждый день",
+    recurrenceWeekly: "каждую неделю",
+    recurrenceMonthly: "каждый месяц",
+    recurrenceTotal: "Всего дат (включая первую)",
+    recurrenceHint:
+      "Будет создано несколько отдельных событий с одинаковым содержимым; каждое можно править или удалить по отдельности.",
   },
   uk: {
     primaryLang: "Мова основної версії",
@@ -134,6 +151,15 @@ const M: Record<Lang, AdminCalendarFormMsg> = {
     removeVersion: "Прибрати версію",
     addLocale: "Додати версію мовою:",
     cancel: "Скасувати",
+    recurrenceSection: "Повторення",
+    recurrenceEnable: "Створити кілька подій за розкладом",
+    recurrenceFreq: "Як повторювати",
+    recurrenceDaily: "щодня",
+    recurrenceWeekly: "щотижня",
+    recurrenceMonthly: "щомісяця",
+    recurrenceTotal: "Усього дат (включно з першою)",
+    recurrenceHint:
+      "Буде створено кілька окремих подій з однаковим вмістом; кожну можна редагувати чи видаляти окремо.",
   },
   kk: {
     primaryLang: "Негізгі нұсқа тілі",
@@ -178,6 +204,15 @@ const M: Record<Lang, AdminCalendarFormMsg> = {
     removeVersion: "Нұсқаны алып тастау",
     addLocale: "Тіл нұқасын қосу:",
     cancel: "Болдырмау",
+    recurrenceSection: "Қайталану",
+    recurrenceEnable: "Кесте бойынша бірнеше оқиға жасау",
+    recurrenceFreq: "Қайталау жиілігі",
+    recurrenceDaily: "күн сайын",
+    recurrenceWeekly: "апта сайын",
+    recurrenceMonthly: "ай сайын",
+    recurrenceTotal: "Барлық күндер (біріншісі қоса)",
+    recurrenceHint:
+      "Бірдей мазмұнды жеке оқиғалар жасалады; әрқайсысын жеке өзгерту немесе жоюға болады.",
   },
   en: {
     primaryLang: "Primary language",
@@ -222,6 +257,15 @@ const M: Record<Lang, AdminCalendarFormMsg> = {
     removeVersion: "Remove version",
     addLocale: "Add language version:",
     cancel: "Cancel",
+    recurrenceSection: "Recurrence",
+    recurrenceEnable: "Create multiple scheduled events",
+    recurrenceFreq: "Repeat",
+    recurrenceDaily: "every day",
+    recurrenceWeekly: "every week",
+    recurrenceMonthly: "every month",
+    recurrenceTotal: "Total dates (including the first)",
+    recurrenceHint:
+      "Several separate events with the same content will be created; each can be edited or deleted on its own.",
   },
 };
 

@@ -28,6 +28,8 @@ export type CalendarTemplatePayload = {
 
 export type AdminCalendarPayload = {
   id: string;
+  /** Общий id серии для событий, созданных как повторяющиеся (каждая дата — отдельная запись). */
+  recurrence_series_id: string | null;
   event_date: string;
   kind: string;
   /** Подпись типа для списка в админке (локаль интерфейса) */

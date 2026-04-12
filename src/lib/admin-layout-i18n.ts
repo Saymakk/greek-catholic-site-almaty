@@ -129,6 +129,7 @@ export function adminCalendarScreenCopy(lang: Lang) {
       offerTemplateSkip: string;
       externalWidgetNewJulian: string;
       externalWidgetGregorian: string;
+      recurringSeriesBadge: string;
     }
   > = {
     ru: {
@@ -156,6 +157,7 @@ export function adminCalendarScreenCopy(lang: Lang) {
       offerTemplateSkip: "Не сейчас",
       externalWidgetNewJulian: "Новоюлианский",
       externalWidgetGregorian: "Григорианский",
+      recurringSeriesBadge: "серия",
     },
     uk: {
       title: "Календар",
@@ -182,6 +184,7 @@ export function adminCalendarScreenCopy(lang: Lang) {
       offerTemplateSkip: "Не зараз",
       externalWidgetNewJulian: "Новоюліанський",
       externalWidgetGregorian: "Григоріанський",
+      recurringSeriesBadge: "серія",
     },
     kk: {
       title: "Күнтізбе",
@@ -208,6 +211,7 @@ export function adminCalendarScreenCopy(lang: Lang) {
       offerTemplateSkip: "Кейінірек",
       externalWidgetNewJulian: "Жаңа юлиан",
       externalWidgetGregorian: "Григориан",
+      recurringSeriesBadge: "қатар",
     },
     en: {
       title: "Calendar",
@@ -234,6 +238,7 @@ export function adminCalendarScreenCopy(lang: Lang) {
       offerTemplateSkip: "Not now",
       externalWidgetNewJulian: "New Julian",
       externalWidgetGregorian: "Gregorian",
+      recurringSeriesBadge: "series",
     },
   };
   return d[lang] ?? d.ru;

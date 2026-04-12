@@ -16,6 +16,7 @@ type LiturgicalListRow = {
   id: string;
   event_date: string;
   kind: string;
+  recurrence_series_id?: string | null;
   created_at?: string;
   primary_lang?: string | null;
   cover_image_url?: string | null;
@@ -44,10 +45,10 @@ export default async function AdminCalendarPage({
   ]);
   const i18n =
     "liturgical_event_i18n ( lang, title, explanation, prayer )";
-  const selFull = `id, event_date, kind, created_at, primary_lang, cover_image_url, ${i18n}`;
-  const selCoverOnly = `id, event_date, kind, created_at, cover_image_url, ${i18n}`;
-  const selPrimaryOnly = `id, event_date, kind, created_at, primary_lang, ${i18n}`;
-  const selMin = `id, event_date, kind, created_at, ${i18n}`;
+  const selFull = `id, event_date, kind, recurrence_series_id, created_at, primary_lang, cover_image_url, ${i18n}`;
+  const selCoverOnly = `id, event_date, kind, recurrence_series_id, created_at, cover_image_url, ${i18n}`;
+  const selPrimaryOnly = `id, event_date, kind, recurrence_series_id, created_at, primary_lang, ${i18n}`;
+  const selMin = `id, event_date, kind, recurrence_series_id, created_at, ${i18n}`;
 
   const run = (sel: string) => {
     let q = supabase.from("liturgical_events").select(sel);
@@ -57,11 +58,15 @@ export default async function AdminCalendarPage({
     return q.order("created_at", { ascending: false });
   };
 
+  const stripRecurrence = (sel: string) => sel.replace("recurrence_series_id, ", "");
+
   let res = await run(selFull);
   if (res.error) {
     const msg = res.error.message ?? "";
     if (!msg.includes("schema cache")) throw new Error(msg);
-    if (msg.includes("primary_lang")) {
+    if (msg.includes("recurrence_series_id")) {
+      res = await run(stripRecurrence(selFull));
+    } else if (msg.includes("primary_lang")) {
       res = await run(selCoverOnly);
     } else if (msg.includes("cover_image_url")) {
       res = await run(selPrimaryOnly);
@@ -70,7 +75,11 @@ export default async function AdminCalendarPage({
   if (res.error) {
     const msg = res.error.message ?? "";
     if (!msg.includes("schema cache")) throw new Error(msg);
-    res = await run(selMin);
+    if (msg.includes("recurrence_series_id")) {
+      res = await run(stripRecurrence(selMin));
+    } else {
+      res = await run(selMin);
+    }
   }
   if (res.error) throw new Error(res.error.message);
 
@@ -162,6 +171,7 @@ export default async function AdminCalendarPage({
     const siteLabels = { ...(bySlug.get(row.kind) ?? {}) } as Partial<Record<Lang, string>>;
     return {
       id: row.id,
+      recurrence_series_id: row.recurrence_series_id ?? null,
       event_date: row.event_date,
       kind: row.kind,
       kindListLabel: pickKindListLabel(row.kind, bySlug, lang),

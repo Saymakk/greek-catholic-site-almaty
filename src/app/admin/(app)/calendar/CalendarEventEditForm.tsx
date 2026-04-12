@@ -255,6 +255,47 @@ export function CalendarEventEditForm({
             />
           </label>
 
+          {!eventId ? (
+            <div className="space-y-2 rounded-lg border border-dashed border-parish-border/80 p-3">
+              <p className="text-xs font-medium text-parish-muted">{msg.recurrenceSection}</p>
+              <label className="flex cursor-pointer items-center gap-2 text-sm text-parish-text">
+                <input
+                  type="checkbox"
+                  name="recurrence_repeat"
+                  value="1"
+                  className="rounded border-parish-border"
+                />
+                {msg.recurrenceEnable}
+              </label>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <label className="block text-xs text-parish-muted">
+                  {msg.recurrenceFreq}
+                  <select
+                    name="recurrence_freq"
+                    defaultValue="weekly"
+                    className="mt-1 block w-full rounded border border-parish-border bg-parish-surface px-2 py-1.5 text-sm"
+                  >
+                    <option value="daily">{msg.recurrenceDaily}</option>
+                    <option value="weekly">{msg.recurrenceWeekly}</option>
+                    <option value="monthly">{msg.recurrenceMonthly}</option>
+                  </select>
+                </label>
+                <label className="block text-xs text-parish-muted">
+                  {msg.recurrenceTotal}
+                  <input
+                    type="number"
+                    name="recurrence_total"
+                    min={2}
+                    max={100}
+                    defaultValue={4}
+                    className="mt-1 block w-full rounded border border-parish-border px-2 py-1.5 text-sm"
+                  />
+                </label>
+              </div>
+              <p className="text-[11px] leading-relaxed text-parish-muted">{msg.recurrenceHint}</p>
+            </div>
+          ) : null}
+
           <div className="space-y-2 rounded-lg border border-parish-border/70 p-3">
             <label className="block text-xs font-medium text-parish-muted sm:text-sm">
               {msg.kindSectionTitle}
