@@ -6,6 +6,7 @@ import { t, type UiKey } from "@/lib/ui-strings";
 import type { ScriptureBook } from "@/lib/data";
 import { ScriptureReadPicker, ScriptureFilePicker } from "@/components/ScriptureEditionPicker";
 import { BookDetailModal } from "@/components/BookDetailModal";
+import { gatherLightboxUrls, ImageLightboxOverlay } from "@/components/ImageLightboxOverlay";
 import { PaginationControls } from "@/components/PaginationControls";
 
 const PAGE_SIZE = 10;
@@ -41,7 +42,7 @@ export function ScriptureSection({
   const [page, setPage] = useState(1);
   const [mobileBooksOpen, setMobileBooksOpen] = useState(false);
   const [detailBook, setDetailBook] = useState<ScriptureBook | null>(null);
-  const [coverLightboxUrl, setCoverLightboxUrl] = useState<string | null>(null);
+  const [bookLightbox, setBookLightbox] = useState<{ images: string[]; index: number } | null>(null);
 
   const total = books.length;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -111,7 +112,12 @@ export function ScriptureSection({
                   <button
                     type="button"
                     className="flex h-full w-full items-center justify-center focus:outline-none focus:ring-2 focus:ring-parish-accent/40"
-                    onClick={() => setCoverLightboxUrl(b.coverImageUrl!)}
+                    onClick={() =>
+                      setBookLightbox({
+                        images: gatherLightboxUrls(b.coverImageUrl, b.galleryImageUrls),
+                        index: 0,
+                      })
+                    }
                     aria-label={t(lang, "imageLightboxAria")}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -237,23 +243,14 @@ export function ScriptureSection({
       {detailBook ? (
         <BookDetailModal lang={lang} book={detailBook} onClose={() => setDetailBook(null)} />
       ) : null}
-      {coverLightboxUrl ? (
-        <div
-          className="fixed inset-0 z-[130] flex items-center justify-center bg-parish-text/40 p-4 backdrop-blur-sm"
-          role="dialog"
-          aria-modal
-          aria-label={t(lang, "imageLightboxAria")}
-          onClick={() => setCoverLightboxUrl(null)}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={coverLightboxUrl}
-            alt=""
-            className="max-h-[95vh] max-w-[95vw] object-contain shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
-      ) : null}
+      <ImageLightboxOverlay
+        lang={lang}
+        images={bookLightbox?.images ?? []}
+        initialIndex={bookLightbox?.index ?? 0}
+        open={bookLightbox !== null}
+        onClose={() => setBookLightbox(null)}
+        zClass="z-[130]"
+      />
     </section>
   );
 }

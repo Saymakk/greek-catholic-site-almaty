@@ -9,6 +9,7 @@ import {
   pickNewsI18nRow,
 } from "@/lib/content-lang-chain";
 import { isSchemaCacheMissingColumn } from "@/lib/supabase-column-fallback";
+import { normalizeGalleryUrls } from "@/lib/gallery-urls";
 import { t } from "@/lib/ui-strings";
 
 export { liturgicalGridRangeForSiteNow, todayStr } from "@/lib/liturgical-site-dates";
@@ -20,6 +21,7 @@ export type NewsRow = {
   excerpt: string | null;
   body: string;
   coverImageUrl: string | null;
+  galleryImageUrls: string[];
 };
 
 const HOME_PAGE_SIZE = 10;
@@ -51,14 +53,26 @@ export async function getNewsPage(
       .order("published_at", { ascending: false })
       .range(from, to);
 
-  let res = await q("id, published_at, cover_image_url, primary_lang");
+  let res = await q("id, published_at, cover_image_url, gallery_image_urls, primary_lang");
+  if (res.error && isSchemaCacheMissingColumn(res.error, "gallery_image_urls")) {
+    res = await q("id, published_at, cover_image_url, primary_lang");
+  }
   if (res.error && isSchemaCacheMissingColumn(res.error, "primary_lang")) {
-    res = await q("id, published_at, cover_image_url");
+    res = await q("id, published_at, cover_image_url, gallery_image_urls");
+    if (res.error && isSchemaCacheMissingColumn(res.error, "gallery_image_urls")) {
+      res = await q("id, published_at, cover_image_url");
+    }
   }
   if (res.error && isSchemaCacheMissingColumn(res.error, "cover_image_url")) {
-    res = await q("id, published_at, primary_lang");
+    res = await q("id, published_at, primary_lang, gallery_image_urls");
+    if (res.error && isSchemaCacheMissingColumn(res.error, "gallery_image_urls")) {
+      res = await q("id, published_at, primary_lang");
+    }
     if (res.error && isSchemaCacheMissingColumn(res.error, "primary_lang")) {
-      res = await q("id, published_at");
+      res = await q("id, published_at, gallery_image_urls");
+      if (res.error && isSchemaCacheMissingColumn(res.error, "gallery_image_urls")) {
+        res = await q("id, published_at");
+      }
     }
   }
   if (res.error) {
@@ -78,6 +92,7 @@ export async function getNewsPage(
     id: string;
     published_at: string;
     cover_image_url?: string | null;
+    gallery_image_urls?: unknown;
     primary_lang?: string | null;
   };
   const news = (res.data ?? []) as unknown as NewsListItem[];
@@ -130,6 +145,7 @@ export async function getNewsPage(
         excerpt: chosen.excerpt,
         body: chosen.body,
         coverImageUrl: n.cover_image_url ?? null,
+        galleryImageUrls: normalizeGalleryUrls(n.gallery_image_urls),
       };
     })
     .filter((x): x is NewsRow => x != null);
@@ -157,6 +173,7 @@ export type LiturgicalEventView = {
   explanation: string;
   prayer: string | null;
   coverImageUrl: string | null;
+  galleryImageUrls: string[];
   extras: LiturgicalExtraView[];
 };
 
@@ -181,6 +198,7 @@ type LiturgicalEventPickRow = {
   created_at?: string;
   primary_lang?: string | null;
   cover_image_url?: string | null;
+  gallery_image_urls?: unknown;
   liturgical_event_i18n: {
     lang: string;
     title: string;
@@ -200,10 +218,11 @@ async function loadLiturgicalEventRows(
 ): Promise<LiturgicalEventPickRow[]> {
   const i18n =
     "liturgical_event_i18n ( lang, title, explanation, prayer )";
-  const selFull = `id, event_date, kind, created_at, primary_lang, cover_image_url, ${i18n}`;
-  const selCoverOnly = `id, event_date, kind, created_at, cover_image_url, ${i18n}`;
-  const selPrimaryOnly = `id, event_date, kind, created_at, primary_lang, ${i18n}`;
+  const selFull = `id, event_date, kind, created_at, primary_lang, cover_image_url, gallery_image_urls, ${i18n}`;
+  const selCoverOnly = `id, event_date, kind, created_at, cover_image_url, gallery_image_urls, ${i18n}`;
+  const selPrimaryOnly = `id, event_date, kind, created_at, primary_lang, gallery_image_urls, ${i18n}`;
   const selMin = `id, event_date, kind, created_at, ${i18n}`;
+  const stripGallery = (sel: string) => sel.replace("gallery_image_urls, ", "");
 
   const run = (sel: string) => {
     let base = supabase.from("liturgical_events").select(sel);
@@ -228,16 +247,22 @@ async function loadLiturgicalEventRows(
   if (res.error) {
     const msg = res.error.message ?? "";
     if (!msg.includes("schema cache")) return [];
-    if (msg.includes("primary_lang")) {
+    if (msg.includes("gallery_image_urls")) {
+      res = await run(stripGallery(selFull));
+    } else if (msg.includes("primary_lang")) {
       res = await run(selCoverOnly);
     } else if (msg.includes("cover_image_url")) {
       res = await run(selPrimaryOnly);
     }
   }
   if (res.error) {
-    const msg = res.error.message ?? "";
-    if (msg.includes("schema cache")) {
-      res = await run(selMin);
+    const msg2 = res.error.message ?? "";
+    if (msg2.includes("schema cache")) {
+      if (msg2.includes("gallery_image_urls")) {
+        res = await run(stripGallery(selMin));
+      } else {
+        res = await run(selMin);
+      }
     }
   }
   if (res.error) return [];
@@ -438,6 +463,7 @@ function pickI18n(
     kind: string;
     primary_lang?: string | null;
     cover_image_url?: string | null;
+    gallery_image_urls?: unknown;
     liturgical_event_i18n: {
       lang: string;
       title: string;
@@ -473,6 +499,7 @@ function pickI18n(
     explanation: chosen?.explanation ?? "",
     prayer: chosen?.prayer ?? null,
     coverImageUrl: e.cover_image_url ?? null,
+    galleryImageUrls: normalizeGalleryUrls(e.gallery_image_urls),
   };
 }
 
@@ -500,6 +527,7 @@ export type ScriptureBook = {
   title: string | null;
   description: string | null;
   coverImageUrl: string | null;
+  galleryImageUrls: string[];
   /** Язык основной редакции (ru/uk/kk/en) или null для старых данных с lang=main */
   primaryLang: string | null;
   /** Есть отдельная запись main без primary_lang в БД */
@@ -583,6 +611,7 @@ function mapScriptureBookRow(
     id: string;
     created_at: string;
     primary_lang: string | null;
+    gallery_image_urls?: unknown;
     scripture_book_locales: ScriptureLocaleRow[] | null;
   },
   siteLang: Lang,
@@ -637,6 +666,7 @@ function mapScriptureBookRow(
     title,
     description,
     coverImageUrl,
+    galleryImageUrls: normalizeGalleryUrls(row.gallery_image_urls),
     primaryLang,
     legacyMain,
     readMenu,
@@ -648,6 +678,7 @@ const SCRIPTURE_SELECT = `
       id,
       created_at,
       primary_lang,
+      gallery_image_urls,
       scripture_book_locales ( lang, title, description, read_url, file_url, cover_image_url )
     `;
 

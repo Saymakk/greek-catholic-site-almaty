@@ -17,6 +17,7 @@ export type AdminNewsPayload = {
   is_published: boolean;
   primary_lang: string | null;
   cover_image_url: string | null;
+  gallery_image_urls: string[];
   locales: NewsLocaleFields[];
 };
 
@@ -46,6 +47,7 @@ const emptyNewsItem = (uiLang: Lang): AdminNewsPayload => ({
   is_published: true,
   primary_lang: uiLang,
   cover_image_url: null,
+  gallery_image_urls: [],
   locales: normalizeNewsLocales([], null, uiLang as ContentLang),
 });
 
@@ -203,6 +205,7 @@ export function AdminNewsClient({
               isPublished={active.is_published}
               primaryLang={active.primary_lang}
               coverImageUrl={active.cover_image_url}
+              galleryImageUrls={active.gallery_image_urls}
               locales={active.locales}
               submitLabel={mode === "add" ? c.add : c.save}
               onCancel={closeDialog}

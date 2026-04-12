@@ -1,10 +1,11 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import type { Lang } from "@/lib/i18n";
 import { t, type UiKey } from "@/lib/ui-strings";
 import type { ScriptureBook } from "@/lib/data";
 import { ScriptureReadPicker, ScriptureFilePicker } from "@/components/ScriptureEditionPicker";
+import { gatherLightboxUrls, ImageLightboxOverlay } from "@/components/ImageLightboxOverlay";
 
 const COVER_COL = "w-32 shrink-0 sm:w-36";
 
@@ -34,8 +35,12 @@ export function BookDetailModal({
   onClose: () => void;
 }) {
   const titleId = useId();
-  const [coverLightboxOpen, setCoverLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const coverUrl = book.coverImageUrl;
+  const lightboxUrls = useMemo(
+    () => gatherLightboxUrls(book.coverImageUrl, book.galleryImageUrls),
+    [book.coverImageUrl, book.galleryImageUrls],
+  );
 
   return (
     <>
@@ -57,7 +62,7 @@ export function BookDetailModal({
                   <button
                     type="button"
                     className="block overflow-hidden rounded-md bg-parish-surface focus:outline-none focus:ring-2 focus:ring-parish-accent/40"
-                    onClick={() => setCoverLightboxOpen(true)}
+                    onClick={() => setLightboxIndex(lightboxUrls.indexOf(coverUrl))}
                     aria-label={t(lang, "imageLightboxAria")}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -72,6 +77,26 @@ export function BookDetailModal({
                     —
                   </div>
                 )}
+                {book.galleryImageUrls.length > 0 ? (
+                  <ul className="grid grid-cols-2 gap-2">
+                    {book.galleryImageUrls.map((src, i) => (
+                      <li
+                        key={`${src}-${i}`}
+                        className="overflow-hidden rounded-md border border-parish-border/60"
+                      >
+                        <button
+                          type="button"
+                          className="block w-full"
+                          onClick={() => setLightboxIndex(lightboxUrls.indexOf(src))}
+                          aria-label={t(lang, "imageLightboxAria")}
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={src} alt="" className="h-16 w-full object-cover" />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
               </div>
               <div className="min-w-0 flex-1 text-center sm:text-left">
                 <h3
@@ -130,23 +155,14 @@ export function BookDetailModal({
         </div>
       </div>
 
-      {coverLightboxOpen && coverUrl ? (
-        <div
-          className="fixed inset-0 z-[140] flex items-center justify-center bg-parish-text/40 p-4 backdrop-blur-sm"
-          role="dialog"
-          aria-modal
-          aria-label={t(lang, "imageLightboxAria")}
-          onClick={() => setCoverLightboxOpen(false)}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={coverUrl}
-            alt=""
-            className="max-h-[95vh] max-w-[95vw] object-contain shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
-      ) : null}
+      <ImageLightboxOverlay
+        lang={lang}
+        images={lightboxUrls}
+        initialIndex={lightboxIndex ?? 0}
+        open={lightboxIndex !== null}
+        onClose={() => setLightboxIndex(null)}
+        zClass="z-[140]"
+      />
     </>
   );
 }

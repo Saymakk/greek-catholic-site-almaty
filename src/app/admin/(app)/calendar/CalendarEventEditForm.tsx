@@ -15,6 +15,8 @@ import {
 import type { Lang } from "@/lib/i18n";
 import type { AdminSharedImageCopy } from "@/lib/admin-shared-image-i18n";
 import { AdminModalSavingOverlay } from "@/components/AdminModalSavingOverlay";
+import { AdminGalleryEditor } from "@/components/AdminGalleryEditor";
+import { gatherLightboxUrls, ImageLightboxOverlay } from "@/components/ImageLightboxOverlay";
 import { adminCalendarFormMsg } from "@/lib/admin-calendar-form-i18n";
 import type { CalendarExtraRow, CalendarTemplatePayload } from "./calendar-admin-types";
 
@@ -96,6 +98,7 @@ export function CalendarEventEditForm({
   kind: kindInitial,
   primaryLang: primaryLangDb,
   coverImageUrl: coverImageUrlProp,
+  galleryImageUrls,
   locales,
   initialExtras,
   templates,
@@ -111,6 +114,7 @@ export function CalendarEventEditForm({
   kind: string;
   primaryLang: string | null;
   coverImageUrl: string | null;
+  galleryImageUrls: string[];
   locales: CalendarLocaleFields[];
   initialExtras: CalendarExtraRow[];
   templates: CalendarTemplatePayload[];
@@ -132,7 +136,7 @@ export function CalendarEventEditForm({
     ),
   );
   const [coverRemoved, setCoverRemoved] = useState(false);
-  const [coverLightboxOpen, setCoverLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [coverPending, startCoverTransition] = useTransition();
   const [kindChoice, setKindChoice] = useState<string>(() =>
     PRESET_KINDS.has(kindInitial) ? kindInitial : KIND_CUSTOM_SENTINEL,
@@ -202,6 +206,10 @@ export function CalendarEventEditForm({
 
   const orderedLangCodes = sortCalendarLangsForForm(activeLangs, primaryLang);
   const displayCover = !coverRemoved && coverImageUrlProp;
+  const lightboxUrls = useMemo(
+    () => gatherLightboxUrls(displayCover ? String(displayCover) : null, galleryImageUrls),
+    [displayCover, galleryImageUrls],
+  );
 
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col">
@@ -392,7 +400,7 @@ export function CalendarEventEditForm({
               <button
                 type="button"
                 className="mt-2 block w-full max-w-full rounded-md bg-parish-surface text-left focus:outline-none focus:ring-2 focus:ring-parish-accent/40"
-                onClick={() => setCoverLightboxOpen(true)}
+                onClick={() => setLightboxIndex(0)}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -443,6 +451,12 @@ export function CalendarEventEditForm({
               </button>
             ) : null}
           </div>
+
+          <AdminGalleryEditor
+            key={`cal-gal-${eventId}-${galleryImageUrls.join("|")}`}
+            imageCopy={imageCopy}
+            initialUrls={galleryImageUrls}
+          />
 
           <div className="rounded-lg border border-parish-border/70 p-3">
             <p className="text-sm font-medium text-parish-accent">{msg.extrasTitle}</p>
@@ -659,23 +673,14 @@ export function CalendarEventEditForm({
         <AdminModalSavingOverlay />
       </form>
 
-      {coverLightboxOpen && displayCover ? (
-        <div
-          className="fixed inset-0 z-[200] flex items-center justify-center bg-parish-text/40 p-4 backdrop-blur-sm"
-          role="dialog"
-          aria-modal
-          aria-label={msg.coverLightboxAria}
-          onClick={() => setCoverLightboxOpen(false)}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={displayCover}
-            alt=""
-            className="max-h-[95vh] max-w-[95vw] object-contain shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
-      ) : null}
+      <ImageLightboxOverlay
+        lang={uiLang}
+        images={lightboxUrls}
+        initialIndex={lightboxIndex ?? 0}
+        open={lightboxIndex !== null}
+        onClose={() => setLightboxIndex(null)}
+        zClass="z-[200]"
+      />
     </div>
   );
 }

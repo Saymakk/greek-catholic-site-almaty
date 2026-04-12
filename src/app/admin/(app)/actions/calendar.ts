@@ -15,6 +15,7 @@ import {
   expandLiturgicalRecurrence,
   type LiturgicalRecurrenceFreq,
 } from "@/lib/liturgical-recurrence";
+import { mergeGalleryFromForm } from "@/lib/admin-gallery-merge";
 
 const LANGS: ContentLang[] = ["ru", "uk", "kk", "en"];
 
@@ -235,6 +236,60 @@ async function uploadLiturgicalCover(
   return data.publicUrl;
 }
 
+async function uploadLiturgicalGalleryImage(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  eventId: string,
+  file: File,
+  idx: number,
+) {
+  const ext = file.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+  const path = `liturgical/${eventId}/g/${Date.now()}_${idx}_${Math.random().toString(36).slice(2, 9)}.${ext}`;
+  const buf = Buffer.from(await file.arrayBuffer());
+  const contentType =
+    (file.type && file.type.startsWith("image/") ? file.type : null) || "image/jpeg";
+  const { error } = await supabase.storage.from("news-images").upload(path, buf, {
+    contentType,
+    upsert: false,
+  });
+  if (error) throw new Error(error.message);
+  const { data } = supabase.storage.from("news-images").getPublicUrl(path);
+  return data.publicUrl;
+}
+
+async function mergeAndPersistLiturgicalGallery(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  eventId: string,
+  formData: FormData,
+): Promise<string[]> {
+  const urls = await mergeGalleryFromForm(formData, {
+    uploadFiles: (files) =>
+      Promise.all(files.map((f, i) => uploadLiturgicalGalleryImage(supabase, eventId, f, i))),
+  });
+  const { error } = await supabase
+    .from("liturgical_events")
+    .update({ gallery_image_urls: urls })
+    .eq("id", eventId);
+  if (error && !isSchemaCacheMissingColumn(error, "gallery_image_urls")) {
+    throw new Error(error.message);
+  }
+  return urls;
+}
+
+async function copyLiturgicalGalleryUrls(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  eventId: string,
+  urls: string[],
+) {
+  if (!urls.length) return;
+  const { error } = await supabase
+    .from("liturgical_events")
+    .update({ gallery_image_urls: urls })
+    .eq("id", eventId);
+  if (error && !isSchemaCacheMissingColumn(error, "gallery_image_urls")) {
+    throw new Error(error.message);
+  }
+}
+
 async function applyLiturgicalCoverFromForm(
   supabase: Awaited<ReturnType<typeof createClient>>,
   eventId: string,
@@ -402,6 +457,7 @@ export async function saveLiturgicalEvent(formData: FormData) {
       const seriesId = randomUUID();
       let firstEventId = "";
       let sharedCover: string | null = null;
+      let sharedGallery: string[] = [];
       for (let i = 0; i < dates.length; i++) {
         const d = dates[i]!;
         const eid = await insertNewLiturgicalEventRow(supabase, profile, d, kind, primary_lang);
@@ -414,6 +470,11 @@ export async function saveLiturgicalEvent(formData: FormData) {
         }
         await persistLiturgicalEventTranslations(supabase, eid, formData, locales);
         await persistLiturgicalExtras(supabase, eid, extrasRows);
+        if (i === 0) {
+          sharedGallery = await mergeAndPersistLiturgicalGallery(supabase, eid, formData);
+        } else if (sharedGallery.length) {
+          await copyLiturgicalGalleryUrls(supabase, eid, sharedGallery);
+        }
       }
       await syncKindLabelsFromForm(supabase, kind, formData);
       await logAdminActivity(supabase, profile, {
@@ -467,6 +528,7 @@ export async function saveLiturgicalEvent(formData: FormData) {
   await persistLiturgicalEventTranslations(supabase, eventId, formData, locales);
 
   await persistLiturgicalExtras(supabase, eventId, extrasRows);
+  await mergeAndPersistLiturgicalGallery(supabase, eventId, formData);
   await syncKindLabelsFromForm(supabase, kind, formData);
 
   const titleHint = firstTitleFromCalendarForm(formData);

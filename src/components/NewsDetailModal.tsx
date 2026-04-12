@@ -1,11 +1,12 @@
 "use client";
 
 import { format, parseISO } from "date-fns";
-import { useEffect, useId } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import type { Lang } from "@/lib/i18n";
 import { t } from "@/lib/ui-strings";
 import type { NewsRow } from "@/lib/data";
 import { RichOrPlain } from "./RichOrPlain";
+import { gatherLightboxUrls, ImageLightboxOverlay } from "./ImageLightboxOverlay";
 
 export function NewsDetailModal({
   lang,
@@ -17,14 +18,21 @@ export function NewsDetailModal({
   onClose: () => void;
 }) {
   const titleId = useId();
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const lightboxUrls = useMemo(
+    () => gatherLightboxUrls(news.coverImageUrl, news.galleryImageUrls),
+    [news.coverImageUrl, news.galleryImageUrls],
+  );
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
+      if (e.key !== "Escape") return;
+      if (lightboxIndex !== null) return;
+      onClose();
     }
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, [lightboxIndex, onClose]);
 
   return (
     <div
@@ -57,13 +65,40 @@ export function NewsDetailModal({
           </h2>
           {news.coverImageUrl ? (
             <div className="mt-4">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={news.coverImageUrl}
-                alt=""
-                className="mx-auto max-h-[min(400px,50vh)] max-w-full rounded-xl border border-parish-border/60 bg-parish-surface object-contain"
-              />
+              <button
+                type="button"
+                className="mx-auto block max-w-full rounded-xl border border-parish-border/60 bg-parish-surface p-0 focus:outline-none focus:ring-2 focus:ring-parish-accent"
+                onClick={() => setLightboxIndex(lightboxUrls.indexOf(news.coverImageUrl!))}
+                aria-label={t(lang, "imageLightboxAria")}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={news.coverImageUrl}
+                  alt=""
+                  className="mx-auto max-h-[min(400px,50vh)] max-w-full cursor-zoom-in rounded-xl object-contain"
+                />
+              </button>
             </div>
+          ) : null}
+          {news.galleryImageUrls.length > 0 ? (
+            <ul className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {news.galleryImageUrls.map((src, i) => (
+                <li
+                  key={`${src}-${i}`}
+                  className="overflow-hidden rounded-lg border border-parish-border/60 bg-parish-surface"
+                >
+                  <button
+                    type="button"
+                    className="block h-full w-full focus:outline-none focus:ring-2 focus:ring-parish-accent"
+                    onClick={() => setLightboxIndex(lightboxUrls.indexOf(src))}
+                    aria-label={t(lang, "imageLightboxAria")}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={src} alt="" className="h-28 w-full cursor-zoom-in object-cover sm:h-32" />
+                  </button>
+                </li>
+              ))}
+            </ul>
           ) : null}
           {news.excerpt ? (
             <p className="mt-4 text-sm font-medium text-parish-muted">{news.excerpt}</p>
@@ -83,6 +118,14 @@ export function NewsDetailModal({
           </button>
         </div>
       </div>
+      <ImageLightboxOverlay
+        lang={lang}
+        images={lightboxUrls}
+        initialIndex={lightboxIndex ?? 0}
+        open={lightboxIndex !== null}
+        onClose={() => setLightboxIndex(null)}
+        zClass="z-[200]"
+      />
     </div>
   );
 }

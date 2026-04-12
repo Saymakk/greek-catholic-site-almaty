@@ -11,6 +11,7 @@ import {
 } from "../books/book-locales";
 import { sortNewsLangsForForm } from "./news-entity-locales";
 import { AdminModalSavingOverlay } from "@/components/AdminModalSavingOverlay";
+import { AdminGalleryEditor } from "@/components/AdminGalleryEditor";
 import type { AdminNewsScreenCopy } from "@/lib/admin-layout-i18n";
 import type { AdminSharedImageCopy } from "@/lib/admin-shared-image-i18n";
 
@@ -33,6 +34,7 @@ export function NewsEditForm({
   isPublished: isPublishedInitial,
   primaryLang: primaryLangDb,
   coverImageUrl: coverImageUrlProp,
+  galleryImageUrls,
   locales,
   submitLabel,
   onCancel,
@@ -45,6 +47,7 @@ export function NewsEditForm({
   isPublished: boolean;
   primaryLang: string | null;
   coverImageUrl: string | null;
+  galleryImageUrls: string[];
   locales: NewsLocaleFields[];
   submitLabel: string;
   onCancel?: () => void;
@@ -171,6 +174,11 @@ export function NewsEditForm({
             </button>
           ) : null}
         </div>
+        <AdminGalleryEditor
+          key={`news-gal-${newsId}-${galleryImageUrls.join("|")}`}
+          imageCopy={imageCopy}
+          initialUrls={galleryImageUrls}
+        />
         {orderedLangCodes.map((code) => {
           const row = byLang.get(code) ?? {
             lang: code,

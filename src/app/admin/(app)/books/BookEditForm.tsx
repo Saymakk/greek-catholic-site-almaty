@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { AdminModalSavingOverlay } from "@/components/AdminModalSavingOverlay";
+import { AdminGalleryEditor } from "@/components/AdminGalleryEditor";
 import { removeBookCover, saveBook } from "../actions/books";
 import { editionLegendKey, type AdminBooksMsg } from "@/lib/admin-books-i18n";
 import type { AdminSharedImageCopy } from "@/lib/admin-shared-image-i18n";
@@ -30,6 +31,7 @@ function editionTitle(code: string, msg: AdminBooksMsg) {
 export function BookEditForm({
   bookId,
   primaryLang: primaryLangDb,
+  galleryImageUrls,
   locales,
   submitLabel,
   msg,
@@ -42,6 +44,7 @@ export function BookEditForm({
   bookId: string;
   /** null — старая запись с lang main; после сохранения станет выбранный язык */
   primaryLang: string | null;
+  galleryImageUrls: string[];
   locales: BookLocaleFields[];
   submitLabel: string;
   msg: AdminBooksMsg;
@@ -135,6 +138,11 @@ export function BookEditForm({
 
   const mainFields = (
     <>
+      <AdminGalleryEditor
+        key={`book-gal-${bookId}-${galleryImageUrls.join("|")}`}
+        imageCopy={imageCopy}
+        initialUrls={galleryImageUrls}
+      />
       <label className={`block text-parish-muted ${label}`}>
         {msg.primaryLanguageLabel}
         <select

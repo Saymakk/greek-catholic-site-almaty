@@ -12,6 +12,7 @@ export type AdminBookPayload = {
   id: string;
   /** null = старая схема с lang main */
   primaryLang: string | null;
+  gallery_image_urls: string[];
   locales: BookLocaleFields[];
 };
 
@@ -73,6 +74,7 @@ export function AdminBooksClient({
     setActiveBook({
       id: "",
       primaryLang: pl,
+      gallery_image_urls: [],
       locales: [
         {
           lang: pl,
@@ -211,6 +213,7 @@ export function AdminBooksClient({
               key={mode === "add" ? "new-book" : activeBook.id}
               bookId={activeBook.id}
               primaryLang={activeBook.primaryLang}
+              galleryImageUrls={activeBook.gallery_image_urls}
               locales={activeBook.locales}
               submitLabel={mode === "add" ? msg.addSubmit : msg.save}
               msg={msg}

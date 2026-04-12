@@ -8,6 +8,7 @@ import { isContentLang, type ContentLang } from "../books/book-locales";
 import { logAdminActivity } from "@/lib/admin-activity-log";
 import { isSchemaCacheMissingColumn } from "@/lib/supabase-column-fallback";
 import { parseHttpImageUrlFromFormData } from "@/lib/admin-image-url";
+import { mergeGalleryFromForm } from "@/lib/admin-gallery-merge";
 
 const CONTENT: ContentLang[] = ["ru", "uk", "kk", "en"];
 
@@ -34,6 +35,26 @@ async function uploadNewsCover(
   const { error } = await supabase.storage.from("news-images").upload(path, buf, {
     contentType: file.type || "image/jpeg",
     upsert: true,
+  });
+  if (error) throw new Error(error.message);
+  const { data } = supabase.storage.from("news-images").getPublicUrl(path);
+  return data.publicUrl;
+}
+
+async function uploadNewsGalleryImage(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  newsId: string,
+  file: File,
+  idx: number,
+) {
+  const ext = file.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+  const path = `${newsId}/g/${Date.now()}_${idx}_${Math.random().toString(36).slice(2, 9)}.${ext}`;
+  const buf = Buffer.from(await file.arrayBuffer());
+  const contentType =
+    (file.type && file.type.startsWith("image/") ? file.type : null) || "image/jpeg";
+  const { error } = await supabase.storage.from("news-images").upload(path, buf, {
+    contentType,
+    upsert: false,
   });
   if (error) throw new Error(error.message);
   const { data } = supabase.storage.from("news-images").getPublicUrl(path);
@@ -140,6 +161,18 @@ export async function saveNews(formData: FormData) {
     if (coverUrl) {
       await supabase.from("news").update({ cover_image_url: coverUrl }).eq("id", newsId);
     }
+  }
+
+  const galleryUrls = await mergeGalleryFromForm(formData, {
+    uploadFiles: (files) =>
+      Promise.all(files.map((f, i) => uploadNewsGalleryImage(supabase, newsId, f, i))),
+  });
+  const galUp = await supabase
+    .from("news")
+    .update({ gallery_image_urls: galleryUrls })
+    .eq("id", newsId);
+  if (galUp.error && !isSchemaCacheMissingColumn(galUp.error, "gallery_image_urls")) {
+    throw new Error(galUp.error.message);
   }
 
   for (const lang of locales) {

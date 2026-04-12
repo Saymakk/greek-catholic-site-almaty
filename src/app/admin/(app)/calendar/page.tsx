@@ -11,6 +11,7 @@ import {
   kindLabelMapToRecord,
   pickKindListLabel,
 } from "./kind-labels";
+import { normalizeGalleryUrls } from "@/lib/gallery-urls";
 
 type LiturgicalListRow = {
   id: string;
@@ -20,6 +21,7 @@ type LiturgicalListRow = {
   created_at?: string;
   primary_lang?: string | null;
   cover_image_url?: string | null;
+  gallery_image_urls?: unknown;
   liturgical_event_i18n: {
     lang: string;
     title: string;
@@ -45,9 +47,9 @@ export default async function AdminCalendarPage({
   ]);
   const i18n =
     "liturgical_event_i18n ( lang, title, explanation, prayer )";
-  const selFull = `id, event_date, kind, recurrence_series_id, created_at, primary_lang, cover_image_url, ${i18n}`;
-  const selCoverOnly = `id, event_date, kind, recurrence_series_id, created_at, cover_image_url, ${i18n}`;
-  const selPrimaryOnly = `id, event_date, kind, recurrence_series_id, created_at, primary_lang, ${i18n}`;
+  const selFull = `id, event_date, kind, recurrence_series_id, created_at, primary_lang, cover_image_url, gallery_image_urls, ${i18n}`;
+  const selCoverOnly = `id, event_date, kind, recurrence_series_id, created_at, cover_image_url, gallery_image_urls, ${i18n}`;
+  const selPrimaryOnly = `id, event_date, kind, recurrence_series_id, created_at, primary_lang, gallery_image_urls, ${i18n}`;
   const selMin = `id, event_date, kind, recurrence_series_id, created_at, ${i18n}`;
 
   const run = (sel: string) => {
@@ -59,12 +61,15 @@ export default async function AdminCalendarPage({
   };
 
   const stripRecurrence = (sel: string) => sel.replace("recurrence_series_id, ", "");
+  const stripGallery = (sel: string) => sel.replace("gallery_image_urls, ", "");
 
   let res = await run(selFull);
   if (res.error) {
     const msg = res.error.message ?? "";
     if (!msg.includes("schema cache")) throw new Error(msg);
-    if (msg.includes("recurrence_series_id")) {
+    if (msg.includes("gallery_image_urls")) {
+      res = await run(stripGallery(selFull));
+    } else if (msg.includes("recurrence_series_id")) {
       res = await run(stripRecurrence(selFull));
     } else if (msg.includes("primary_lang")) {
       res = await run(selCoverOnly);
@@ -75,7 +80,9 @@ export default async function AdminCalendarPage({
   if (res.error) {
     const msg = res.error.message ?? "";
     if (!msg.includes("schema cache")) throw new Error(msg);
-    if (msg.includes("recurrence_series_id")) {
+    if (msg.includes("gallery_image_urls")) {
+      res = await run(stripGallery(selMin));
+    } else if (msg.includes("recurrence_series_id")) {
       res = await run(stripRecurrence(selMin));
     } else {
       res = await run(selMin);
@@ -178,6 +185,7 @@ export default async function AdminCalendarPage({
       kindSiteLabels: siteLabels,
       primary_lang: pl,
       cover_image_url: row.cover_image_url ?? null,
+      gallery_image_urls: normalizeGalleryUrls(row.gallery_image_urls),
       locales: normalizeCalendarLocales(row.liturgical_event_i18n ?? [], pl, lang),
       extras: extrasByEvent.get(row.id) ?? [],
     };

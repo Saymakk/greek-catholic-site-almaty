@@ -8,6 +8,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { format } from "date-fns";
 import { isContentLang, type ContentLang } from "../books/book-locales";
+import { mergeGalleryFromForm } from "@/lib/admin-gallery-merge";
+import { isSchemaCacheMissingColumn } from "@/lib/supabase-column-fallback";
 
 const CONTENT_ORDER: ContentLang[] = ["ru", "uk", "kk", "en"];
 const LOCALE_FOR_COVER = new Set<string>([...CONTENT_ORDER, "main"]);
@@ -53,6 +55,33 @@ async function uploadScriptureFile(
     (file.type && file.type !== "application/octet-stream" ? file.type : null) ||
     mimeFromFilename(file.name) ||
     "application/octet-stream";
+  const { error } = await supabase.storage.from("scripture-books").upload(path, buf, {
+    contentType,
+    upsert: false,
+  });
+  if (error) throw new Error(error.message);
+  const { data } = supabase.storage.from("scripture-books").getPublicUrl(path);
+  return data.publicUrl;
+}
+
+async function uploadBookGalleryImage(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  bookId: string,
+  file: File,
+  idx: number,
+) {
+  const ext = file.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+  const path = `${bookId}/gallery/${Date.now()}_${idx}_${Math.random().toString(36).slice(2, 9)}.${ext}`;
+  const buf = Buffer.from(await file.arrayBuffer());
+  const contentType =
+    (file.type && file.type.startsWith("image/") ? file.type : null) ||
+    (ext === "png"
+      ? "image/png"
+      : ext === "webp"
+        ? "image/webp"
+        : ext === "gif"
+          ? "image/gif"
+          : "image/jpeg");
   const { error } = await supabase.storage.from("scripture-books").upload(path, buf, {
     contentType,
     upsert: false,
@@ -270,6 +299,18 @@ export async function saveBook(formData: FormData) {
         .eq("lang", lg);
       if (error) throw new Error(error.message);
     }
+  }
+
+  const galleryUrls = await mergeGalleryFromForm(formData, {
+    uploadFiles: (files) =>
+      Promise.all(files.map((f, i) => uploadBookGalleryImage(supabase, bookId, f, i))),
+  });
+  const gUp = await supabase
+    .from("scripture_books")
+    .update({ gallery_image_urls: galleryUrls })
+    .eq("id", bookId);
+  if (gUp.error && !isSchemaCacheMissingColumn(gUp.error, "gallery_image_urls")) {
+    throw new Error(gUp.error.message);
   }
 
   const titleHint = firstTitleFromBookForm(formData);

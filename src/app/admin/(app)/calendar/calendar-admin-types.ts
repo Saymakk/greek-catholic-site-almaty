@@ -38,6 +38,7 @@ export type AdminCalendarPayload = {
   kindSiteLabels: Partial<Record<Lang, string>>;
   primary_lang: string | null;
   cover_image_url: string | null;
+  gallery_image_urls: string[];
   locales: CalendarLocaleFields[];
   extras: CalendarExtraRow[];
 };

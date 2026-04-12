@@ -8,6 +8,7 @@ import type { NewsRow } from "@/lib/data";
 import { RichOrPlain, stripTagsForPreview } from "./RichOrPlain";
 import { PaginationControls } from "./PaginationControls";
 import { NewsDetailModal } from "./NewsDetailModal";
+import { gatherLightboxUrls, ImageLightboxOverlay } from "./ImageLightboxOverlay";
 
 const PREVIEW_LEN = 100;
 const PAGE_SIZE = 10;
@@ -33,7 +34,7 @@ function FilterIcon({ className }: { className?: string }) {
 export function NewsSection({ lang, news }: { lang: Lang; news: NewsRow[] }) {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [detailNews, setDetailNews] = useState<NewsRow | null>(null);
-  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+  const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null);
   const [keyword, setKeyword] = useState("");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
@@ -161,7 +162,12 @@ export function NewsSection({ lang, news }: { lang: Lang; news: NewsRow[] }) {
                   <button
                     type="button"
                     className="mx-auto mt-4 block max-w-[512px] cursor-zoom-in rounded-xl border border-parish-border/60 bg-parish-surface p-0 focus:outline-none focus:ring-2 focus:ring-parish-accent"
-                    onClick={() => setLightboxSrc(n.coverImageUrl)}
+                    onClick={() =>
+                      setLightbox({
+                        images: gatherLightboxUrls(n.coverImageUrl, n.galleryImageUrls),
+                        index: 0,
+                      })
+                    }
                     aria-label={t(lang, "imageLightboxAria")}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -215,22 +221,14 @@ export function NewsSection({ lang, news }: { lang: Lang; news: NewsRow[] }) {
         <NewsDetailModal lang={lang} news={detailNews} onClose={() => setDetailNews(null)} />
       ) : null}
 
-      {lightboxSrc ? (
-        <div
-          className="fixed inset-0 z-[200] flex cursor-zoom-out items-center justify-center bg-black/90 p-4"
-          role="dialog"
-          aria-modal
-          onClick={() => setLightboxSrc(null)}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={lightboxSrc}
-            alt=""
-            className="max-h-[min(1080px,100vh)] max-w-[min(1920px,100vw)] object-contain"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
-      ) : null}
+      <ImageLightboxOverlay
+        lang={lang}
+        images={lightbox?.images ?? []}
+        initialIndex={lightbox?.index ?? 0}
+        open={lightbox !== null}
+        onClose={() => setLightbox(null)}
+        zClass="z-[200]"
+      />
     </section>
   );
 }

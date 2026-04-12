@@ -152,35 +152,45 @@ export function LiturgicalCalendar({
             const muted =
               formatInTimeZone(day, tz, "yyyy-MM") !== formatInTimeZone(month, tz, "yyyy-MM");
             return (
-              <button
+              <div
                 key={key}
-                type="button"
-                onClick={() => {
-                  if (list[0]) setModal(list[0]);
-                }}
+                role={list.length ? "button" : undefined}
+                tabIndex={list.length ? 0 : undefined}
                 className={[
                   "min-h-[4.5rem] rounded-xl border p-1 text-left align-top transition sm:min-h-[5.5rem] sm:p-2",
                   muted ? "border-transparent bg-transparent opacity-40" : "border-parish-border/60 bg-parish-surface",
                   key === todayKey ? "ring-2 ring-parish-accent/30" : "",
-                  list.length ? "cursor-pointer hover:border-parish-accent" : "cursor-default",
+                  list.length ? "cursor-pointer hover:border-parish-accent/80" : "cursor-default",
                 ].join(" ")}
+                onClick={() => {
+                  if (list[0]) setModal(list[0]);
+                }}
+                onKeyDown={(e) => {
+                  if (!list.length) return;
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    if (list[0]) setModal(list[0]);
+                  }
+                }}
               >
                 <span className="block text-xs font-semibold text-parish-muted">{format(day, "d")}</span>
-                <ul className="mt-1 space-y-0.5">
+                <ul className="mt-1 list-none space-y-0.5">
                   {list.slice(0, 3).map((ev) => (
-                    <li
-                      key={ev.id}
-                      className="truncate rounded bg-parish-accent-soft px-1 py-0.5 text-[10px] font-semibold text-parish-accent sm:text-xs"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setModal(ev);
-                      }}
-                    >
-                      {ev.title}
+                    <li key={ev.id}>
+                      <button
+                        type="button"
+                        className="w-full truncate rounded border border-transparent bg-parish-accent-soft px-1 py-0.5 text-left text-[10px] font-semibold text-parish-accent transition hover:border-parish-accent/50 hover:bg-parish-accent/25 hover:text-parish-text hover:shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-parish-accent/50 sm:text-xs"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setModal(ev);
+                        }}
+                      >
+                        {ev.title}
+                      </button>
                     </li>
                   ))}
                 </ul>
-              </button>
+              </div>
             );
           })}
         </div>

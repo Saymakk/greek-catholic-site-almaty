@@ -74,6 +74,7 @@ function emptyEvent(uiLang: Lang): AdminCalendarPayload {
     kindSiteLabels: {},
     primary_lang: pl,
     cover_image_url: null,
+    gallery_image_urls: [],
     locales: normalizeCalendarLocales([], null, pl),
     extras: [],
   };
@@ -411,6 +412,7 @@ export function AdminCalendarClient({
               kind={active.kind}
               primaryLang={active.primary_lang}
               coverImageUrl={active.cover_image_url}
+              galleryImageUrls={active.gallery_image_urls}
               locales={active.locales}
               initialExtras={active.extras}
               templates={templates}
