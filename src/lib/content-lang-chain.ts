@@ -3,6 +3,9 @@ import { isNewsCoverVideoEmbed } from "@/lib/news-cover";
 
 const ORDER: Lang[] = ["ru", "uk", "kk", "en"];
 
+/** Как в saveNews: пустой заголовок в форме сохраняется таким текстом */
+const NEWS_PLACEHOLDER_TITLE = "Без заголовка";
+
 /**
  * Порядок для публичного контента: язык интерфейса → основной → остальные (ru, uk, kk, en).
  */
@@ -34,14 +37,23 @@ export function buildScriptureLangCodes(siteLang: Lang, primaryLang: string | nu
   return out;
 }
 
+function newsBodyHasTextOrEmbed(body: string): boolean {
+  const b = body.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  if (b.length > 0) return true;
+  return isNewsCoverVideoEmbed(body);
+}
+
 function rowHasNewsContent(row: { title: string; body: string } | undefined): boolean {
   if (!row) return false;
   const t = row.title?.trim() ?? "";
   if (!t.length) return false;
-  const b = row.body?.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim() ?? "";
-  if (b.length > 0) return true;
-  /** Только iframe / Instagram и т.п. — после stripTags «текста» нет, но версия языка валидна */
-  return isNewsCoverVideoEmbed(row.body ?? "");
+  if (newsBodyHasTextOrEmbed(row.body ?? "")) return true;
+  /**
+   * Заголовок задан явно, а «Текст» пустой в админке → в БД `<p></p>`: без видимого текста,
+   * но локаль должна участвовать в выборе языка.
+   */
+  if (t !== NEWS_PLACEHOLDER_TITLE) return true;
+  return false;
 }
 
 export function pickNewsI18nRow<T extends { title: string; excerpt: string | null; body: string }>(
