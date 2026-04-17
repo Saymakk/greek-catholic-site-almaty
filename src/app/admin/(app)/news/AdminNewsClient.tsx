@@ -6,6 +6,7 @@ import type { Lang } from "@/lib/i18n";
 import { pickNewsI18nRow } from "@/lib/content-lang-chain";
 import { adminNewsScreenCopy } from "@/lib/admin-layout-i18n";
 import { adminSharedImageCopy } from "@/lib/admin-shared-image-i18n";
+import { NewsCoverBlock } from "@/components/NewsCoverBlock";
 import { deleteNewsForm } from "../actions/news";
 import { NewsEditForm, type NewsLocaleFields } from "./NewsEditForm";
 import type { ContentLang } from "../books/book-locales";
@@ -127,12 +128,7 @@ export function AdminNewsClient({
               <div className="flex min-w-0 flex-1 gap-3">
                 <div className="h-20 w-14 shrink-0 overflow-hidden rounded-md border border-parish-border bg-parish-surface">
                   {n.cover_image_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={n.cover_image_url}
-                      alt=""
-                      className="h-full w-full object-cover"
-                    />
+                    <NewsCoverBlock variant="adminThumb" cover={n.cover_image_url} />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center text-[10px] text-parish-muted">
                       —

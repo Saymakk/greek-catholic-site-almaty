@@ -6,6 +6,7 @@ import type { Lang } from "@/lib/i18n";
 import { t } from "@/lib/ui-strings";
 import type { NewsRow } from "@/lib/data";
 import { RichOrPlain } from "./RichOrPlain";
+import { NewsCoverBlock } from "./NewsCoverBlock";
 import { gatherLightboxUrls, ImageLightboxOverlay } from "./ImageLightboxOverlay";
 
 export function NewsDetailModal({
@@ -64,21 +65,12 @@ export function NewsDetailModal({
             {news.title}
           </h2>
           {news.coverImageUrl ? (
-            <div className="mt-4">
-              <button
-                type="button"
-                className="mx-auto block max-w-full rounded-xl border border-parish-border/60 bg-parish-surface p-0 focus:outline-none focus:ring-2 focus:ring-parish-accent"
-                onClick={() => setLightboxIndex(lightboxUrls.indexOf(news.coverImageUrl!))}
-                aria-label={t(lang, "imageLightboxAria")}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={news.coverImageUrl}
-                  alt=""
-                  className="mx-auto max-h-[min(400px,50vh)] max-w-full cursor-zoom-in rounded-xl object-contain"
-                />
-              </button>
-            </div>
+            <NewsCoverBlock
+              variant="modal"
+              cover={news.coverImageUrl}
+              onImageClick={() => setLightboxIndex(lightboxUrls.indexOf(news.coverImageUrl!))}
+              imageAriaLabel={t(lang, "imageLightboxAria")}
+            />
           ) : null}
           {news.galleryImageUrls.length > 0 ? (
             <ul className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">

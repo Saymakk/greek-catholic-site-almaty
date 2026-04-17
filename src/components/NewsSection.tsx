@@ -8,6 +8,7 @@ import type { NewsRow } from "@/lib/data";
 import { RichOrPlain, stripTagsForPreview } from "./RichOrPlain";
 import { PaginationControls } from "./PaginationControls";
 import { NewsDetailModal } from "./NewsDetailModal";
+import { NewsCoverBlock } from "./NewsCoverBlock";
 import { gatherLightboxUrls, ImageLightboxOverlay } from "./ImageLightboxOverlay";
 
 const PREVIEW_LEN = 100;
@@ -159,24 +160,17 @@ export function NewsSection({ lang, news }: { lang: Lang; news: NewsRow[] }) {
                   {n.title}
                 </h3>
                 {n.coverImageUrl ? (
-                  <button
-                    type="button"
-                    className="mx-auto mt-4 block max-w-[512px] cursor-zoom-in rounded-xl border border-parish-border/60 bg-parish-surface p-0 focus:outline-none focus:ring-2 focus:ring-parish-accent"
-                    onClick={() =>
+                  <NewsCoverBlock
+                    variant="section"
+                    cover={n.coverImageUrl}
+                    onImageClick={() =>
                       setLightbox({
                         images: gatherLightboxUrls(n.coverImageUrl, n.galleryImageUrls),
                         index: 0,
                       })
                     }
-                    aria-label={t(lang, "imageLightboxAria")}
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={n.coverImageUrl}
-                      alt=""
-                      className="mx-auto max-h-[512px] max-w-full object-contain"
-                    />
-                  </button>
+                    imageAriaLabel={t(lang, "imageLightboxAria")}
+                  />
                 ) : null}
                 {n.excerpt ? (
                   <p className="mt-2 text-sm font-medium text-parish-muted">{n.excerpt}</p>

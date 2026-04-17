@@ -2,15 +2,16 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { Lang } from "@/lib/i18n";
+import { isNewsCoverVideoEmbed } from "@/lib/news-cover";
 import { t } from "@/lib/ui-strings";
 
-/** Cover first, then gallery URLs; duplicates omitted. */
+/** Cover first (если это URL картинки), затем галерея; дубликаты без повторов. HTML-видео в обложке в лайтбокс не входит. */
 export function gatherLightboxUrls(
   cover: string | null | undefined,
   gallery: string[],
 ): string[] {
   const out: string[] = [];
-  if (cover) out.push(cover);
+  if (cover && !isNewsCoverVideoEmbed(cover)) out.push(cover);
   for (const u of gallery) {
     if (!out.includes(u)) out.push(u);
   }

@@ -12,6 +12,7 @@ import {
 import { sortNewsLangsForForm } from "./news-entity-locales";
 import { AdminModalSavingOverlay } from "@/components/AdminModalSavingOverlay";
 import { AdminGalleryEditor } from "@/components/AdminGalleryEditor";
+import { NewsCoverBlock } from "@/components/NewsCoverBlock";
 import type { AdminNewsScreenCopy } from "@/lib/admin-layout-i18n";
 import type { AdminSharedImageCopy } from "@/lib/admin-shared-image-i18n";
 
@@ -127,12 +128,7 @@ export function NewsEditForm({
         <div className="rounded-lg border border-parish-border/70 p-3">
           <p className="text-xs font-medium text-parish-muted">{formMsg.cover}</p>
           {displayCover ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={displayCover}
-              alt=""
-              className="mt-2 h-28 max-w-xs rounded-md border border-parish-border object-cover"
-            />
+            <NewsCoverBlock variant="adminForm" cover={displayCover} />
           ) : (
             <p className="mt-2 text-xs text-parish-muted">{formMsg.noCover}</p>
           )}
@@ -147,15 +143,16 @@ export function NewsEditForm({
           </label>
           <label className="mt-2 block text-xs text-parish-muted">
             {imageCopy.orImageUrl}
-            <input
+            <textarea
               key={`news-cover-url-${coverImageUrlProp ?? ""}-${coverRemoved}`}
-              type="url"
               name="cover_image_url"
+              rows={4}
               defaultValue={coverRemoved ? "" : (coverImageUrlProp ?? "")}
               placeholder={imageCopy.imageUrlPlaceholder}
-              className="mt-1 block w-full rounded border border-parish-border px-2 py-1.5 text-sm text-parish-text"
+              className="mt-1 block w-full rounded border border-parish-border px-2 py-1.5 font-mono text-sm text-parish-text"
             />
           </label>
+          <p className="mt-1 text-[11px] text-parish-muted">{formMsg.coverUrlOrEmbedHint}</p>
           <p className="mt-1 text-[11px] text-parish-muted">{imageCopy.fileWinsHint}</p>
           {displayCover && newsId ? (
             <button

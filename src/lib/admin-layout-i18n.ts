@@ -367,6 +367,8 @@ export type AdminNewsScreenCopy = {
   publishedAt: string;
   isPublished: string;
   cover: string;
+  /** Подсказка к полю ссылки / HTML для обложки */
+  coverUrlOrEmbedHint: string;
   noCover: string;
   uploadCover: string;
   removeCover: string;
@@ -397,6 +399,8 @@ export function adminNewsScreenCopy(lang: Lang): AdminNewsScreenCopy {
       publishedAt: "Дата публикации",
       isPublished: "Опубликовано",
       cover: "Обложка",
+      coverUrlOrEmbedHint:
+        "Прямая ссылка на изображение (https://…) или HTML-код вставки видео (например iframe с YouTube и др.).",
       noCover: "Нет обложки",
       uploadCover: "Загрузить или заменить",
       removeCover: "Удалить обложку",
@@ -424,6 +428,8 @@ export function adminNewsScreenCopy(lang: Lang): AdminNewsScreenCopy {
       publishedAt: "Дата публікації",
       isPublished: "Опубліковано",
       cover: "Обкладинка",
+      coverUrlOrEmbedHint:
+        "Пряме посилання на зображення (https://…) або HTML-код вставки відео (наприклад iframe з YouTube тощо).",
       noCover: "Немає обкладинки",
       uploadCover: "Завантажити або замінити",
       removeCover: "Видалити обкладинку",
@@ -451,6 +457,8 @@ export function adminNewsScreenCopy(lang: Lang): AdminNewsScreenCopy {
       publishedAt: "Жарияланған күні",
       isPublished: "Жарияланған",
       cover: "Мұқаба",
+      coverUrlOrEmbedHint:
+        "Тікелей сурет сілтемесі (https://…) немесе бейнені енгізу HTML-коды (мысалы YouTube iframe).",
       noCover: "Мұқаба жоқ",
       uploadCover: "Жүктеу немесе ауыстыру",
       removeCover: "Мұқабаны жою",
@@ -478,6 +486,8 @@ export function adminNewsScreenCopy(lang: Lang): AdminNewsScreenCopy {
       publishedAt: "Publication date",
       isPublished: "Published",
       cover: "Cover image",
+      coverUrlOrEmbedHint:
+        "Paste an image URL (https://…) or video embed HTML (e.g. a YouTube iframe).",
       noCover: "No cover",
       uploadCover: "Upload or replace",
       removeCover: "Remove cover",
