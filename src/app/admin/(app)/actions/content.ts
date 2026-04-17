@@ -81,7 +81,7 @@ export async function saveHistory(formData: FormData) {
   });
   revalidatePath("/about/history");
   revalidatePath("/admin/history");
-  redirect("/admin/history");
+  redirect("/admin/history?saved=1");
 }
 
 export async function saveFooter(formData: FormData) {
@@ -136,5 +136,5 @@ export async function saveFooter(formData: FormData) {
   });
   revalidatePath("/");
   revalidatePath("/about/contacts");
-  redirect("/admin/settings");
+  redirect("/admin/settings?saved=1");
 }

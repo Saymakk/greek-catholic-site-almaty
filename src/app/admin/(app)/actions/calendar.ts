@@ -493,9 +493,9 @@ export async function saveLiturgicalEvent(formData: FormData) {
       revalidatePath("/library");
       const skipOffer = (formData.get("skip_offer_template") as string) === "1";
       if (skipOffer) {
-        redirect("/admin/calendar");
+        redirect("/admin/calendar?saved=1");
       }
-      redirect(`/admin/calendar?offerTemplate=${encodeURIComponent(firstEventId)}`);
+      redirect(`/admin/calendar?offerTemplate=${encodeURIComponent(firstEventId)}&saved=1`);
     }
   }
 
@@ -544,9 +544,9 @@ export async function saveLiturgicalEvent(formData: FormData) {
   revalidatePath("/library");
   const skipOffer = (formData.get("skip_offer_template") as string) === "1";
   if (skipOffer) {
-    redirect("/admin/calendar");
+    redirect("/admin/calendar?saved=1");
   }
-  redirect(`/admin/calendar?offerTemplate=${encodeURIComponent(eventId)}`);
+  redirect(`/admin/calendar?offerTemplate=${encodeURIComponent(eventId)}&saved=1`);
 }
 
 export async function saveLiturgicalTemplateForm(formData: FormData) {
@@ -590,7 +590,7 @@ export async function saveLiturgicalTemplateForm(formData: FormData) {
     summary: name,
   });
   revalidatePath("/admin/calendar");
-  redirect("/admin/calendar");
+  redirect("/admin/calendar?saved=1");
 }
 
 async function insertTemplateRows(
@@ -624,7 +624,7 @@ export async function deleteLiturgicalTemplateForm(formData: FormData) {
     entityId: id,
   });
   revalidatePath("/admin/calendar");
-  redirect("/admin/calendar");
+  redirect("/admin/calendar?saved=1");
 }
 
 export async function saveLiturgicalTemplateFromEventForm(formData: FormData) {
@@ -689,7 +689,7 @@ export async function saveLiturgicalTemplateFromEventForm(formData: FormData) {
     summary: name,
   });
   revalidatePath("/admin/calendar");
-  redirect("/admin/calendar");
+  redirect("/admin/calendar?saved=1");
 }
 
 export async function updateLiturgicalTemplateForm(formData: FormData) {
@@ -768,5 +768,5 @@ export async function saveExternalLiturgicalWidgetForm(formData: FormData) {
   });
   revalidatePath("/");
   revalidatePath("/admin/calendar");
-  redirect("/admin/calendar");
+  redirect("/admin/calendar?saved=1");
 }

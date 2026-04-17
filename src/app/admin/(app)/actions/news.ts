@@ -221,5 +221,5 @@ export async function saveNews(formData: FormData) {
   });
 
   revalidatePath("/");
-  redirect("/admin/news");
+  redirect("/admin/news?saved=1");
 }

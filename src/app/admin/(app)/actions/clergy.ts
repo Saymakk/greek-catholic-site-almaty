@@ -289,5 +289,5 @@ export async function saveClergy(formData: FormData) {
 
   revalidatePath("/admin/clergy");
   revalidatePath("/about/hierarchy");
-  redirect("/admin/clergy");
+  redirect("/admin/clergy?saved=1");
 }

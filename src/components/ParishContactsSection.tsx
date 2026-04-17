@@ -1,6 +1,7 @@
 import type { Lang } from "@/lib/i18n";
 import type { FooterContactButton } from "@/lib/data";
 import { t } from "@/lib/ui-strings";
+import { RichOrPlain } from "./RichOrPlain";
 
 function TelegramGlyph({ className }: { className?: string }) {
   return (
@@ -80,9 +81,10 @@ export function ParishContactsSection({
           </ul>
         ) : null}
         {extra ? (
-          <p className="mt-4 whitespace-pre-line border-t border-parish-border/60 pt-4 text-sm leading-relaxed text-parish-muted">
-            {extra}
-          </p>
+          <RichOrPlain
+            content={extra}
+            className="rich-html mt-4 border-t border-parish-border/60 pt-4 text-sm leading-relaxed text-parish-muted"
+          />
         ) : null}
       </div>
       <div className="shrink-0 lg:ml-8 lg:max-w-md lg:text-right">

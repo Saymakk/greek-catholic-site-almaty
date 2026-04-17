@@ -192,5 +192,5 @@ export async function saveParish(formData: FormData) {
 
   revalidatePath("/about/parishes-kz");
   revalidatePath("/admin/parishes");
-  redirect("/admin/parishes");
+  redirect("/admin/parishes?saved=1");
 }

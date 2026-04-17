@@ -322,5 +322,5 @@ export async function saveBook(formData: FormData) {
   });
 
   revalidatePath("/");
-  redirect("/admin/books");
+  redirect("/admin/books?saved=1");
 }

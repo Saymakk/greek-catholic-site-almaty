@@ -5,6 +5,7 @@ import { getLang } from "@/lib/i18n-server";
 import { adminNavLabels, adminRoleLabel } from "@/lib/admin-layout-i18n";
 import { AdminLangBar } from "./AdminLangBar";
 import { AdminMobileNav } from "./AdminMobileNav";
+import { AdminSaveNotice } from "./AdminSaveNotice";
 
 export default async function AdminAppLayout({
   children,
@@ -14,6 +15,14 @@ export default async function AdminAppLayout({
   const profile = await requireStaff();
   const lang = await getLang();
   const n = adminNavLabels(lang);
+  const savedText =
+    lang === "uk"
+      ? "Збережено."
+      : lang === "kk"
+        ? "Сақталды."
+        : lang === "en"
+          ? "Saved."
+          : "Сохранено.";
 
   return (
     <div className="flex min-h-screen bg-parish-bg">
@@ -73,6 +82,7 @@ export default async function AdminAppLayout({
       </aside>
       <div className="min-w-0 flex-1 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] ps-[max(1rem,env(safe-area-inset-left))] pe-[max(1rem,env(safe-area-inset-right))] sm:p-8">
         <AdminMobileNav lang={lang} profile={profile} />
+        <AdminSaveNotice text={savedText} />
         {children}
       </div>
     </div>
