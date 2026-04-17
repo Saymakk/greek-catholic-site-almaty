@@ -6,6 +6,7 @@ import { t, type UiKey } from "@/lib/ui-strings";
 import type { ScriptureBook } from "@/lib/data";
 import { ScriptureReadPicker, ScriptureFilePicker } from "@/components/ScriptureEditionPicker";
 import { gatherLightboxUrls, ImageLightboxOverlay } from "@/components/ImageLightboxOverlay";
+import { RichOrPlain } from "@/components/RichOrPlain";
 
 const COVER_COL = "w-32 shrink-0 sm:w-36";
 
@@ -127,9 +128,10 @@ export function BookDetailModal({
                   <p className="mt-3 text-sm text-parish-muted">{t(lang, "scripturePrimaryLegacyNote")}</p>
                 ) : null}
                 {book.description ? (
-                  <p className="mt-4 text-pretty text-base font-medium leading-relaxed text-parish-text">
-                    {book.description}
-                  </p>
+                  <RichOrPlain
+                    content={book.description}
+                    className="rich-html mt-4 max-w-none text-base font-medium leading-relaxed text-parish-text [&_p]:break-words"
+                  />
                 ) : null}
               </div>
             </div>
