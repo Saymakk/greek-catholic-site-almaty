@@ -1,39 +1,18 @@
 "use client";
 
 import { isNewsCoverVideoEmbed } from "@/lib/news-cover";
-
-function EmbedShell({
-  html,
-  className,
-  innerClassName,
-}: {
-  html: string;
-  className?: string;
-  innerClassName?: string;
-}) {
-  return (
-    <div className={className}>
-      <div
-        className={
-          innerClassName ??
-          "news-cover-embed rich-html relative aspect-video w-full overflow-hidden rounded-xl border border-parish-border/60 bg-black/5 [&_iframe]:absolute [&_iframe]:inset-0 [&_iframe]:h-full [&_iframe]:w-full [&_iframe]:border-0 [&_video]:h-full [&_video]:w-full [&_video]:object-contain"
-        }
-        dangerouslySetInnerHTML={{ __html: html }}
-      />
-    </div>
-  );
-}
+import { NewsEmbedHtml } from "./NewsEmbedHtml";
 
 function AdminThumbVideoIcon() {
   return (
     <div
       className="flex h-full w-full flex-col items-center justify-center gap-0.5 bg-parish-accent/10 px-0.5 text-center text-[9px] font-semibold leading-tight text-parish-muted"
-      title="Video"
+      title="Embed"
     >
       <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
         <path d="M8 5v14l11-7z" />
       </svg>
-      <span className="max-w-full truncate">Video</span>
+      <span className="max-w-full truncate">Media</span>
     </div>
   );
 }
@@ -55,25 +34,31 @@ export function NewsCoverBlock({
     if (variant === "adminThumb") {
       return <AdminThumbVideoIcon />;
     }
+    const adminIframe =
+      "news-cover-embed rich-html relative aspect-video w-full max-h-40 overflow-hidden rounded-md border border-parish-border bg-black/5 [&_iframe]:absolute [&_iframe]:inset-0 [&_iframe]:h-full [&_iframe]:w-full [&_iframe]:border-0 [&_video]:h-full [&_video]:w-full";
+    const adminIg =
+      "news-cover-embed rich-html w-full max-w-md max-h-64 overflow-y-auto rounded-md border border-parish-border bg-black/5 [&_blockquote]:mx-auto [&_blockquote]:max-w-[540px]";
+
     if (variant === "adminForm") {
+      const isIg = /instagram-media|data-instgrm-permalink/i.test(cover);
       return (
-        <EmbedShell
+        <NewsEmbedHtml
           html={cover}
           className="mt-2 max-w-md"
-          innerClassName="news-cover-embed rich-html relative aspect-video w-full max-h-40 overflow-hidden rounded-md border border-parish-border bg-black/5 [&_iframe]:absolute [&_iframe]:inset-0 [&_iframe]:h-full [&_iframe]:w-full [&_iframe]:border-0 [&_video]:h-full [&_video]:w-full"
+          innerClassName={isIg ? adminIg : adminIframe}
         />
       );
     }
     if (variant === "modal") {
       return (
         <div className="mt-4 w-full">
-          <EmbedShell html={cover} className="mx-auto w-full max-w-full" />
+          <NewsEmbedHtml html={cover} className="mx-auto w-full max-w-full" />
         </div>
       );
     }
     return (
       <div className="mx-auto mt-4 w-full max-w-[512px]">
-        <EmbedShell html={cover} />
+        <NewsEmbedHtml html={cover} />
       </div>
     );
   }
