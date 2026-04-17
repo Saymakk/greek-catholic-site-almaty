@@ -25,6 +25,16 @@ function bookPrimaryNativeName(siteLang: Lang, code: string): string {
   return k ? t(siteLang, k) : code;
 }
 
+/** Чем длиннее описание, тем шире модалка (шаги ~512 → ~672 → ~768 → ~896px) */
+function bookModalMaxWidthClass(description: string | null | undefined): string {
+  const n = (description ?? "").length;
+  if (n >= 2000) return "max-w-4xl";
+  if (n >= 1000) return "max-w-3xl";
+  if (n >= 450) return "max-w-2xl";
+  if (n >= 180) return "max-w-lg";
+  return "max-w-lg";
+}
+
 export function BookDetailModal({
   lang,
   book,
@@ -41,6 +51,7 @@ export function BookDetailModal({
     () => gatherLightboxUrls(book.coverImageUrl, book.galleryImageUrls),
     [book.coverImageUrl, book.galleryImageUrls],
   );
+  const modalWidthClass = bookModalMaxWidthClass(book.description);
 
   return (
     <>
@@ -52,7 +63,7 @@ export function BookDetailModal({
         onClick={onClose}
       >
         <div
-          className="flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-parish-border bg-parish-surface shadow-xl"
+          className={`flex max-h-[90vh] w-full ${modalWidthClass} flex-col overflow-hidden rounded-2xl border border-parish-border bg-parish-surface shadow-xl`}
           onClick={(e) => e.stopPropagation()}
         >
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-6 sm:p-7">
@@ -116,7 +127,7 @@ export function BookDetailModal({
                   <p className="mt-3 text-sm text-parish-muted">{t(lang, "scripturePrimaryLegacyNote")}</p>
                 ) : null}
                 {book.description ? (
-                  <p className="mt-4 text-base font-medium leading-relaxed text-parish-text">
+                  <p className="mt-4 text-pretty text-base font-medium leading-relaxed text-parish-text">
                     {book.description}
                   </p>
                 ) : null}
