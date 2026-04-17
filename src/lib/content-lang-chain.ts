@@ -1,4 +1,5 @@
 import type { Lang } from "@/lib/i18n";
+import { isNewsCoverVideoEmbed } from "@/lib/news-cover";
 
 const ORDER: Lang[] = ["ru", "uk", "kk", "en"];
 
@@ -36,8 +37,11 @@ export function buildScriptureLangCodes(siteLang: Lang, primaryLang: string | nu
 function rowHasNewsContent(row: { title: string; body: string } | undefined): boolean {
   if (!row) return false;
   const t = row.title?.trim() ?? "";
+  if (!t.length) return false;
   const b = row.body?.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim() ?? "";
-  return t.length > 0 && b.length > 0;
+  if (b.length > 0) return true;
+  /** Только iframe / Instagram и т.п. — после stripTags «текста» нет, но версия языка валидна */
+  return isNewsCoverVideoEmbed(row.body ?? "");
 }
 
 export function pickNewsI18nRow<T extends { title: string; excerpt: string | null; body: string }>(
