@@ -1,0 +1,18 @@
+# На сервере создайте файл .env рядом с compose (не коммитьте). Он нужен и для сборки (NEXT_PUBLIC_*), и для контейнера.
+# Сборка: docker compose --env-file .env build
+# Запуск: docker compose --env-file .env up -d
+#
+# Внутренний порт на хосте задаётся здесь (пример для второго сайта на том же VPS): 127.0.0.1:3002:3000
+services:
+  ugcc_almaty:
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL}
+    ports:
+      - "127.0.0.1:3002:3000"
+    env_file:
+      - .env
+    restart: unless-stopped
