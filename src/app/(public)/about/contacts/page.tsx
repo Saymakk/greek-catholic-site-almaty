@@ -30,6 +30,7 @@ export default async function AboutContactsPage() {
           phone={display.phone}
           email={display.email}
           extra={display.extra}
+          contactPhotoUrl={display.contactPhotoUrl}
           contactButtons={display.contactButtons}
         />
       </div>

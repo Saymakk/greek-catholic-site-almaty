@@ -1,4 +1,4 @@
-import { requireStaff } from "@/lib/admin";
+import { requireStaffCanViewObjects } from "@/lib/admin";
 import {
   adminActivityActionLabel,
   adminActivityEntityLabel,
@@ -70,7 +70,7 @@ export default async function AdminHomePage({
   searchParams: Promise<{ page?: string; per?: string }>;
 }) {
   const sp = await searchParams;
-  const profile = await requireStaff();
+  const profile = await requireStaffCanViewObjects();
   const lang = await getLang();
   const copy = adminDashboardCopy(lang);
 

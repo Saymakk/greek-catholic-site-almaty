@@ -3,6 +3,7 @@ import { requireSuperadmin } from "@/lib/admin";
 import { getLang } from "@/lib/i18n-server";
 import { adminUsersScreenCopy } from "@/lib/admin-layout-i18n";
 import { AdminUsersClient, type AdminUserRow } from "./AdminUsersClient";
+import { isSchemaCacheMissingColumn } from "@/lib/supabase-column-fallback";
 
 export default async function AdminUsersPage() {
   const me = await requireSuperadmin();
@@ -10,18 +11,40 @@ export default async function AdminUsersPage() {
   const c = adminUsersScreenCopy(lang);
 
   const supabase = await createClient();
-  const { data: rows, error } = await supabase
+  const q = await supabase
     .from("profiles")
-    .select("id, email, full_name, role, created_at")
+    .select("id, email, full_name, role, can_view_all_objects, can_edit_all_objects, created_at")
     .order("created_at", { ascending: true });
+  let rows = q.data as
+    | {
+        id: string;
+        email: string | null;
+        full_name: string | null;
+        role: string;
+        can_view_all_objects?: boolean;
+        can_edit_all_objects?: boolean;
+        created_at: string;
+      }[]
+    | null;
+  let error = q.error;
+  if (error && isSchemaCacheMissingColumn(error, "can_view_all_objects")) {
+    const fallback = await supabase
+      .from("profiles")
+      .select("id, email, full_name, role, created_at")
+      .order("created_at", { ascending: true });
+    rows = fallback.data as typeof rows;
+    error = fallback.error;
+  }
 
   const users: AdminUserRow[] = error
     ? []
-    : ((rows ?? []) as AdminUserRow[]).map((r) => ({
+    : (rows ?? []).map((r) => ({
         id: r.id,
         email: r.email,
         full_name: r.full_name,
         role: r.role,
+        can_view_all_objects: (r.can_view_all_objects as boolean | undefined) ?? true,
+        can_edit_all_objects: (r.can_edit_all_objects as boolean | undefined) ?? true,
         created_at: r.created_at,
       }));
 

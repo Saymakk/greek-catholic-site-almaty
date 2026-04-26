@@ -509,6 +509,11 @@ export type AdminSettingsCopy = {
   sharedSection: string;
   phoneLabel: string;
   emailLabel: string;
+  contactPhotoLabel: string;
+  contactPhotoUpload: string;
+  contactPhotoUrlLabel: string;
+  contactPhotoRemove: string;
+  contactPhotoHint: string;
   langRu: string;
   langUk: string;
   langKk: string;
@@ -537,6 +542,11 @@ export function adminSettingsCopy(lang: Lang): AdminSettingsCopy {
       sharedSection: "Телефон и email",
       phoneLabel: "Телефон",
       emailLabel: "Email",
+      contactPhotoLabel: "Фото для контактов",
+      contactPhotoUpload: "Загрузить файл",
+      contactPhotoUrlLabel: "Или ссылка на фото",
+      contactPhotoRemove: "Убрать фото",
+      contactPhotoHint: "Если указаны и файл, и ссылка, используется файл.",
       langRu: "Русский",
       langUk: "Українська",
       langKk: "Қазақша",
@@ -563,6 +573,11 @@ export function adminSettingsCopy(lang: Lang): AdminSettingsCopy {
       sharedSection: "Телефон і email",
       phoneLabel: "Телефон",
       emailLabel: "Email",
+      contactPhotoLabel: "Фото для контактів",
+      contactPhotoUpload: "Завантажити файл",
+      contactPhotoUrlLabel: "Або посилання на фото",
+      contactPhotoRemove: "Прибрати фото",
+      contactPhotoHint: "Якщо вказано і файл, і посилання, використовується файл.",
       langRu: "Російська",
       langUk: "Українська",
       langKk: "Қазақша",
@@ -589,6 +604,11 @@ export function adminSettingsCopy(lang: Lang): AdminSettingsCopy {
       sharedSection: "Телефон және email",
       phoneLabel: "Телефон",
       emailLabel: "Email",
+      contactPhotoLabel: "Байланысқа арналған фото",
+      contactPhotoUpload: "Файл жүктеу",
+      contactPhotoUrlLabel: "Немесе фото сілтемесі",
+      contactPhotoRemove: "Фотоны алып тастау",
+      contactPhotoHint: "Файл мен сілтеме бірге болса, файл қолданылады.",
       langRu: "Орысша",
       langUk: "Українська",
       langKk: "Қазақша",
@@ -614,6 +634,11 @@ export function adminSettingsCopy(lang: Lang): AdminSettingsCopy {
       sharedSection: "Phone & email",
       phoneLabel: "Phone",
       emailLabel: "Email",
+      contactPhotoLabel: "Contacts photo",
+      contactPhotoUpload: "Upload file",
+      contactPhotoUrlLabel: "Or photo URL",
+      contactPhotoRemove: "Remove photo",
+      contactPhotoHint: "If both file and URL are set, the file is used.",
       langRu: "Russian",
       langUk: "Ukrainian",
       langKk: "Kazakh",
@@ -1128,6 +1153,8 @@ export type AdminUsersScreenCopy = {
   roleLabel: string;
   roleAdmin: string;
   roleSuperadmin: string;
+  canViewAllObjectsLabel: string;
+  canEditAllObjectsLabel: string;
   newPasswordOptional: string;
   newPasswordHint: string;
   confirmDelete: string;
@@ -1167,6 +1194,8 @@ export function adminUsersScreenCopy(lang: Lang): AdminUsersScreenCopy {
       roleLabel: "Роль",
       roleAdmin: "Админ",
       roleSuperadmin: "Суперадмин",
+      canViewAllObjectsLabel: "Может видеть все объекты в админке",
+      canEditAllObjectsLabel: "Может редактировать все объекты",
       newPasswordOptional: "Новый пароль",
       newPasswordHint: "оставьте пустым, если не меняете",
       confirmDelete: "Удалить этого пользователя? Войти под ним станет невозможно.",
@@ -1203,6 +1232,8 @@ export function adminUsersScreenCopy(lang: Lang): AdminUsersScreenCopy {
       roleLabel: "Роль",
       roleAdmin: "Адмін",
       roleSuperadmin: "Суперадмін",
+      canViewAllObjectsLabel: "Може бачити всі об'єкти в адмінці",
+      canEditAllObjectsLabel: "Може редагувати всі об'єкти",
       newPasswordOptional: "Новий пароль",
       newPasswordHint: "залиште порожнім, якщо не змінюєте",
       confirmDelete: "Видалити цього користувача? Увійти під ним буде неможливо.",
@@ -1239,6 +1270,8 @@ export function adminUsersScreenCopy(lang: Lang): AdminUsersScreenCopy {
       roleLabel: "Рөлі",
       roleAdmin: "Әкімші",
       roleSuperadmin: "Суперәкімші",
+      canViewAllObjectsLabel: "Админкадағы барлық нысандарды көре алады",
+      canEditAllObjectsLabel: "Барлық нысандарды өңдей алады",
       newPasswordOptional: "Жаңа құпия сөз",
       newPasswordHint: "өзгертпесеңіз бос қалдырыңыз",
       confirmDelete: "Бұл пайдаланушыны жоясыз ба? Кіру мүмкін болмайды.",
@@ -1275,6 +1308,8 @@ export function adminUsersScreenCopy(lang: Lang): AdminUsersScreenCopy {
       roleLabel: "Role",
       roleAdmin: "Admin",
       roleSuperadmin: "Superadmin",
+      canViewAllObjectsLabel: "Can view all admin objects",
+      canEditAllObjectsLabel: "Can edit all objects",
       newPasswordOptional: "New password",
       newPasswordHint: "leave empty to keep current",
       confirmDelete: "Delete this user? They will no longer be able to sign in.",

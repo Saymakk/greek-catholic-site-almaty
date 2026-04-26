@@ -2,7 +2,7 @@
 
 import { parseHttpImageUrlFromFormData } from "@/lib/admin-image-url";
 import { createClient } from "@/lib/supabase/server";
-import { requireStaff } from "@/lib/admin";
+import { requireStaffCanEditObjects } from "@/lib/admin";
 import { logAdminActivity } from "@/lib/admin-activity-log";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -148,7 +148,7 @@ function firstTitleFromBookForm(formData: FormData): string | null {
 }
 
 export async function removeBookCover(bookId: string, locale: string) {
-  const profile = await requireStaff();
+  const profile = await requireStaffCanEditObjects();
   if (!bookId || !LOCALE_FOR_COVER.has(locale)) return;
   const supabase = await createClient();
   const { error } = await supabase
@@ -170,7 +170,7 @@ export async function removeBookCover(bookId: string, locale: string) {
 export async function deleteBookForm(formData: FormData) {
   const id = formData.get("id") as string;
   if (!id) return;
-  const profile = await requireStaff();
+  const profile = await requireStaffCanEditObjects();
   const supabase = await createClient();
   await supabase.from("scripture_books").delete().eq("id", id);
   await logAdminActivity(supabase, profile, {
@@ -184,7 +184,7 @@ export async function deleteBookForm(formData: FormData) {
 }
 
 export async function saveBook(formData: FormData) {
-  const profile = await requireStaff();
+  const profile = await requireStaffCanEditObjects();
   const supabase = await createClient();
   const id = (formData.get("id") as string) || "";
 

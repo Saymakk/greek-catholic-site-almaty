@@ -30,6 +30,7 @@ export function ParishContactsSection({
   phone,
   email,
   extra,
+  contactPhotoUrl,
   contactButtons = [],
 }: {
   lang: Lang;
@@ -38,54 +39,67 @@ export function ParishContactsSection({
   phone: string | null;
   email: string | null;
   extra: string;
+  contactPhotoUrl?: string | null;
   contactButtons?: FooterContactButton[];
 }) {
   return (
     <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:justify-between">
       <div className="min-w-0 lg:max-w-xl">
-        <h3 className="font-display text-lg font-semibold text-parish-text">
-          {t(lang, "contacts")}
-        </h3>
-        {priestName ? (
-          <p className="mt-2 text-sm font-medium text-parish-text">{priestName}</p>
-        ) : null}
-        {phone ? (
-          <p className="mt-2 text-sm font-medium text-parish-muted">
-            <a href={`tel:${phone.replace(/\s/g, "")}`} className="hover:text-parish-accent">
-              {phone}
-            </a>
-          </p>
-        ) : null}
-        {email ? (
-          <p className="mt-1 text-sm font-medium text-parish-muted">
-            <a href={`mailto:${email}`} className="hover:text-parish-accent">
-              {email}
-            </a>
-          </p>
-        ) : null}
-        {contactButtons.length > 0 ? (
-          <ul className="mt-3 flex flex-wrap gap-2">
-            {contactButtons.map((b, i) => (
-              <li key={`${b.url}-${i}`}>
-                <a
-                  href={b.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-lg border border-parish-border bg-parish-surface px-3 py-2 text-sm font-semibold text-parish-accent shadow-sm transition hover:border-parish-accent/50 hover:bg-parish-accent-soft"
-                >
-                  <ContactGlyph icon={b.icon} />
-                  {b.label}
+        <div className="flex items-start gap-4">
+          {contactPhotoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={contactPhotoUrl}
+              alt=""
+              className="h-24 w-24 shrink-0 rounded-full border border-parish-border object-cover"
+            />
+          ) : null}
+          <div className="min-w-0 flex-1">
+            <h3 className="font-display text-lg font-semibold text-parish-text">
+              {t(lang, "contacts")}
+            </h3>
+            {priestName ? (
+              <p className="mt-2 text-sm font-medium text-parish-text">{priestName}</p>
+            ) : null}
+            {phone ? (
+              <p className="mt-2 text-sm font-medium text-parish-muted">
+                <a href={`tel:${phone.replace(/\s/g, "")}`} className="hover:text-parish-accent">
+                  {phone}
                 </a>
-              </li>
-            ))}
-          </ul>
-        ) : null}
-        {extra ? (
-          <RichOrPlain
-            content={extra}
-            className="rich-html mt-4 border-t border-parish-border/60 pt-4 text-sm leading-relaxed text-parish-muted"
-          />
-        ) : null}
+              </p>
+            ) : null}
+            {email ? (
+              <p className="mt-1 text-sm font-medium text-parish-muted">
+                <a href={`mailto:${email}`} className="hover:text-parish-accent">
+                  {email}
+                </a>
+              </p>
+            ) : null}
+            {contactButtons.length > 0 ? (
+              <ul className="mt-3 flex flex-wrap gap-2">
+                {contactButtons.map((b, i) => (
+                  <li key={`${b.url}-${i}`}>
+                    <a
+                      href={b.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 rounded-lg border border-parish-border bg-parish-surface px-3 py-2 text-sm font-semibold text-parish-accent shadow-sm transition hover:border-parish-accent/50 hover:bg-parish-accent-soft"
+                    >
+                      <ContactGlyph icon={b.icon} />
+                      {b.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+            {extra ? (
+              <RichOrPlain
+                content={extra}
+                className="rich-html mt-4 border-t border-parish-border/60 pt-4 text-sm leading-relaxed text-parish-muted"
+              />
+            ) : null}
+          </div>
+        </div>
       </div>
       <div className="shrink-0 lg:ml-8 lg:max-w-md lg:text-right">
         <h3 className="font-display text-lg font-semibold text-parish-text">

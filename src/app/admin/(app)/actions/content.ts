@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { requireStaff } from "@/lib/admin";
+import { requireStaffCanEditObjects } from "@/lib/admin";
 import { logAdminActivity } from "@/lib/admin-activity-log";
 import { extractMapEmbedSrc } from "@/lib/map-embed";
 import { parseHttpImageUrlFromFormData } from "@/lib/admin-image-url";
@@ -15,7 +15,7 @@ const HISTORY_IMAGE_MAX_BYTES = 8 * 1024 * 1024;
 
 /** Загрузка картинки для страницы «История» → публичный URL (bucket news-images, путь history/{lang}/…). */
 export async function uploadHistoryImage(formData: FormData): Promise<string> {
-  await requireStaff();
+  await requireStaffCanEditObjects();
   const file = formData.get("file");
   const langRaw = (formData.get("lang") as string)?.trim().toLowerCase();
   if (!(file instanceof File) || file.size === 0) {
@@ -65,7 +65,7 @@ export async function uploadHistoryImage(formData: FormData): Promise<string> {
 }
 
 export async function saveHistory(formData: FormData) {
-  const profile = await requireStaff();
+  const profile = await requireStaffCanEditObjects();
   const supabase = await createClient();
   for (const lang of LANGS) {
     const body = (formData.get(`history_${lang}`) as string) ?? "";
@@ -85,7 +85,7 @@ export async function saveHistory(formData: FormData) {
 }
 
 export async function saveFooter(formData: FormData) {
-  const profile = await requireStaff();
+  const profile = await requireStaffCanEditObjects();
   const supabase = await createClient();
 
   const rec: Record<string, unknown> = {};
@@ -102,6 +102,50 @@ export async function saveFooter(formData: FormData) {
   }
   setText("phone", "phone");
   setText("email", "email");
+  if (formData.get("contact_photo_remove") === "1") {
+    rec.contact_photo_url = null;
+  }
+
+  const contactPhoto = formData.get("contact_photo");
+  if (contactPhoto instanceof File && contactPhoto.size > 0) {
+    if (!contactPhoto.type.startsWith("image/")) {
+      throw new Error("Нужен файл изображения");
+    }
+    if (contactPhoto.size > HISTORY_IMAGE_MAX_BYTES) {
+      throw new Error("Файл больше 8 МБ");
+    }
+    const extRaw =
+      contactPhoto.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+    const safeExt = HISTORY_IMAGE_EXT.has(extRaw) ? extRaw : "jpg";
+    const path = `contacts/photo_${Date.now()}_${Math.random().toString(36).slice(2, 9)}.${safeExt}`;
+    const buf = Buffer.from(await contactPhoto.arrayBuffer());
+    const contentType =
+      contactPhoto.type && contactPhoto.type.startsWith("image/")
+        ? contactPhoto.type
+        : safeExt === "png"
+          ? "image/png"
+          : safeExt === "webp"
+            ? "image/webp"
+            : safeExt === "gif"
+              ? "image/gif"
+              : safeExt === "svg"
+                ? "image/svg+xml"
+                : "image/jpeg";
+    const { error } = await supabase.storage.from("news-images").upload(path, buf, {
+      contentType,
+      upsert: false,
+    });
+    if (error) throw new Error(error.message);
+    const { data } = supabase.storage.from("news-images").getPublicUrl(path);
+    rec.contact_photo_url = data.publicUrl;
+  } else {
+    const contactPhotoUrl = parseHttpImageUrlFromFormData(
+      formData,
+      "contact_photo_url",
+      "Фото для контактов (URL)",
+    );
+    if (contactPhotoUrl) rec.contact_photo_url = contactPhotoUrl;
+  }
 
   const mapRaw = (formData.get("map_embed_raw") as string) ?? "";
   const mapSrc = extractMapEmbedSrc(mapRaw);

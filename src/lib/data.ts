@@ -850,6 +850,8 @@ export type FooterSettings = {
   name_en?: string;
   /** iframe src для карты на странице «Наши контакты»; только если задано в админке */
   map_embed_src?: string;
+  /** Фото для раздела контактов */
+  contact_photo_url?: string;
   /** Кнопки (иконка, название, ссылка) */
   contact_buttons?: FooterContactButton[];
 };
@@ -943,6 +945,7 @@ export function resolveFooterDisplay(footer: FooterSettings, lang: Lang) {
     email: footer.email?.trim() || null,
     extra: extra ?? "",
     mapEmbedSrc: mapSrc || null,
+    contactPhotoUrl: footer.contact_photo_url?.trim() || null,
     contactButtons: normalizeContactButtons(footer.contact_buttons),
   };
 }

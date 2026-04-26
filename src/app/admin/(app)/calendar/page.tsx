@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { requireStaff } from "@/lib/admin";
+import { requireStaffCanViewObjects } from "@/lib/admin";
 import { getLang } from "@/lib/i18n-server";
 import type { Lang } from "@/lib/i18n";
 import { getExternalLiturgicalWidgetSettings } from "@/lib/data";
@@ -35,7 +35,7 @@ export default async function AdminCalendarPage({
 }: {
   searchParams: Promise<{ id?: string; offerTemplate?: string }>;
 }) {
-  const profile = await requireStaff();
+  const profile = await requireStaffCanViewObjects();
   const lang = await getLang();
   const { id: openEventId, offerTemplate: offerTemplateRaw } = await searchParams;
   const offerTemplate =

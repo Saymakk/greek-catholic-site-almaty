@@ -55,6 +55,41 @@ export function FooterSettingsForm({
               className="w-full rounded-lg border border-parish-border px-3 py-2 text-sm"
             />
           </div>
+          <div className="max-w-md">
+            <p className="text-sm font-medium text-parish-text">{copy.contactPhotoLabel}</p>
+            {footer.contact_photo_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={footer.contact_photo_url}
+                alt=""
+                className="mt-2 h-28 w-28 rounded-lg border border-parish-border/70 object-cover"
+              />
+            ) : null}
+            <label className="mt-2 block text-xs text-parish-muted">
+              {copy.contactPhotoUpload}
+              <input
+                type="file"
+                name="contact_photo"
+                accept="image/*"
+                className="mt-1 block w-full text-sm text-parish-text"
+              />
+            </label>
+            <label className="mt-2 block text-xs text-parish-muted">
+              {copy.contactPhotoUrlLabel}
+              <input
+                type="url"
+                name="contact_photo_url"
+                defaultValue={footer.contact_photo_url ?? ""}
+                placeholder="https://…"
+                className="mt-1 block w-full rounded border border-parish-border px-2 py-1.5 text-sm text-parish-text"
+              />
+            </label>
+            <label className="mt-2 inline-flex items-center gap-2 text-xs text-parish-muted">
+              <input type="checkbox" name="contact_photo_remove" value="1" className="rounded" />
+              {copy.contactPhotoRemove}
+            </label>
+            <p className="mt-1 text-[11px] text-parish-muted">{copy.contactPhotoHint}</p>
+          </div>
         </div>
       </fieldset>
 

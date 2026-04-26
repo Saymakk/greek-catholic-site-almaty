@@ -1,12 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
-import { requireStaff } from "@/lib/admin";
+import { requireStaffCanViewObjects } from "@/lib/admin";
 import { getLang } from "@/lib/i18n-server";
 import { normalizeBookLocales } from "./book-locales";
 import { AdminBooksClient, type AdminBookPayload } from "./AdminBooksClient";
 import { normalizeGalleryUrls } from "@/lib/gallery-urls";
 
 export default async function AdminBooksPage() {
-  await requireStaff();
+  await requireStaffCanViewObjects();
   const lang = await getLang();
   const supabase = await createClient();
   const { data: books } = await supabase
