@@ -24,6 +24,23 @@ function orderedLocales(primary: ContentLang, present: Set<string>): ContentLang
   return [primary, ...CONTENT.filter((l) => l !== primary && present.has(l))];
 }
 
+function parsePublishedAtForCreate(formData: FormData, allowPast: boolean): string {
+  const raw = String(formData.get("published_at") ?? "").trim();
+  if (!raw) return new Date().toISOString();
+  const dt = new Date(raw);
+  if (Number.isNaN(dt.getTime())) {
+    throw new Error("Дата публикации: некорректная дата");
+  }
+  if (!allowPast) {
+    // Небольшой допуск, чтобы не падать из-за задержки между открытием формы и submit.
+    const nowMinus2m = Date.now() - 2 * 60 * 1000;
+    if (dt.getTime() < nowMinus2m) {
+      throw new Error("Дата публикации: прошедшая дата доступна только суперадмину");
+    }
+  }
+  return dt.toISOString();
+}
+
 async function uploadNewsCover(
   supabase: Awaited<ReturnType<typeof createClient>>,
   newsId: string,
@@ -117,15 +134,16 @@ export async function saveNews(formData: FormData) {
 
   let newsId = id;
   if (!newsId) {
+    const published_at = parsePublishedAtForCreate(formData, profile.role === "superadmin");
     let ins = await supabase
       .from("news")
-      .insert({ is_published: published, primary_lang })
+      .insert({ is_published: published, primary_lang, published_at })
       .select("id")
       .single();
     if (ins.error && isSchemaCacheMissingColumn(ins.error, "primary_lang")) {
       ins = await supabase
         .from("news")
-        .insert({ is_published: published })
+        .insert({ is_published: published, published_at })
         .select("id")
         .single();
     }

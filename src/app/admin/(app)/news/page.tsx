@@ -11,7 +11,7 @@ export default async function AdminNewsListPage({
 }: {
   searchParams: Promise<{ id?: string }>;
 }) {
-  await requireStaffCanViewObjects();
+  const profile = await requireStaffCanViewObjects();
   const lang = await getLang();
   const { id: openNewsId } = await searchParams;
   const supabase = await createClient();
@@ -96,6 +96,7 @@ export default async function AdminNewsListPage({
       lang={lang}
       items={items}
       initialNewsId={openNewsId ?? null}
+      canSelectPastPublishedAt={profile.role === "superadmin"}
     />
   );
 }

@@ -56,10 +56,12 @@ export function AdminNewsClient({
   lang,
   items,
   initialNewsId,
+  canSelectPastPublishedAt,
 }: {
   lang: Lang;
   items: AdminNewsPayload[];
   initialNewsId: string | null;
+  canSelectPastPublishedAt: boolean;
 }) {
   const c = adminNewsScreenCopy(lang);
   const imageCopy = adminSharedImageCopy(lang);
@@ -197,7 +199,8 @@ export function AdminNewsClient({
               formMsg={c}
               imageCopy={imageCopy}
               newsId={active.id}
-              publishedAt={format(parseISO(active.published_at), "dd.MM.yyyy HH:mm")}
+              publishedAtIso={active.published_at}
+              publishedAtLabel={format(parseISO(active.published_at), "dd.MM.yyyy HH:mm")}
               isPublished={active.is_published}
               primaryLang={active.primary_lang}
               coverImageUrl={active.cover_image_url}
@@ -206,6 +209,7 @@ export function AdminNewsClient({
               submitLabel={mode === "add" ? c.add : c.save}
               onCancel={closeDialog}
               uiLang={lang}
+              canSelectPastPublishedAt={canSelectPastPublishedAt}
             />
           </div>
         ) : null}

@@ -5,38 +5,36 @@ import {
 } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { cache } from "react";
+import { getSupabaseEnv } from "./config";
 
 /** Анонимный клиент без auth-cookies — публичные запросы в `data.ts` (нет refresh по битому токену). */
 export const createPublicClient = cache((): SupabaseClient =>
-  createSupabaseClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  ),
+  (() => {
+    const { url, anonKey } = getSupabaseEnv();
+    return createSupabaseClient(url, anonKey);
+  })(),
 );
 
 export const createClient = cache(async () => {
   const cookieStore = await cookies();
+  const { url, anonKey } = getSupabaseEnv();
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options),
-            );
-          } catch {
-            /* Server Component */
-          }
-        },
+  const supabase = createServerClient(url, anonKey, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll();
+      },
+      setAll(cookiesToSet) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            cookieStore.set(name, value, options),
+          );
+        } catch {
+          /* Server Component */
+        }
       },
     },
-  );
+  });
 
   const { error: authError } = await supabase.auth.getUser();
   if (
@@ -51,10 +49,10 @@ export const createClient = cache(async () => {
 });
 
 export function createServiceClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const { url, serviceRoleKey } = getSupabaseEnv();
+  const key = serviceRoleKey;
   if (!url || !key) {
-    throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY or URL");
+    throw new Error("Missing service role key or Supabase URL for selected target");
   }
   return createSupabaseClient(url, key);
 }

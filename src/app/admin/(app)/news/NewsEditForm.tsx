@@ -27,11 +27,24 @@ function editionTitle(code: string) {
   return code.toUpperCase();
 }
 
+function toLocalDateTimeInputValue(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const y = d.getFullYear();
+  const m = pad(d.getMonth() + 1);
+  const day = pad(d.getDate());
+  const h = pad(d.getHours());
+  const min = pad(d.getMinutes());
+  return `${y}-${m}-${day}T${h}:${min}`;
+}
+
 export function NewsEditForm({
   formMsg,
   imageCopy,
   newsId,
-  publishedAt,
+  publishedAtIso,
+  publishedAtLabel,
   isPublished: isPublishedInitial,
   primaryLang: primaryLangDb,
   coverImageUrl: coverImageUrlProp,
@@ -40,11 +53,13 @@ export function NewsEditForm({
   submitLabel,
   onCancel,
   uiLang,
+  canSelectPastPublishedAt,
 }: {
   formMsg: AdminNewsScreenCopy;
   imageCopy: AdminSharedImageCopy;
   newsId: string;
-  publishedAt: string;
+  publishedAtIso: string;
+  publishedAtLabel: string;
   isPublished: boolean;
   primaryLang: string | null;
   coverImageUrl: string | null;
@@ -53,6 +68,7 @@ export function NewsEditForm({
   submitLabel: string;
   onCancel?: () => void;
   uiLang: Lang;
+  canSelectPastPublishedAt: boolean;
 }) {
   const ui = uiLang as ContentLang;
   const [primaryLang, setPrimaryLang] = useState<ContentLang>(() =>
@@ -87,6 +103,11 @@ export function NewsEditForm({
 
   const orderedLangCodes = sortNewsLangsForForm(activeLangs, primaryLang);
   const displayCover = !coverRemoved && coverImageUrlProp;
+  const isCreate = !newsId;
+  const publishedAtInputDefault = toLocalDateTimeInputValue(
+    isCreate ? new Date().toISOString() : publishedAtIso,
+  );
+  const minPublishedAtInput = toLocalDateTimeInputValue(new Date().toISOString());
 
   return (
     <form action={saveNews} className="flex min-h-0 min-w-0 flex-1 flex-col">
@@ -113,9 +134,22 @@ export function NewsEditForm({
             ))}
           </select>
         </label>
-        <p className="text-xs text-parish-muted">
-          {formMsg.publishedAt}: {publishedAt}
-        </p>
+        {isCreate ? (
+          <label className="block text-xs text-parish-muted sm:text-sm">
+            {formMsg.publishedAt}
+            <input
+              type="datetime-local"
+              name="published_at"
+              defaultValue={publishedAtInputDefault}
+              min={canSelectPastPublishedAt ? undefined : minPublishedAtInput}
+              className="mt-1 block w-full max-w-md rounded border border-parish-border bg-parish-surface px-2 py-1.5 text-sm text-parish-text"
+            />
+          </label>
+        ) : (
+          <p className="text-xs text-parish-muted">
+            {formMsg.publishedAt}: {publishedAtLabel}
+          </p>
+        )}
         <label className="flex items-center gap-2 text-sm text-parish-text">
           <input
             type="checkbox"

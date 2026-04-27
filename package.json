@@ -7,7 +7,13 @@
     "dev:clean": "node -e \"require('fs').rmSync('.next',{recursive:true,force:true})\" && next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:local:start": "npx --yes supabase@2.95.3 start",
+    "db:local:stop": "npx --yes supabase@2.95.3 stop",
+    "db:local:reset": "npx --yes supabase@2.95.3 db reset",
+    "db:local:status": "npx --yes supabase@2.95.3 status",
+    "env:use:local": "node scripts/switch-env.cjs local",
+    "env:use:remote": "node scripts/switch-env.cjs remote"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.0",
