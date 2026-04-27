@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { requireStaffCanViewObjects } from "@/lib/admin";
+import { requireStaff } from "@/lib/admin";
 import { getLang } from "@/lib/i18n-server";
 import { AdminHistoryClient } from "./AdminHistoryClient";
 import { normalizeHistoryLocales } from "./history-entity-locales";
@@ -9,7 +9,7 @@ export default async function AdminHistoryPage({
 }: {
   searchParams: Promise<{ edit?: string }>;
 }) {
-  await requireStaffCanViewObjects();
+  await requireStaff();
   const uiLang = await getLang();
   const { edit } = await searchParams;
   const autoOpen = edit === "1" || edit === "true";

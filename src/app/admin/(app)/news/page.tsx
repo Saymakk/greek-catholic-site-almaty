@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { requireStaffCanViewObjects } from "@/lib/admin";
+import { requireStaff } from "@/lib/admin";
 import { getLang } from "@/lib/i18n-server";
 import { AdminNewsClient, type AdminNewsPayload } from "./AdminNewsClient";
 import { normalizeNewsLocales } from "./news-entity-locales";
@@ -11,7 +11,7 @@ export default async function AdminNewsListPage({
 }: {
   searchParams: Promise<{ id?: string }>;
 }) {
-  const profile = await requireStaffCanViewObjects();
+  const profile = await requireStaff();
   const lang = await getLang();
   const { id: openNewsId } = await searchParams;
   const supabase = await createClient();

@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { requireStaffCanEditObjects } from "@/lib/admin";
+import { requireStaff } from "@/lib/admin";
 import { logAdminActivity } from "@/lib/admin-activity-log";
 import { parseHttpImageUrlFromFormData } from "@/lib/admin-image-url";
 import type { ClergyExtraField } from "@/lib/data";
@@ -99,7 +99,7 @@ async function uploadClergyPhoto(
 export async function deleteClergyForm(formData: FormData) {
   const id = (formData.get("id") as string)?.trim();
   if (!id) return;
-  const profile = await requireStaffCanEditObjects();
+  const profile = await requireStaff();
   const supabase = await createClient();
   await supabase.from("clergy").delete().eq("id", id);
   await logAdminActivity(supabase, profile, {
@@ -113,7 +113,7 @@ export async function deleteClergyForm(formData: FormData) {
 }
 
 export async function reorderClergyForm(formData: FormData) {
-  await requireStaffCanEditObjects();
+  await requireStaff();
   const id = (formData.get("id") as string)?.trim();
   const dir = (formData.get("dir") as string)?.trim();
   if (!id || (dir !== "up" && dir !== "down")) {
@@ -143,7 +143,7 @@ export async function reorderClergyForm(formData: FormData) {
 }
 
 export async function removeClergyPhoto(clergyId: string) {
-  const profile = await requireStaffCanEditObjects();
+  const profile = await requireStaff();
   if (!clergyId) return;
   const supabase = await createClient();
   const { error } = await supabase
@@ -161,7 +161,7 @@ export async function removeClergyPhoto(clergyId: string) {
 }
 
 export async function saveClergy(formData: FormData) {
-  const profile = await requireStaffCanEditObjects();
+  const profile = await requireStaff();
   const supabase = await createClient();
   const id = ((formData.get("id") as string) ?? "").trim();
 

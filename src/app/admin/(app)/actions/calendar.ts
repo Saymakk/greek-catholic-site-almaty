@@ -2,7 +2,7 @@
 
 import { randomUUID } from "crypto";
 import { createClient } from "@/lib/supabase/server";
-import { requireStaffCanEditObjects } from "@/lib/admin";
+import { requireStaff } from "@/lib/admin";
 import type { StaffProfile } from "@/lib/admin";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -384,7 +384,7 @@ async function persistLiturgicalEventTranslations(
 }
 
 export async function removeLiturgicalCover(eventId: string) {
-  const profile = await requireStaffCanEditObjects();
+  const profile = await requireStaff();
   if (!eventId) return;
   const supabase = await createClient();
   const { error } = await supabase
@@ -406,7 +406,7 @@ export async function removeLiturgicalCover(eventId: string) {
 export async function deleteLiturgicalEventForm(formData: FormData) {
   const id = formData.get("id") as string;
   if (!id) return;
-  const profile = await requireStaffCanEditObjects();
+  const profile = await requireStaff();
   const supabase = await createClient();
   await supabase.from("liturgical_events").delete().eq("id", id);
   await logAdminActivity(supabase, profile, {
@@ -419,7 +419,7 @@ export async function deleteLiturgicalEventForm(formData: FormData) {
 }
 
 export async function saveLiturgicalEvent(formData: FormData) {
-  const profile = await requireStaffCanEditObjects();
+  const profile = await requireStaff();
   const supabase = await createClient();
   const id = (formData.get("id") as string) || "";
   const event_date = formData.get("event_date") as string;
@@ -550,7 +550,7 @@ export async function saveLiturgicalEvent(formData: FormData) {
 }
 
 export async function saveLiturgicalTemplateForm(formData: FormData) {
-  const profile = await requireStaffCanEditObjects();
+  const profile = await requireStaff();
   const supabase = await createClient();
   const name = (formData.get("template_name") as string)?.trim();
   const rowsRaw = (formData.get("template_rows_json") as string) ?? "[]";
@@ -615,7 +615,7 @@ async function insertTemplateRows(
 export async function deleteLiturgicalTemplateForm(formData: FormData) {
   const id = formData.get("id") as string;
   if (!id) return;
-  const profile = await requireStaffCanEditObjects();
+  const profile = await requireStaff();
   const supabase = await createClient();
   await supabase.from("liturgical_event_templates").delete().eq("id", id);
   await logAdminActivity(supabase, profile, {
@@ -628,7 +628,7 @@ export async function deleteLiturgicalTemplateForm(formData: FormData) {
 }
 
 export async function saveLiturgicalTemplateFromEventForm(formData: FormData) {
-  const profile = await requireStaffCanEditObjects();
+  const profile = await requireStaff();
   const supabase = await createClient();
   const eventId = (formData.get("event_id") as string)?.trim();
   const name = (formData.get("template_name") as string)?.trim();
@@ -693,7 +693,7 @@ export async function saveLiturgicalTemplateFromEventForm(formData: FormData) {
 }
 
 export async function updateLiturgicalTemplateForm(formData: FormData) {
-  const profile = await requireStaffCanEditObjects();
+  const profile = await requireStaff();
   const supabase = await createClient();
   const id = (formData.get("id") as string)?.trim();
   const name = (formData.get("template_name") as string)?.trim();
@@ -733,7 +733,7 @@ export async function updateLiturgicalTemplateForm(formData: FormData) {
 }
 
 export async function saveExternalLiturgicalWidgetForm(formData: FormData) {
-  const profile = await requireStaffCanEditObjects();
+  const profile = await requireStaff();
   const supabase = await createClient();
   const { data: row } = await supabase
     .from("site_settings")

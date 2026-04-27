@@ -1,4 +1,4 @@
-import { requireStaffCanViewObjects } from "@/lib/admin";
+import { requireStaff } from "@/lib/admin";
 import { getLang } from "@/lib/i18n-server";
 import { adminSettingsCopy } from "@/lib/admin-layout-i18n";
 import { FooterSettingsForm } from "./FooterSettingsForm";
@@ -26,7 +26,7 @@ export default async function AdminSettingsPage({
 }: {
   searchParams: Promise<{ footer_err?: string }>;
 }) {
-  await requireStaffCanViewObjects();
+  await requireStaff();
   const lang = await getLang();
   const s = adminSettingsCopy(lang);
   const q = await searchParams;

@@ -11,8 +11,6 @@ export type AdminUserRow = {
   email: string | null;
   full_name: string | null;
   role: string;
-  can_view_all_objects: boolean;
-  can_edit_all_objects: boolean;
   created_at: string;
 };
 
@@ -57,8 +55,6 @@ export function AdminUsersClient({
   const [role, setRole] = useState<"admin" | "superadmin">("admin");
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
-  const [canViewAllObjects, setCanViewAllObjects] = useState(true);
-  const [canEditAllObjects, setCanEditAllObjects] = useState(true);
 
   useEffect(() => {
     const d = dialogRef.current;
@@ -73,19 +69,11 @@ export function AdminUsersClient({
     return () => d.removeEventListener("close", onClose);
   }, []);
 
-  useEffect(() => {
-    if (role !== "superadmin") return;
-    setCanViewAllObjects(true);
-    setCanEditAllObjects(true);
-  }, [role]);
-
   function openEdit(u: AdminUserRow) {
     setEditing(u);
     setEmail(u.email ?? "");
     setFullName(u.full_name ?? "");
     setRole(u.role === "superadmin" ? "superadmin" : "admin");
-    setCanViewAllObjects(u.role === "superadmin" ? true : !!u.can_view_all_objects);
-    setCanEditAllObjects(u.role === "superadmin" ? true : !!u.can_edit_all_objects);
     setPassword("");
     setPassword2("");
     setErr(null);
@@ -117,8 +105,6 @@ export function AdminUsersClient({
         email: email.trim().toLowerCase(),
         full_name: fullName.trim() || null,
         role,
-        can_view_all_objects: role === "superadmin" ? true : canViewAllObjects,
-        can_edit_all_objects: role === "superadmin" ? true : canEditAllObjects,
       };
       if (password.length > 0) body.password = password;
       const res = await fetch("/api/admin/users", {
@@ -258,26 +244,6 @@ export function AdminUsersClient({
                   <option value="admin">{copy.roleAdmin}</option>
                   <option value="superadmin">{copy.roleSuperadmin}</option>
                 </select>
-              </label>
-              <label className="flex items-center gap-2 text-sm text-parish-muted">
-                <input
-                  type="checkbox"
-                  checked={canViewAllObjects}
-                  onChange={(e) => setCanViewAllObjects(e.target.checked)}
-                  disabled={role === "superadmin"}
-                  className="rounded"
-                />
-                <span className="font-medium text-parish-text">{copy.canViewAllObjectsLabel}</span>
-              </label>
-              <label className="flex items-center gap-2 text-sm text-parish-muted">
-                <input
-                  type="checkbox"
-                  checked={canEditAllObjects}
-                  onChange={(e) => setCanEditAllObjects(e.target.checked)}
-                  disabled={role === "superadmin"}
-                  className="rounded"
-                />
-                <span className="font-medium text-parish-text">{copy.canEditAllObjectsLabel}</span>
               </label>
               <label className="flex flex-col gap-1 text-sm text-parish-muted">
                 <span className="font-medium text-parish-text">

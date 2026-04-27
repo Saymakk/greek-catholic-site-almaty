@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { requireStaffCanEditObjects } from "@/lib/admin";
+import { requireStaff } from "@/lib/admin";
 import { logAdminActivity } from "@/lib/admin-activity-log";
 import { extractMapEmbedSrc } from "@/lib/map-embed";
 import { parseHttpImageUrlFromFormData } from "@/lib/admin-image-url";
@@ -15,7 +15,7 @@ const HISTORY_IMAGE_MAX_BYTES = 8 * 1024 * 1024;
 
 /** Загрузка картинки для страницы «История» → публичный URL (bucket news-images, путь history/{lang}/…). */
 export async function uploadHistoryImage(formData: FormData): Promise<string> {
-  await requireStaffCanEditObjects();
+  await requireStaff();
   const file = formData.get("file");
   const langRaw = (formData.get("lang") as string)?.trim().toLowerCase();
   if (!(file instanceof File) || file.size === 0) {
@@ -65,7 +65,7 @@ export async function uploadHistoryImage(formData: FormData): Promise<string> {
 }
 
 export async function saveHistory(formData: FormData) {
-  const profile = await requireStaffCanEditObjects();
+  const profile = await requireStaff();
   const supabase = await createClient();
   for (const lang of LANGS) {
     const body = (formData.get(`history_${lang}`) as string) ?? "";
@@ -85,7 +85,7 @@ export async function saveHistory(formData: FormData) {
 }
 
 export async function saveFooter(formData: FormData) {
-  const profile = await requireStaffCanEditObjects();
+  const profile = await requireStaff();
   const supabase = await createClient();
 
   const rec: Record<string, unknown> = {};

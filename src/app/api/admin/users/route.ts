@@ -1,6 +1,5 @@
 import { logAdminActivity } from "@/lib/admin-activity-log";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
-import { isSchemaCacheMissingColumn } from "@/lib/supabase-column-fallback";
 import { NextResponse } from "next/server";
 
 const MIN_PASSWORD_LEN = 8;
@@ -10,8 +9,6 @@ type ProfileRow = {
   email: string | null;
   full_name: string | null;
   role: string;
-  can_view_all_objects: boolean;
-  can_edit_all_objects: boolean;
   created_at: string;
 };
 
@@ -47,30 +44,10 @@ export async function GET() {
   const ctx = await requireSuperadminApi();
   if ("error" in ctx) return ctx.error;
 
-  const q = await ctx.supabase
+  const { data, error } = await ctx.supabase
     .from("profiles")
-    .select("id, email, full_name, role, can_view_all_objects, can_edit_all_objects, created_at")
+    .select("id, email, full_name, role, created_at")
     .order("created_at", { ascending: true });
-  let data = q.data as
-    | {
-        id: string;
-        email: string | null;
-        full_name: string | null;
-        role: string;
-        can_view_all_objects?: boolean;
-        can_edit_all_objects?: boolean;
-        created_at: string;
-      }[]
-    | null;
-  let error = q.error;
-  if (error && isSchemaCacheMissingColumn(error, "can_view_all_objects")) {
-    const fallback = await ctx.supabase
-      .from("profiles")
-      .select("id, email, full_name, role, created_at")
-      .order("created_at", { ascending: true });
-    data = fallback.data as typeof data;
-    error = fallback.error;
-  }
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -145,8 +122,6 @@ export async function PATCH(req: Request) {
     full_name?: string | null;
     email?: string;
     password?: string;
-    can_view_all_objects?: boolean;
-    can_edit_all_objects?: boolean;
   };
   try {
     body = (await req.json()) as typeof body;
@@ -159,28 +134,11 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: "Укажите id" }, { status: 400 });
   }
 
-  const targetRes = await supabase
+  const { data: target } = await supabase
     .from("profiles")
-    .select("id, role, email, can_view_all_objects, can_edit_all_objects")
+    .select("id, role, email")
     .eq("id", targetId)
     .single();
-  let target = targetRes.data as
-    | {
-        id: string;
-        role: string;
-        email: string | null;
-        can_view_all_objects?: boolean;
-        can_edit_all_objects?: boolean;
-      }
-    | null;
-  if (targetRes.error && isSchemaCacheMissingColumn(targetRes.error, "can_view_all_objects")) {
-    const fallback = await supabase
-      .from("profiles")
-      .select("id, role, email")
-      .eq("id", targetId)
-      .single();
-    target = fallback.data as typeof target;
-  }
   if (!target) {
     return NextResponse.json({ error: "Пользователь не найден" }, { status: 404 });
   }
@@ -229,16 +187,6 @@ export async function PATCH(req: Request) {
   const profilePatch: Record<string, unknown> = {};
   if (body.role !== undefined) profilePatch.role = body.role;
   if (body.full_name !== undefined) profilePatch.full_name = body.full_name?.trim() || null;
-  if (body.role === "superadmin") {
-    profilePatch.can_view_all_objects = true;
-    profilePatch.can_edit_all_objects = true;
-  }
-  if (typeof body.can_view_all_objects === "boolean") {
-    profilePatch.can_view_all_objects = body.role === "superadmin" ? true : body.can_view_all_objects;
-  }
-  if (typeof body.can_edit_all_objects === "boolean") {
-    profilePatch.can_edit_all_objects = body.role === "superadmin" ? true : body.can_edit_all_objects;
-  }
   if (emailNext) profilePatch.email = emailNext;
   else if (body.email !== undefined && !emailNext) {
     return NextResponse.json({ error: "Укажите email" }, { status: 400 });

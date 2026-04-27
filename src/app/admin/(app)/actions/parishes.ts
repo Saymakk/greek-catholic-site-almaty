@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { requireStaffCanEditObjects } from "@/lib/admin";
+import { requireStaff } from "@/lib/admin";
 import { logAdminActivity } from "@/lib/admin-activity-log";
 import { extractMapEmbedSrc } from "@/lib/map-embed";
 import { parseHttpImageUrlFromFormData } from "@/lib/admin-image-url";
@@ -49,7 +49,7 @@ async function uploadParishImage(
 export async function deleteParishForm(formData: FormData) {
   const id = (formData.get("id") as string)?.trim();
   if (!id) return;
-  const profile = await requireStaffCanEditObjects();
+  const profile = await requireStaff();
   const supabase = await createClient();
   await supabase.from("kazakhstan_parishes").delete().eq("id", id);
   await logAdminActivity(supabase, profile, {
@@ -63,7 +63,7 @@ export async function deleteParishForm(formData: FormData) {
 }
 
 export async function reorderParishForm(formData: FormData) {
-  await requireStaffCanEditObjects();
+  await requireStaff();
   const id = (formData.get("id") as string)?.trim();
   const dir = (formData.get("dir") as string)?.trim();
   if (!id || (dir !== "up" && dir !== "down")) {
@@ -93,7 +93,7 @@ export async function reorderParishForm(formData: FormData) {
 }
 
 export async function removeParishImage(parishId: string, role: "parish" | "priest") {
-  const profile = await requireStaffCanEditObjects();
+  const profile = await requireStaff();
   if (!parishId || (role !== "parish" && role !== "priest")) return;
   const supabase = await createClient();
   const col = role === "parish" ? "parish_photo_url" : "priest_photo_url";
@@ -112,7 +112,7 @@ export async function removeParishImage(parishId: string, role: "parish" | "prie
 }
 
 export async function saveParish(formData: FormData) {
-  const profile = await requireStaffCanEditObjects();
+  const profile = await requireStaff();
   const supabase = await createClient();
   const id = ((formData.get("id") as string) ?? "").trim();
   const mapRaw = (formData.get("map_embed_raw") as string) ?? "";

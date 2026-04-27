@@ -1153,8 +1153,6 @@ export type AdminUsersScreenCopy = {
   roleLabel: string;
   roleAdmin: string;
   roleSuperadmin: string;
-  canViewAllObjectsLabel: string;
-  canEditAllObjectsLabel: string;
   newPasswordOptional: string;
   newPasswordHint: string;
   confirmDelete: string;
@@ -1194,8 +1192,6 @@ export function adminUsersScreenCopy(lang: Lang): AdminUsersScreenCopy {
       roleLabel: "Роль",
       roleAdmin: "Админ",
       roleSuperadmin: "Суперадмин",
-      canViewAllObjectsLabel: "Может видеть все объекты в админке",
-      canEditAllObjectsLabel: "Может редактировать все объекты",
       newPasswordOptional: "Новый пароль",
       newPasswordHint: "оставьте пустым, если не меняете",
       confirmDelete: "Удалить этого пользователя? Войти под ним станет невозможно.",
@@ -1232,8 +1228,6 @@ export function adminUsersScreenCopy(lang: Lang): AdminUsersScreenCopy {
       roleLabel: "Роль",
       roleAdmin: "Адмін",
       roleSuperadmin: "Суперадмін",
-      canViewAllObjectsLabel: "Може бачити всі об'єкти в адмінці",
-      canEditAllObjectsLabel: "Може редагувати всі об'єкти",
       newPasswordOptional: "Новий пароль",
       newPasswordHint: "залиште порожнім, якщо не змінюєте",
       confirmDelete: "Видалити цього користувача? Увійти під ним буде неможливо.",
@@ -1270,8 +1264,6 @@ export function adminUsersScreenCopy(lang: Lang): AdminUsersScreenCopy {
       roleLabel: "Рөлі",
       roleAdmin: "Әкімші",
       roleSuperadmin: "Суперәкімші",
-      canViewAllObjectsLabel: "Админкадағы барлық нысандарды көре алады",
-      canEditAllObjectsLabel: "Барлық нысандарды өңдей алады",
       newPasswordOptional: "Жаңа құпия сөз",
       newPasswordHint: "өзгертпесеңіз бос қалдырыңыз",
       confirmDelete: "Бұл пайдаланушыны жоясыз ба? Кіру мүмкін болмайды.",
@@ -1308,8 +1300,6 @@ export function adminUsersScreenCopy(lang: Lang): AdminUsersScreenCopy {
       roleLabel: "Role",
       roleAdmin: "Admin",
       roleSuperadmin: "Superadmin",
-      canViewAllObjectsLabel: "Can view all admin objects",
-      canEditAllObjectsLabel: "Can edit all objects",
       newPasswordOptional: "New password",
       newPasswordHint: "leave empty to keep current",
       confirmDelete: "Delete this user? They will no longer be able to sign in.",
