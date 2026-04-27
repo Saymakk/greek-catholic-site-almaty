@@ -106,3 +106,26 @@
 - Проверка текущего режима и статусов: `./scripts/status.sh`
 
 Оба deploy-скрипта не выполняют `supabase db reset`.
+
+### Автозапуск local-режима после ребута сервера (systemd)
+
+В репозитории есть unit-файл: `deploy/systemd/ugcc-local-stack.service`.
+
+Установка на сервере:
+
+1. Выдать права на скрипты:
+   - `chmod +x scripts/start-local-stack.sh scripts/stop-local-stack.sh`
+2. Скопировать unit:
+   - `sudo cp deploy/systemd/ugcc-local-stack.service /etc/systemd/system/`
+3. Перечитать конфигурацию:
+   - `sudo systemctl daemon-reload`
+4. Включить автозапуск:
+   - `sudo systemctl enable ugcc-local-stack.service`
+5. Запустить:
+   - `sudo systemctl start ugcc-local-stack.service`
+6. Проверить статус:
+   - `sudo systemctl status ugcc-local-stack.service`
+
+Остановить вручную:
+
+- `sudo systemctl stop ugcc-local-stack.service`

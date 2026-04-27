@@ -1,0 +1,16 @@
+[Unit]
+Description=UGCC Almaty local Supabase + app stack
+After=network-online.target docker.service
+Wants=network-online.target docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/opt/sites/ugcc-almaty
+ExecStart=/opt/sites/ugcc-almaty/scripts/start-local-stack.sh
+ExecStop=/opt/sites/ugcc-almaty/scripts/stop-local-stack.sh
+TimeoutStartSec=900
+TimeoutStopSec=180
+
+[Install]
+WantedBy=multi-user.target
